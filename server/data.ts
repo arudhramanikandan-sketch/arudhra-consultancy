@@ -3,8 +3,8 @@ import { Job, Enquiry, VideoItem, Advertisement, SiteSettings, User } from '../s
 export const initialSiteSettings: SiteSettings = {
   businessName: 'ARUDHRA CONSULTANCY',
   tagline: 'Singapore Overseas Recruitment & Placement Support',
-  phone: '6374509488',
-  whatsappNumber: '6374509488',
+  phone: '7418845083',
+  whatsappNumber: '7418845083',
   email: 'info@arudhraconsultancy.com',
   officeAddress: '1/149, Ganesh Complex, Avinashi Road, Neelambur, Coimbatore – 641062',
   city: 'Coimbatore',

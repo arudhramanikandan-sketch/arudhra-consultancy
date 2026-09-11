@@ -191,7 +191,21 @@
       "updatedAt": "2026-08-28T08:00:00.000Z"
     }
   ],
-  "enquiries": [],
+  "enquiries": [
+    {
+      "id": "ENQ-03048",
+      "userId": "USR-03047",
+      "jobId": "PORTAL-REGISTRATION",
+      "customerName": "Suresh Kumar",
+      "mobile": "+919840123456",
+      "email": "suresh.kumar@example.com",
+      "jobTitle": "Candidate Portal Registration",
+      "status": "New",
+      "candidateNotes": "Candidate logged in to Singapore Job Portal via WhatsApp (+919840123456). Record saved in Admin Dashboard.",
+      "createdAt": "2026-09-11T09:40:03.048Z",
+      "updatedAt": "2026-09-11T09:40:03.048Z"
+    }
+  ],
   "videos": [],
   "advertisements": [],
   "settings": {
@@ -252,13 +266,52 @@
       "email": "info@arudhraconsultancy.com",
       "role": "admin",
       "createdAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "USR-03047",
+      "mobile": "+919840123456",
+      "name": "Suresh Kumar",
+      "email": "suresh.kumar@example.com",
+      "role": "customer",
+      "createdAt": "2026-09-11T09:40:03.047Z"
     }
   ],
-  "candidates": [],
-  "candidateCounter": 4,
+  "candidates": [
+    {
+      "id": "CAND-0004",
+      "candidateId": "CAND-0004",
+      "userId": "USR-03047",
+      "fullName": "Suresh Kumar",
+      "mobile": "+919840123456",
+      "email": "suresh.kumar@example.com",
+      "nationality": "Indian",
+      "applicationStatus": "Submitted",
+      "documents": [],
+      "interestedJobs": [],
+      "applications": [
+        {
+          "id": "ENQ-03048",
+          "userId": "USR-03047",
+          "jobId": "PORTAL-REGISTRATION",
+          "customerName": "Suresh Kumar",
+          "mobile": "+919840123456",
+          "email": "suresh.kumar@example.com",
+          "jobTitle": "Candidate Portal Registration",
+          "status": "New",
+          "candidateNotes": "Candidate logged in to Singapore Job Portal via WhatsApp (+919840123456). Record saved in Admin Dashboard.",
+          "createdAt": "2026-09-11T09:40:03.048Z",
+          "updatedAt": "2026-09-11T09:40:03.048Z"
+        }
+      ],
+      "createdAt": "2026-09-11T09:40:03.047Z",
+      "updatedAt": "2026-09-11T09:40:03.048Z"
+    }
+  ],
+  "candidateCounter": 5,
   "deletedIds": [
     "CAND-0003",
-    "USR-94580"
+    "USR-94580",
+    "SG-JOB-298043"
   ],
-  "savedAt": "2026-09-08T16:50:14.274Z"
+  "savedAt": "2026-09-11T09:40:03.048Z"
 }

@@ -98,7 +98,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, isAdmin, token } = useAuth();
-  const [jobs, setJobs] = useState<Job[]>(initialJobs);
+  const [jobs, setJobs] = useState<Job[]>([]);
   const [settings, setSettings] = useState<SiteSettings>(initialSiteSettings);
   const [videos, setVideos] = useState<VideoItem[]>([]);
   const [ads, setAds] = useState<Advertisement[]>([]);

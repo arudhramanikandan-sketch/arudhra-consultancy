@@ -23,7 +23,7 @@ export const Footer: React.FC = () => {
   const { user, isAdmin } = useAuth();
 
   const getWhatsAppUrl = () => {
-    const raw = settings.whatsappNumber.replace(/\D/g, '') || '6374509488';
+    const raw = settings.whatsappNumber.replace(/\D/g, '') || '7418845083';
     return `https://wa.me/91${raw.slice(-10)}?text=${encodeURIComponent('Hello Arudhra Consultancy, I want to enquire about Singapore overseas recruitment & placement support.')}`;
   };
 

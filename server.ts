@@ -104,7 +104,7 @@ async function startServer() {
   app.post('/api/candidate-login', handleCandidateLogin);
 
   // Authentication - Candidate Email OTP via Brevo
-  app.get('/api/brevo/status', (req, res) => {
+  app.get(['/api/brevo/status', '/api/admin/brevo/status'], (req, res) => {
     try {
       const status = storage.getBrevoStatus();
       res.json({ success: true, ...status });
@@ -113,7 +113,7 @@ async function startServer() {
     }
   });
 
-  app.post('/api/brevo/test', requireAdminAuth, async (req, res) => {
+  app.post(['/api/brevo/test', '/api/admin/brevo/test'], requireAdminAuth, async (req, res) => {
     try {
       const { email, apiKey, senderEmail, senderName } = req.body;
       if (!email) {
@@ -254,6 +254,30 @@ async function startServer() {
     }
   });
 
+  app.get('/api/auth/admin/2fa/qr', (req, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      const tempToken = req.query.temp2faToken as string;
+      let authorized = false;
+
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        const token = authHeader.split(' ')[1];
+        authorized = storage.validateAdminToken(token);
+      } else if (tempToken) {
+        authorized = storage.validateAdmin2faChallenge(tempToken);
+      }
+
+      if (!authorized) {
+        return res.status(401).json({ success: false, message: 'Unauthorized: Admin session or valid 2FA token required' });
+      }
+
+      const qrData = storage.getAdmin2faQrData();
+      res.json({ success: true, ...qrData });
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
   app.get('/api/auth/admin/verify', requireAdminAuth, (req, res) => {
     res.json({
       success: true,
@@ -300,9 +324,12 @@ async function startServer() {
 
   app.get('/api/jobs/:id', (req, res) => {
     try {
-      const job = storage.getJobById(req.params.id);
+      const authHeader = req.headers.authorization;
+      const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : '';
+      const isAdmin = storage.validateAdminToken(token);
+      const job = storage.getJobById(req.params.id, isAdmin);
       if (!job) {
-        return res.status(404).json({ success: false, message: 'Job not found' });
+        return res.status(404).json({ success: false, message: 'Job not found or not published' });
       }
       res.json({ success: true, job });
     } catch (error: any) {
@@ -386,6 +413,61 @@ async function startServer() {
   });
 
   // Enquiries / Leads Endpoints
+  // Admin Enquiries Export (Protected Admin Endpoint)
+  app.get('/api/admin/enquiries/export', requireAdminAuth, (_req, res) => {
+    try {
+      const enquiries = storage.getEnquiries();
+      const headers = [
+        'Enquiry ID',
+        'Customer Name',
+        'Mobile Number',
+        'Email',
+        'Job Ref ID',
+        'Job Title',
+        'Sector',
+        'Status',
+        'Trade',
+        'Experience',
+        'Notes',
+        'Admin Notes',
+        'Follow Up Date',
+        'Created At'
+      ];
+
+      const escapeCsv = (val: any): string => {
+        if (val === null || val === undefined) return '""';
+        const str = String(val).replace(/"/g, '""');
+        return `"${str}"`;
+      };
+
+      const rows = enquiries.map(e => [
+        escapeCsv(e.id),
+        escapeCsv(e.customerName || ''),
+        escapeCsv(e.mobile || ''),
+        escapeCsv(e.email || ''),
+        escapeCsv(e.jobId || ''),
+        escapeCsv(e.jobTitle || ''),
+        escapeCsv(e.jobCategory || ''),
+        escapeCsv(e.status || 'New'),
+        escapeCsv(e.candidateTrade || ''),
+        escapeCsv(e.candidateExperience || ''),
+        escapeCsv(e.candidateNotes || ''),
+        escapeCsv(e.adminNotes || ''),
+        escapeCsv(e.followUpDate || ''),
+        escapeCsv(e.createdAt || '')
+      ].join(','));
+
+      const csvContent = '\uFEFF' + [headers.join(','), ...rows].join('\r\n');
+      const filename = `enquiries_export_${new Date().toISOString().split('T')[0]}.csv`;
+
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.status(200).send(csvContent);
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message || 'Failed to export enquiries' });
+    }
+  });
+
   app.get('/api/enquiries', (req, res) => {
     try {
       const { userId, mobile, status, search } = req.query;
@@ -667,6 +749,17 @@ async function startServer() {
         return res.status(400).json({ success: false, message: 'userId or mobile number is required' });
       }
 
+      // Security check: If a customer bearer token is provided, verify they only access their own profile
+      const authHeader = req.headers.authorization;
+      if (authHeader) {
+        const tokenAuth = storage.validateCustomerToken(authHeader);
+        if (tokenAuth.valid && tokenAuth.userId && tokenAuth.userId !== 'admin') {
+          if (userId && tokenAuth.userId !== userId) {
+            return res.status(403).json({ success: false, message: 'Access denied: You cannot view another candidate\'s private record' });
+          }
+        }
+      }
+
       const candidate = storage.getCandidateForUser(userId, mobile);
       res.json({ success: true, candidate: candidate || null });
     } catch (error: any) {
@@ -682,6 +775,17 @@ async function startServer() {
 
       if (!lookupKey) {
         return res.status(400).json({ success: false, message: 'userId or mobile is required to update profile' });
+      }
+
+      // Security check: verify caller authorization
+      const authHeader = req.headers.authorization;
+      if (authHeader) {
+        const tokenAuth = storage.validateCustomerToken(authHeader);
+        if (tokenAuth.valid && tokenAuth.userId && tokenAuth.userId !== 'admin') {
+          if (userId && tokenAuth.userId !== userId) {
+            return res.status(403).json({ success: false, message: 'Access denied: You cannot update another candidate\'s private record' });
+          }
+        }
       }
 
       // Ensure candidate exists
@@ -825,6 +929,82 @@ async function startServer() {
   // ----------------------------------------------------
   // ADMIN CANDIDATES MANAGEMENT (STRICTLY ADMIN ONLY)
   // ----------------------------------------------------
+
+  // Customer / Candidate Data Export (CSV / JSON) - Protected Admin Endpoint
+  app.get(['/api/admin/candidates/export', '/api/admin/customers/export'], requireAdminAuth, (req, res) => {
+    try {
+      const format = (req.query.format as string)?.toLowerCase() || 'csv';
+      const candidates = storage.getAdminCandidates();
+
+      if (format === 'json') {
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Content-Disposition', `attachment; filename="candidates_export_${new Date().toISOString().split('T')[0]}.json"`);
+        return res.json({ success: true, count: candidates.length, exportedAt: new Date().toISOString(), candidates });
+      }
+
+      // Generate clean, RFC 4180 compliant CSV
+      const headers = [
+        'Candidate ID',
+        'Full Name',
+        'Mobile Number',
+        'Email',
+        'Trade / Skill',
+        'Experience (Years)',
+        'Passport Number',
+        'Passport Expiry',
+        'Current Location',
+        'Preferred Sector',
+        'Pipeline Status',
+        'Total Applied Jobs',
+        'Applied Job Titles',
+        'Total Documents',
+        'Registered Date',
+        'Last Profile Update',
+        'Admin Remarks'
+      ];
+
+      const escapeCsv = (val: any): string => {
+        if (val === null || val === undefined) return '""';
+        const str = String(val).replace(/"/g, '""');
+        return `"${str}"`;
+      };
+
+      const rows = candidates.map(c => {
+        const appliedTitles = (c.interestedJobs || []).map(j => j.jobTitle).join('; ');
+        const expStr = c.totalExperienceYears 
+          ? `${c.totalExperienceYears} yrs` 
+          : [c.singaporeExperienceYears ? `${c.singaporeExperienceYears} yrs SG` : '', c.gulfExperienceYears ? `${c.gulfExperienceYears} yrs Gulf` : '', c.indiaExperienceYears ? `${c.indiaExperienceYears} yrs India` : ''].filter(Boolean).join(', ');
+        return [
+          escapeCsv(c.candidateId || c.id),
+          escapeCsv(c.fullName || ''),
+          escapeCsv(c.mobile || ''),
+          escapeCsv(c.email || ''),
+          escapeCsv(c.trade || c.educationTrade || ''),
+          escapeCsv(expStr || ''),
+          escapeCsv(c.passportNumber || ''),
+          escapeCsv(c.passportExpiryDate || ''),
+          escapeCsv([c.city, c.state, c.country].filter(Boolean).join(', ') || c.address || ''),
+          escapeCsv(c.educationTrade || c.trade || ''),
+          escapeCsv(c.applicationStatus || 'New Candidate'),
+          escapeCsv((c.interestedJobs || []).length),
+          escapeCsv(appliedTitles),
+          escapeCsv((c.documents || []).length),
+          escapeCsv(c.createdAt || ''),
+          escapeCsv(c.updatedAt || ''),
+          escapeCsv(c.adminRemarks || '')
+        ].join(',');
+      });
+
+      const csvContent = '\uFEFF' + [headers.join(','), ...rows].join('\r\n');
+      const filename = `candidates_export_${new Date().toISOString().split('T')[0]}.csv`;
+
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.status(200).send(csvContent);
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message || 'Failed to export candidate records' });
+    }
+  });
 
   // Search & Filter all Candidates
   app.get('/api/admin/candidates', requireAdminAuth, (req, res) => {

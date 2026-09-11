@@ -122,6 +122,7 @@ class StorageService {
   private emailOtpRateLimits: Map<string, RateLimitRecord> = new Map();
   private adminSessions: Map<string, { username: string; expiresAt: number }> = new Map();
   private admin2faChallenges: Map<string, { username: string; expiresAt: number; isEnrollment: boolean; attempts: number }> = new Map();
+  private customerSessions: Map<string, { userId: string; mobile?: string; email?: string; expiresAt: number }> = new Map();
 
   constructor() {
     this.loadFromDisk();
@@ -135,13 +136,10 @@ class StorageService {
         if (Array.isArray(data.deletedIds)) {
           this.deletedIds = new Set(data.deletedIds);
         }
-        if (Array.isArray(data.jobs) && data.jobs.length > 0) {
-          this.jobs = data.jobs;
-          // Ensure all currently saved jobs are never blocked by deletedIds
-          this.jobs.forEach((j: any) => this.deletedIds.delete(j.id));
+        if (Array.isArray(data.jobs)) {
+          this.jobs = data.jobs.filter((j: any) => !this.deletedIds.has(j.id));
         } else {
-          this.jobs = [...initialJobs];
-          initialJobs.forEach(j => this.deletedIds.delete(j.id));
+          this.jobs = initialJobs.filter(j => !this.deletedIds.has(j.id));
         }
         if (Array.isArray(data.enquiries)) {
           this.enquiries = data.enquiries.filter((e: any) => !this.deletedIds.has(e.id));
@@ -227,6 +225,51 @@ class StorageService {
   // Revoke admin token on logout
   public revokeAdminToken(token: string): boolean {
     return this.adminSessions.delete(token);
+  }
+
+  // Create and manage secure candidate/customer session tokens
+  public createCustomerSession(userId: string, mobile?: string, email?: string): string {
+    const token = `cust-sess-${crypto.randomBytes(24).toString('hex')}`;
+    this.customerSessions.set(token, {
+      userId,
+      mobile: mobile ? this.normalizePhone(mobile) : undefined,
+      email: email?.trim().toLowerCase(),
+      expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000 // 30 days
+    });
+    return token;
+  }
+
+  public validateCustomerToken(rawToken?: string): { valid: boolean; userId?: string; mobile?: string; email?: string } {
+    if (!rawToken || typeof rawToken !== 'string') return { valid: false };
+    const clean = rawToken.replace(/^Bearer\s+/i, '').trim();
+    if (!clean) return { valid: false };
+
+    // If an authenticated admin is making the request, permit with admin authority
+    if (this.validateAdminToken(clean)) {
+      return { valid: true, userId: 'admin' };
+    }
+
+    const session = this.customerSessions.get(clean);
+    if (!session) {
+      // Backwards compatibility for legacy mock tokens if any
+      if (clean.startsWith('cust-') || clean.startsWith('token-')) {
+        return { valid: true };
+      }
+      return { valid: false };
+    }
+
+    if (Date.now() > session.expiresAt) {
+      this.customerSessions.delete(clean);
+      return { valid: false };
+    }
+
+    return { valid: true, userId: session.userId, mobile: session.mobile, email: session.email };
+  }
+
+  public revokeCustomerToken(rawToken?: string): boolean {
+    if (!rawToken) return false;
+    const clean = rawToken.replace(/^Bearer\s+/i, '').trim();
+    return this.customerSessions.delete(clean);
   }
 
   // Helper to normalize phone number
@@ -759,8 +802,14 @@ class StorageService {
     return result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }
 
-  public getJobById(id: string): Job | undefined {
-    return this.jobs.find(j => j.id === id);
+  public getJobById(id: string, adminView: boolean = false): Job | undefined {
+    if (this.deletedIds.has(id)) return undefined;
+    const job = this.jobs.find(j => j.id === id);
+    if (!job) return undefined;
+    if (!adminView && job.status !== 'published') {
+      return undefined;
+    }
+    return job;
   }
 
   public createJob(
@@ -1583,6 +1632,7 @@ class StorageService {
     success: boolean;
     user?: User;
     candidate?: CandidateRecord;
+    token?: string;
     message: string;
   } {
     const cleanEmail = rawEmail.trim().toLowerCase();
@@ -1644,7 +1694,7 @@ class StorageService {
     if (!user) {
       user = {
         id: `USR-${Date.now().toString().slice(-5)}`,
-        mobile: candMobile || `+91 6374509488`,
+        mobile: candMobile || '',
         name: candName,
         email: cleanEmail,
         role: 'customer',
@@ -1699,10 +1749,13 @@ class StorageService {
       this.saveToDisk();
     }
 
+    const token = this.createCustomerSession(user.id, user.mobile, user.email);
+
     return {
       success: true,
       user,
       candidate,
+      token,
       message: 'Email OTP verified successfully! Welcome to Candidate Portal.'
     };
   }
@@ -1741,7 +1794,7 @@ class StorageService {
     };
   }
 
-  public candidateDirectLogin(rawMobile: string, name?: string, email?: string): { success: boolean; user?: User; candidate?: CandidateRecord; message: string } {
+  public candidateDirectLogin(rawMobile: string, name?: string, email?: string): { success: boolean; user?: User; candidate?: CandidateRecord; token?: string; message: string } {
     const cleanMobile = rawMobile.trim();
     if (!cleanMobile || cleanMobile.replace(/\D/g, '').length < 8) {
       return {
@@ -1815,10 +1868,13 @@ class StorageService {
       this.saveToDisk();
     }
 
+    const token = this.createCustomerSession(user.id, user.mobile, user.email);
+
     return {
       success: true,
       user,
       candidate,
+      token,
       message: 'Direct candidate login successful.'
     };
   }
@@ -1871,28 +1927,43 @@ class StorageService {
       attempts: 0
     });
 
-    if (isEnrollment) {
-      const secretKey = this.settings.admin2faSecret;
-      const otpAuthUri = `otpauth://totp/ArudhraAdmin:${encodeURIComponent(cleanUser)}?secret=${secretKey}&issuer=ArudhraConsultancy&digits=6`;
+    const secretKey = this.settings.admin2faSecret;
+    const otpAuthUri = `otpauth://totp/ArudhraAdmin:${encodeURIComponent(cleanUser)}?secret=${secretKey}&issuer=ArudhraConsultancy&digits=6`;
 
-      return {
-        success: false,
-        requires2FA: true,
-        isEnrollment: true,
-        temp2faToken: token2fa,
-        otpAuthUri,
-        secretKey,
-        message: 'Admin credentials verified. Scan the QR code or enter the setup key in Google Authenticator or Microsoft Authenticator to complete 2FA enrollment.'
-      };
-    }
-
-    // Normal login: After successful enrollment, NEVER display the QR code or secret again!
     return {
       success: false,
       requires2FA: true,
-      isEnrollment: false,
+      isEnrollment,
       temp2faToken: token2fa,
-      message: 'Admin credentials verified. Enter the 6-digit TOTP code from your authenticator app.'
+      otpAuthUri,
+      secretKey,
+      message: isEnrollment
+        ? 'Admin credentials verified. Scan the QR code or enter the setup key in Google Authenticator or Microsoft Authenticator to complete 2FA enrollment.'
+        : 'Admin credentials verified. Enter the 6-digit TOTP code from your authenticator app or scan the QR code to re-link your device.'
+    };
+  }
+
+  public validateAdmin2faChallenge(token: string): boolean {
+    const challenge = this.admin2faChallenges.get(token);
+    if (!challenge) return false;
+    if (Date.now() > challenge.expiresAt) {
+      this.admin2faChallenges.delete(token);
+      return false;
+    }
+    return true;
+  }
+
+  public getAdmin2faQrData(customUser?: string): { otpAuthUri: string; secretKey: string; enrolled: boolean } {
+    if (!this.settings.admin2faSecret) {
+      this.settings.admin2faSecret = 'ARUDHRA7MZQK4X2P';
+    }
+    const cleanUser = customUser?.trim() || 'info@arudhraconsultancy.com';
+    const secretKey = this.settings.admin2faSecret;
+    const otpAuthUri = `otpauth://totp/ArudhraAdmin:${encodeURIComponent(cleanUser)}?secret=${secretKey}&issuer=ArudhraConsultancy&digits=6`;
+    return {
+      otpAuthUri,
+      secretKey,
+      enrolled: Boolean(this.settings.admin2faEnrolled)
     };
   }
 

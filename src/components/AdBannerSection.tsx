@@ -40,7 +40,7 @@ export const AdBannerSection: React.FC = () => {
   });
 
   const getWhatsAppFlyerUrl = (flyer: Advertisement) => {
-    const rawNumber = settings.whatsappNumber.replace(/\D/g, '') || '916374509488';
+    const rawNumber = settings.whatsappNumber.replace(/\D/g, '') || '917418845083';
     const msg = `Hello Arudhra Overseas Consultancy, I saw the promotional flyer for "${flyer.title}" on your website. I want to check eligibility, required documents, and apply for this recruitment drive.`;
     return `https://wa.me/${rawNumber}?text=${encodeURIComponent(msg)}`;
   };

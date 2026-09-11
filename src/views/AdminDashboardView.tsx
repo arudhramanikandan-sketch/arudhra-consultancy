@@ -55,7 +55,7 @@ import { LogoEditModal } from '../components/LogoEditModal';
 import { Admin2faQRCode } from '../components/Admin2faQRCode';
 
 export const AdminDashboardView: React.FC = () => {
-  const { user, isAdmin, logout, resetAdmin2faEnrollment, getBrevoStatus, testBrevoEmail } = useAuth();
+  const { user, isAdmin, token, logout, resetAdmin2faEnrollment, getBrevoStatus, testBrevoEmail } = useAuth();
   const {
     jobs,
     enquiries,
@@ -153,6 +153,36 @@ export const AdminDashboardView: React.FC = () => {
   const [brandingPreviewBg, setBrandingPreviewBg] = useState<'light' | 'dark'>('light');
   const [resetQrData, setResetQrData] = useState<{ otpAuthUri?: string; secretKey?: string } | null>(null);
   const [isResetting2fa, setIsResetting2fa] = useState(false);
+  const [show2faQrCode, setShow2faQrCode] = useState(false);
+  const [isLoading2faQr, setIsLoading2faQr] = useState(false);
+  const [active2faQrData, setActive2faQrData] = useState<{ otpAuthUri?: string; secretKey?: string } | null>(null);
+
+  const handleToggleShow2faQr = async () => {
+    if (show2faQrCode) {
+      setShow2faQrCode(false);
+      return;
+    }
+    setIsLoading2faQr(true);
+    try {
+      const token = localStorage.getItem('arudhra_admin_token');
+      const response = await fetch('/api/auth/admin/2fa/qr', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const data = await response.json();
+      if (data.success) {
+        setActive2faQrData({ otpAuthUri: data.otpAuthUri, secretKey: data.secretKey });
+        setShow2faQrCode(true);
+      } else {
+        showToast(data.message || 'Failed to load 2FA QR code', 'error');
+      }
+    } catch {
+      showToast('Error loading 2FA QR code', 'error');
+    } finally {
+      setIsLoading2faQr(false);
+    }
+  };
 
   const handleReset2faEnrollment = async () => {
     if (!window.confirm('Reset 2FA enrollment? The admin will be prompted to re-enroll their authenticator app (Google Authenticator / Microsoft Authenticator) with a new QR code on next login.')) {
@@ -272,6 +302,79 @@ export const AdminDashboardView: React.FC = () => {
       </div>
     );
   }
+
+  const [isExportingCandidates, setIsExportingCandidates] = useState(false);
+  const [isExportingEnquiries, setIsExportingEnquiries] = useState(false);
+
+  const handleExportCandidates = async () => {
+    try {
+      setIsExportingCandidates(true);
+      const activeToken = token || (typeof window !== 'undefined' ? localStorage.getItem('arudhra_auth_token') : null) || '';
+      const res = await fetch('/api/admin/candidates/export', {
+        headers: {
+          Authorization: `Bearer ${activeToken}`
+        }
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => null);
+        throw new Error(errData?.message || `HTTP ${res.status}: Failed to export candidate data`);
+      }
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `arudhra_candidates_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      showToast('Candidate database exported successfully as CSV.', 'success');
+    } catch (err: any) {
+      showToast(err.message || 'Error exporting candidate records', 'error');
+    } finally {
+      setIsExportingCandidates(false);
+    }
+  };
+
+  const handleExportEnquiries = async () => {
+    try {
+      setIsExportingEnquiries(true);
+      const activeToken = token || (typeof window !== 'undefined' ? localStorage.getItem('arudhra_auth_token') : null) || '';
+      const res = await fetch('/api/admin/enquiries/export', {
+        headers: {
+          Authorization: `Bearer ${activeToken}`
+        }
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => null);
+        throw new Error(errData?.message || `HTTP ${res.status}: Failed to export enquiries`);
+      }
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `arudhra_leads_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      showToast('Candidate enquiries and leads exported successfully as CSV.', 'success');
+    } catch (err: any) {
+      showToast(err.message || 'Error exporting leads data', 'error');
+    } finally {
+      setIsExportingEnquiries(false);
+    }
+  };
+
+  const handleToggleJobStatus = async (job: Job) => {
+    try {
+      const nextStatus = job.status === 'published' ? 'unpublished' : 'published';
+      await saveJob({ ...job, status: nextStatus as any });
+      showToast(`Job "${job.title}" is now ${nextStatus === 'published' ? 'Published Live on website' : 'Unpublished (hidden from website)'}.`, 'success');
+    } catch (err: any) {
+      showToast(err.message || 'Failed to update job status', 'error');
+    }
+  };
 
   // --- JOB HANDLERS ---
   const handleOpenNewJob = () => {
@@ -909,6 +1012,17 @@ export const AdminDashboardView: React.FC = () => {
 
               <div className="flex flex-wrap items-center gap-3">
                 <button
+                  type="button"
+                  id="admin-export-candidates-btn"
+                  onClick={handleExportCandidates}
+                  disabled={isExportingCandidates}
+                  className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+                  title="Download and export candidate registrations as CSV"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>{isExportingCandidates ? 'Exporting...' : 'Export Candidates (CSV)'}</span>
+                </button>
+                <button
                   onClick={refreshAdminCandidates}
                   className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
                 >
@@ -1177,14 +1291,35 @@ export const AdminDashboardView: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between">
-                    <span className={`text-[11px] font-bold ${job.status === 'published' ? 'text-emerald-600' : 'text-slate-400'}`}>
-                      ● {job.status === 'published' ? 'Published' : 'Draft'}
+                  <div className="pt-4 mt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+                    <span
+                      className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                        job.status === 'published'
+                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                          : job.status === 'closed'
+                          ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                          : 'bg-amber-50 text-amber-700 border border-amber-200'
+                      }`}
+                    >
+                      <span className={`w-1.5 h-1.5 rounded-full ${job.status === 'published' ? 'bg-emerald-600' : job.status === 'closed' ? 'bg-rose-600' : 'bg-amber-500'}`}></span>
+                      {job.status === 'published' ? 'Live on Website' : job.status === 'closed' ? 'Closed' : job.status === 'draft' ? 'Draft' : 'Unpublished'}
                     </span>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => handleToggleJobStatus(job)}
+                        className={`px-2 py-1 rounded-lg text-[11px] font-bold transition-colors cursor-pointer border ${
+                          job.status === 'published'
+                            ? 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
+                            : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200'
+                        }`}
+                        title={job.status === 'published' ? 'Hide from public website' : 'Make live on public website'}
+                      >
+                        {job.status === 'published' ? 'Unpublish' : 'Publish Live'}
+                      </button>
                       <button
                         onClick={() => handleEditJob(job)}
-                        className="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                        className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
                         title="Edit Job"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
@@ -1193,11 +1328,10 @@ export const AdminDashboardView: React.FC = () => {
                         type="button"
                         id={`delete-job-btn-${job.id}`}
                         onClick={() => handleDeleteJobClick(job)}
-                        className="p-2 text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer flex items-center gap-1 text-xs font-semibold"
+                        className="p-1.5 text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer flex items-center gap-1 text-xs font-semibold"
                         title={`Delete ${job.title}`}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
-                        <span>Delete</span>
                       </button>
                     </div>
                   </div>
@@ -1225,6 +1359,17 @@ export const AdminDashboardView: React.FC = () => {
               </div>
 
               <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+                <button
+                  type="button"
+                  id="export-leads-csv-btn"
+                  onClick={handleExportEnquiries}
+                  disabled={isExportingEnquiries}
+                  className="flex items-center gap-1.5 px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs"
+                  title="Download and export candidate enquiries and leads as CSV"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>{isExportingEnquiries ? 'Exporting...' : 'Export Leads (CSV)'}</span>
+                </button>
                 <button
                   type="button"
                   id="purge-all-leads-btn"
@@ -2329,15 +2474,27 @@ export const AdminDashboardView: React.FC = () => {
                       </div>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={handleReset2faEnrollment}
-                      disabled={isResetting2fa}
-                      className="px-3.5 py-2 bg-stone-800 hover:bg-stone-700 active:scale-95 disabled:opacity-50 text-stone-200 border border-stone-700 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer shrink-0"
-                    >
-                      <RotateCcw className={`w-3.5 h-3.5 text-red-400 ${isResetting2fa ? 'animate-spin' : ''}`} />
-                      <span>{isResetting2fa ? 'Resetting...' : 'Reset 2FA Enrollment'}</span>
-                    </button>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={handleToggleShow2faQr}
+                        disabled={isLoading2faQr}
+                        className="px-3.5 py-2 bg-emerald-950 hover:bg-emerald-900 active:scale-95 disabled:opacity-50 text-emerald-300 border border-emerald-800 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer shrink-0 shadow-xs"
+                      >
+                        <QrCode className={`w-3.5 h-3.5 text-emerald-400 ${isLoading2faQr ? 'animate-pulse' : ''}`} />
+                        <span>{isLoading2faQr ? 'Loading...' : show2faQrCode ? 'Hide 2FA QR Code' : 'Show 2FA QR Code'}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleReset2faEnrollment}
+                        disabled={isResetting2fa}
+                        className="px-3.5 py-2 bg-stone-800 hover:bg-stone-700 active:scale-95 disabled:opacity-50 text-stone-200 border border-stone-700 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer shrink-0"
+                      >
+                        <RotateCcw className={`w-3.5 h-3.5 text-red-400 ${isResetting2fa ? 'animate-spin' : ''}`} />
+                        <span>{isResetting2fa ? 'Resetting...' : 'Reset 2FA Enrollment'}</span>
+                      </button>
+                    </div>
                   </div>
 
                   <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
@@ -2359,10 +2516,39 @@ export const AdminDashboardView: React.FC = () => {
                         {settingsForm.admin2faEnrolled ? 'Enrolled on Device' : 'QR Scan Required on Login'}
                       </span>
                       <span className="text-[11px] text-stone-400">
-                        {settingsForm.admin2faEnrolledAt ? `Registered: ${new Date(settingsForm.admin2faEnrolledAt).toLocaleDateString()}` : 'QR Code shown only on first setup'}
+                        {settingsForm.admin2faEnrolledAt ? `Registered: ${new Date(settingsForm.admin2faEnrolledAt).toLocaleDateString()}` : 'QR Code ready for scanning'}
                       </span>
                     </div>
                   </div>
+
+                  {/* Active 2FA Setup QR Code Modal / Drawer */}
+                  {show2faQrCode && active2faQrData && (
+                    <div className="mt-5 p-5 bg-stone-950 border border-emerald-800/80 rounded-2xl space-y-3 animate-fadeIn">
+                      <div className="flex items-center justify-between pb-2 border-b border-stone-800">
+                        <div className="flex items-center gap-2">
+                          <QrCode className="w-4 h-4 text-emerald-400" />
+                          <span className="text-xs font-bold text-emerald-300 uppercase tracking-wider">
+                            Active Admin Authenticator 2FA Setup QR Code
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setShow2faQrCode(false)}
+                          className="text-xs text-stone-400 hover:text-white underline cursor-pointer"
+                        >
+                          Close QR Code
+                        </button>
+                      </div>
+                      <p className="text-xs text-stone-300">
+                        Scan this QR code with <span className="text-emerald-400 font-semibold">Google Authenticator</span>, <span className="text-emerald-400 font-semibold">Microsoft Authenticator</span>, or <span className="text-emerald-400 font-semibold">Apple Passwords</span> on your phone.
+                      </p>
+                      <Admin2faQRCode
+                        username={settingsForm.email || 'info@arudhraconsultancy.com'}
+                        otpAuthUri={active2faQrData.otpAuthUri}
+                        secretKey={active2faQrData.secretKey}
+                      />
+                    </div>
+                  )}
 
                   {/* Re-enrollment QR Code display when actively reset */}
                   {resetQrData && (
@@ -2653,36 +2839,50 @@ export const AdminDashboardView: React.FC = () => {
                   />
                 </div>
 
-                <div className="flex flex-wrap items-center gap-6 pt-2">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={editingJob.featured || false}
-                      onChange={e => setEditingJob({ ...editingJob, featured: e.target.checked })}
-                      className="rounded-sm text-red-900 focus:ring-red-900"
-                    />
-                    <span className="font-bold text-slate-800">Featured Job</span>
-                  </label>
+                <div className="space-y-3 pt-2">
+                  <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                    <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                      Live Website Publication Status *
+                    </label>
+                    <select
+                      id="job-publication-status-select"
+                      value={editingJob.status || 'published'}
+                      onChange={e => setEditingJob({ ...editingJob, status: e.target.value as any })}
+                      className="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-red-900"
+                    >
+                      <option value="published">🟢 Published (Live and Visible on Public Website)</option>
+                      <option value="draft">⚪ Draft (Hidden from Public Website)</option>
+                      <option value="unpublished">🟡 Unpublished / Inactive (Hidden from Website)</option>
+                      <option value="closed">🔴 Closed / Expired (Hidden from Website)</option>
+                    </select>
+                    <p className="text-[11px] text-slate-500 mt-1.5">
+                      {editingJob.status === 'published'
+                        ? '✓ This vacancy will be displayed on the public Jobs page and Homepage immediately.'
+                        : '⚠ This vacancy is hidden from public view and cannot be seen by jobseekers.'}
+                    </p>
+                  </div>
 
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={editingJob.latest || false}
-                      onChange={e => setEditingJob({ ...editingJob, latest: e.target.checked })}
-                      className="rounded-sm text-red-900 focus:ring-red-900"
-                    />
-                    <span className="font-bold text-slate-800">Latest Opening</span>
-                  </label>
+                  <div className="flex flex-wrap items-center gap-6">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={editingJob.featured || false}
+                        onChange={e => setEditingJob({ ...editingJob, featured: e.target.checked })}
+                        className="rounded-sm text-red-900 focus:ring-red-900"
+                      />
+                      <span className="font-bold text-slate-800 text-xs">Featured Job</span>
+                    </label>
 
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={editingJob.status === 'published'}
-                      onChange={e => setEditingJob({ ...editingJob, status: e.target.checked ? 'published' : 'draft' })}
-                      className="rounded-sm text-red-900 focus:ring-red-900"
-                    />
-                    <span className="font-bold text-slate-800">Published Live</span>
-                  </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={editingJob.latest || false}
+                        onChange={e => setEditingJob({ ...editingJob, latest: e.target.checked })}
+                        className="rounded-sm text-red-900 focus:ring-red-900"
+                      />
+                      <span className="font-bold text-slate-800 text-xs">Latest Opening</span>
+                    </label>
+                  </div>
                 </div>
 
                 <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-3">

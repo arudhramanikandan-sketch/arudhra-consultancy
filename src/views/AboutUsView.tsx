@@ -7,7 +7,7 @@ export const AboutUsView: React.FC = () => {
   const { settings, setCurrentTab } = useApp();
 
   const getWhatsAppUrl = () => {
-    const raw = settings.whatsappNumber.replace(/\D/g, '') || '916374509488';
+    const raw = settings.whatsappNumber.replace(/\D/g, '') || '917418845083';
     return `https://wa.me/${raw}?text=${encodeURIComponent('Hello Arudhra Consultancy, I would like to learn more about your Singapore recruitment services.')}`;
   };
 

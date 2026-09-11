@@ -321,7 +321,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Client-side fallback if backend is temporarily unreachable
     const localUser: User = {
       id: `USR-${Date.now().toString().slice(-6)}`,
-      mobile: cleanMobile || `+91 6374509488`,
+      mobile: cleanMobile || `+91 7418845083`,
       name: cleanName,
       email: cleanEmail,
       role: 'customer',

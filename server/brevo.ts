@@ -153,7 +153,7 @@ function createOtpEmailHtml(otpCode: string, candidateName: string, senderName: 
                 <strong>Arudhra Consultancy</strong> • 1/149, Ganesh Complex, Avinashi Road, Neelambur, Coimbatore – 641062
               </p>
               <p style="color: #94a3b8; font-size: 11px; margin: 0;">
-                Contact: +91 6374509488 • info@arudhraconsultancy.com
+                Contact: +91 7418845083 • info@arudhraconsultancy.com
               </p>
             </td>
           </tr>
@@ -202,7 +202,7 @@ export async function sendBrevoEmailOtp(
     ],
     subject: `Your Login OTP Code is ${otpCode} - ${senderName}`,
     htmlContent: createOtpEmailHtml(otpCode, cleanName, senderName),
-    textContent: `Your Arudhra Candidate Portal login verification code is: ${otpCode}\n\nValid for 5 minutes. Please do not share this OTP with anyone for account safety.\n\nArudhra Consultancy - Singapore Overseas Recruitment\nPhone: +91 6374509488\nCoimbatore, Tamil Nadu`
+    textContent: `Your Arudhra Candidate Portal login verification code is: ${otpCode}\n\nValid for 5 minutes. Please do not share this OTP with anyone for account safety.\n\nArudhra Consultancy - Singapore Overseas Recruitment\nPhone: +91 7418845083\nCoimbatore, Tamil Nadu`
   };
 
   try {
@@ -341,7 +341,7 @@ export async function sendBrevoApplicationEmail(
 
   const senderEmail = senderOverride?.email?.trim() || process.env.BREVO_SENDER_EMAIL?.trim() || 'info@arudhraconsultancy.com';
   const senderName = senderOverride?.name?.trim() || process.env.BREVO_SENDER_NAME?.trim() || 'ARUDHRA CONSULTANCY';
-  const contactPhone = senderOverride?.phone?.trim() || '+91 6374509488';
+  const contactPhone = senderOverride?.phone?.trim() || '+91 7418845083';
   const cleanName = candidateName?.trim() || 'Candidate';
 
   const payload = {
