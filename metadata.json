@@ -1,0 +1,6 @@
+{
+  "name": "Arudhra Consultancy - Singapore Overseas Jobs",
+  "description": "Professional overseas recruitment platform dedicated exclusively to Singapore job opportunities, candidate application tracking, and employer placement.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

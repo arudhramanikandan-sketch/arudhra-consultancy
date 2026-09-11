@@ -1,0 +1,385 @@
+@import "tailwindcss";
+
+/* -------------------------------------------------------------------------
+   GLOBAL THEME & BRAND COLOR SYSTEM (ARUDHRA CONSULTANCY)
+   Supports Crimson (Default), Navy Blue, Emerald Green, Charcoal, and Amber,
+   with dynamic Light & Dark mode support across all components and views.
+   ------------------------------------------------------------------------- */
+
+/* Navy Blue Palette */
+[data-theme="navy"] .bg-red-900,
+[data-theme="navy"] .bg-red-950 {
+  background-color: #1e3a8a !important;
+}
+[data-theme="navy"] .hover\:bg-red-800:hover,
+[data-theme="navy"] .hover\:bg-red-900:hover {
+  background-color: #1d4ed8 !important;
+}
+[data-theme="navy"] .text-red-900,
+[data-theme="navy"] .text-red-950 {
+  color: #1e3a8a !important;
+}
+[data-theme="navy"] .text-red-800 {
+  color: #1d4ed8 !important;
+}
+[data-theme="navy"] .text-red-600,
+[data-theme="navy"] .text-red-500 {
+  color: #2563eb !important;
+}
+[data-theme="navy"] .text-red-400 {
+  color: #60a5fa !important;
+}
+[data-theme="navy"] .border-red-900,
+[data-theme="navy"] .border-red-950 {
+  border-color: #1e3a8a !important;
+}
+[data-theme="navy"] .border-red-800 {
+  border-color: #1d4ed8 !important;
+}
+[data-theme="navy"] .bg-red-50 {
+  background-color: #eff6ff !important;
+}
+[data-theme="navy"] .bg-red-100 {
+  background-color: #dbeafe !important;
+}
+[data-theme="navy"] .border-red-200,
+[data-theme="navy"] .border-red-100 {
+  border-color: #bfdbfe !important;
+}
+[data-theme="navy"] .border-red-950\/40 {
+  border-color: rgba(30, 58, 138, 0.4) !important;
+}
+[data-theme="navy"] ::selection {
+  background-color: #1e3a8a !important;
+  color: #ffffff !important;
+}
+
+/* Emerald Green Palette */
+[data-theme="emerald"] .bg-red-900,
+[data-theme="emerald"] .bg-red-950 {
+  background-color: #064e3b !important;
+}
+[data-theme="emerald"] .hover\:bg-red-800:hover,
+[data-theme="emerald"] .hover\:bg-red-900:hover {
+  background-color: #047857 !important;
+}
+[data-theme="emerald"] .text-red-900,
+[data-theme="emerald"] .text-red-950 {
+  color: #064e3b !important;
+}
+[data-theme="emerald"] .text-red-800 {
+  color: #047857 !important;
+}
+[data-theme="emerald"] .text-red-600,
+[data-theme="emerald"] .text-red-500 {
+  color: #059669 !important;
+}
+[data-theme="emerald"] .text-red-400 {
+  color: #34d399 !important;
+}
+[data-theme="emerald"] .border-red-900,
+[data-theme="emerald"] .border-red-950 {
+  border-color: #064e3b !important;
+}
+[data-theme="emerald"] .border-red-800 {
+  border-color: #047857 !important;
+}
+[data-theme="emerald"] .bg-red-50 {
+  background-color: #ecfdf5 !important;
+}
+[data-theme="emerald"] .bg-red-100 {
+  background-color: #d1fae5 !important;
+}
+[data-theme="emerald"] .border-red-200,
+[data-theme="emerald"] .border-red-100 {
+  border-color: #a7f3d0 !important;
+}
+[data-theme="emerald"] .border-red-950\/40 {
+  border-color: rgba(6, 78, 59, 0.4) !important;
+}
+[data-theme="emerald"] ::selection {
+  background-color: #064e3b !important;
+  color: #ffffff !important;
+}
+
+/* Executive Charcoal & Slate Palette */
+[data-theme="charcoal"] .bg-red-900,
+[data-theme="charcoal"] .bg-red-950 {
+  background-color: #0f172a !important;
+}
+[data-theme="charcoal"] .hover\:bg-red-800:hover,
+[data-theme="charcoal"] .hover\:bg-red-900:hover {
+  background-color: #1e293b !important;
+}
+[data-theme="charcoal"] .text-red-900,
+[data-theme="charcoal"] .text-red-950 {
+  color: #0f172a !important;
+}
+[data-theme="charcoal"] .text-red-800 {
+  color: #1e293b !important;
+}
+[data-theme="charcoal"] .text-red-600,
+[data-theme="charcoal"] .text-red-500 {
+  color: #475569 !important;
+}
+[data-theme="charcoal"] .text-red-400 {
+  color: #94a3b8 !important;
+}
+[data-theme="charcoal"] .border-red-900,
+[data-theme="charcoal"] .border-red-950 {
+  border-color: #0f172a !important;
+}
+[data-theme="charcoal"] .border-red-800 {
+  border-color: #1e293b !important;
+}
+[data-theme="charcoal"] .bg-red-50 {
+  background-color: #f1f5f9 !important;
+}
+[data-theme="charcoal"] .bg-red-100 {
+  background-color: #e2e8f0 !important;
+}
+[data-theme="charcoal"] .border-red-200,
+[data-theme="charcoal"] .border-red-100 {
+  border-color: #cbd5e1 !important;
+}
+[data-theme="charcoal"] .border-red-950\/40 {
+  border-color: rgba(15, 23, 42, 0.4) !important;
+}
+[data-theme="charcoal"] ::selection {
+  background-color: #0f172a !important;
+  color: #ffffff !important;
+}
+
+/* Royal Amber & Gold Palette */
+[data-theme="amber"] .bg-red-900,
+[data-theme="amber"] .bg-red-950 {
+  background-color: #78350f !important;
+}
+[data-theme="amber"] .hover\:bg-red-800:hover,
+[data-theme="amber"] .hover\:bg-red-900:hover {
+  background-color: #92400e !important;
+}
+[data-theme="amber"] .text-red-900,
+[data-theme="amber"] .text-red-950 {
+  color: #78350f !important;
+}
+[data-theme="amber"] .text-red-800 {
+  color: #92400e !important;
+}
+[data-theme="amber"] .text-red-600,
+[data-theme="amber"] .text-red-500 {
+  color: #d97706 !important;
+}
+[data-theme="amber"] .text-red-400 {
+  color: #fbbf24 !important;
+}
+[data-theme="amber"] .border-red-900,
+[data-theme="amber"] .border-red-950 {
+  border-color: #78350f !important;
+}
+[data-theme="amber"] .border-red-800 {
+  border-color: #92400e !important;
+}
+[data-theme="amber"] .bg-red-50 {
+  background-color: #fffbeb !important;
+}
+[data-theme="amber"] .bg-red-100 {
+  background-color: #fef3c7 !important;
+}
+[data-theme="amber"] .border-red-200,
+[data-theme="amber"] .border-red-100 {
+  border-color: #fde68a !important;
+}
+[data-theme="amber"] .border-red-950\/40 {
+  border-color: rgba(120, 53, 15, 0.4) !important;
+}
+[data-theme="amber"] ::selection {
+  background-color: #78350f !important;
+  color: #ffffff !important;
+}
+
+/* -------------------------------------------------------------------------
+   DARK MODE SYSTEM ([data-mode="dark"])
+   Transforms light page surfaces into sleek eye-friendly dark surfaces
+   ------------------------------------------------------------------------- */
+[data-mode="dark"] {
+  color-scheme: dark;
+}
+
+[data-mode="dark"] body {
+  background-color: #090d16 !important;
+  color: #f1f5f9 !important;
+}
+
+[data-mode="dark"] #root > div {
+  background-color: #090d16 !important;
+  color: #f1f5f9 !important;
+}
+
+[data-mode="dark"] header.sticky {
+  background-color: #0f172a !important;
+  border-color: #1e293b !important;
+}
+
+[data-mode="dark"] .bg-white {
+  background-color: #0f172a !important;
+  color: #f1f5f9 !important;
+}
+
+[data-mode="dark"] .bg-slate-50 {
+  background-color: #0b1120 !important;
+}
+
+[data-mode="dark"] .bg-slate-100 {
+  background-color: #1e293b !important;
+}
+
+[data-mode="dark"] .text-slate-900,
+[data-mode="dark"] .text-slate-800 {
+  color: #f8fafc !important;
+}
+
+[data-mode="dark"] .text-slate-700,
+[data-mode="dark"] .text-slate-600 {
+  color: #cbd5e1 !important;
+}
+
+[data-mode="dark"] .text-slate-500 {
+  color: #94a3b8 !important;
+}
+
+[data-mode="dark"] .border-slate-200,
+[data-mode="dark"] .border-slate-100,
+[data-mode="dark"] .border-slate-300 {
+  border-color: #1e293b !important;
+}
+
+[data-mode="dark"] input:not([type="checkbox"]):not([type="radio"]),
+[data-mode="dark"] textarea,
+[data-mode="dark"] select {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
+}
+
+/* -------------------------------------------------------------------------
+   PRINT-SPECIFIC CSS MEDIA QUERY FOR JOB DETAILS & POSTINGS
+   Ensures crisp, clean, professional A4/Letter paper & PDF exports
+   ------------------------------------------------------------------------- */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm 15mm 15mm 15mm;
+  }
+
+  /* Global print baseline */
+  html,
+  body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    font-size: 10.5pt !important;
+    line-height: 1.45 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Hide standard web-only UI elements when printing */
+  #navbar,
+  #footer,
+  #floating-whatsapp-btn,
+  #toast-container,
+  aside[aria-label*="WhatsApp"],
+  nav,
+  header,
+  footer,
+  .no-print {
+    display: none !important;
+  }
+
+  /* Hide underlying page views if job details modal is open */
+  body:has(#job-details-modal-overlay) > #root > div > main,
+  body:has(#job-details-modal-overlay) > #root > div > footer,
+  body:has(#job-details-modal-overlay) > #root > div > nav,
+  body:has(#job-details-modal-overlay) > #root > div > aside {
+    display: none !important;
+  }
+
+  /* Fallback selector for browsers without :has */
+  body > #root > div > *:not(#job-details-modal-overlay):not(.print-container) {
+    display: none !important;
+  }
+
+  /* Unfurl the fixed modal overlay into a clean flat printable sheet */
+  #job-details-modal-overlay {
+    position: static !important;
+    inset: auto !important;
+    display: block !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+    box-shadow: none !important;
+    border: none !important;
+    z-index: auto !important;
+  }
+
+  #job-details-card {
+    position: static !important;
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: none !important;
+    height: auto !important;
+    overflow: visible !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    background: #ffffff !important;
+    padding: 0 !important;
+  }
+
+  #job-details-card > div {
+    overflow: visible !important;
+    max-height: none !important;
+  }
+
+  /* Hide screen action buttons inside modal */
+  #share-job-btn,
+  #close-job-modal-btn,
+  #print-job-btn,
+  #job-detail-whatsapp-btn,
+  #job-detail-call-btn,
+  #job-detail-close-btn,
+  #job-detail-apply-btn,
+  #job-detail-print-action-btn,
+  .modal-actions-footer {
+    display: none !important;
+  }
+
+  /* Print-only elements visibility */
+  .print-only {
+    display: block !important;
+  }
+
+  /* Prevent awkward page breaks across job sections */
+  .job-print-section,
+  .print-avoid-break {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* Print styling for borders and backgrounds */
+  .border-slate-200,
+  .border-slate-100 {
+    border-color: #cbd5e1 !important;
+  }
+
+  /* Ensure text links print cleanly */
+  a {
+    text-decoration: none !important;
+    color: inherit !important;
+  }
+}
