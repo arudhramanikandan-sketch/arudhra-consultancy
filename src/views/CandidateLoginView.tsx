@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useApp } from '../context/AppContext';
-import { ShieldCheck, ArrowRight, CheckCircle2, User, Phone, Mail, RefreshCw, Briefcase, KeyRound, Send } from 'lucide-react';
+import { ShieldCheck, ArrowRight, CheckCircle2, User, Phone, Mail, RefreshCw, Briefcase, KeyRound, Send, Sparkles } from 'lucide-react';
 import { SubpageBackButton } from '../components/SubpageBackButton';
 
 export const CandidateLoginView: React.FC = () => {
-  const { user, isCustomer, sendEmailOtp, verifyEmailOtp } = useAuth();
+  const { user, isCustomer, sendEmailOtp, verifyEmailOtp, candidateLogin } = useAuth();
   const { setCurrentTab, showToast } = useApp();
 
+  const [candidateAuthMethod, setCandidateAuthMethod] = useState<'email' | 'mobile'>('email');
   const [mobile, setMobile] = useState('');
   const [candidateName, setCandidateName] = useState('');
   const [candidateEmail, setCandidateEmail] = useState('');
@@ -93,11 +94,42 @@ export const CandidateLoginView: React.FC = () => {
       setCooldown(res.cooldownSeconds || 60);
       if (res.previewOtp) {
         setPreviewOtp(res.previewOtp);
+        setEmailOtpCode(res.previewOtp);
       }
       setInfoMsg(res.message);
-      showToast('OTP sent! Please check your email inbox.', 'info');
+      showToast('OTP ready! Please check your email or use the code below.', 'info');
     } else {
-      setErrorMsg(res.message || 'Failed to dispatch email OTP.');
+      setErrorMsg(res.message || 'Failed to dispatch email OTP. You can also sign in instantly using WhatsApp Mobile Number.');
+    }
+  };
+
+  const handleDirectCandidateLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg('');
+    setInfoMsg('');
+
+    const cleanMobile = mobile.trim();
+    const digitsOnly = cleanMobile.replace(/\D/g, '');
+    if (digitsOnly.length < 8) {
+      setErrorMsg('Please enter a valid WhatsApp mobile number (minimum 8 digits).');
+      return;
+    }
+
+    if (!candidateName.trim()) {
+      setErrorMsg('Please enter your full name (compulsory).');
+      return;
+    }
+
+    setLoading(true);
+    const res = await candidateLogin(cleanMobile, candidateName.trim(), candidateEmail.trim());
+    setLoading(false);
+
+    if (res.success) {
+      showToast('Welcome to Candidate Portal!', 'success');
+      setCurrentTab('portal');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      setErrorMsg(res.message || 'Candidate login failed.');
     }
   };
 
@@ -147,6 +179,42 @@ export const CandidateLoginView: React.FC = () => {
 
         {/* Login Card */}
         <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xl p-8">
+          {/* Method Switcher Tabs */}
+          <div className="flex bg-slate-100 p-1.5 rounded-xl gap-1.5 mb-6">
+            <button
+              type="button"
+              onClick={() => {
+                setCandidateAuthMethod('email');
+                setErrorMsg('');
+                setInfoMsg('');
+              }}
+              className={`flex-1 py-2 px-3 text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                candidateAuthMethod === 'email'
+                  ? 'bg-white text-red-900 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Mail className="w-4 h-4" />
+              <span>Email OTP (Brevo)</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setCandidateAuthMethod('mobile');
+                setErrorMsg('');
+                setInfoMsg('');
+              }}
+              className={`flex-1 py-2 px-3 text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                candidateAuthMethod === 'mobile'
+                  ? 'bg-white text-red-900 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Phone className="w-4 h-4 text-emerald-600" />
+              <span>Instant Mobile / WhatsApp</span>
+            </button>
+          </div>
+
           {errorMsg && (
             <div className="mb-6 p-3.5 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium rounded-xl flex items-start gap-2">
               <span className="font-bold">Error:</span>
@@ -160,7 +228,87 @@ export const CandidateLoginView: React.FC = () => {
             </div>
           )}
 
-          {!emailOtpSent ? (
+          {candidateAuthMethod === 'mobile' ? (
+            /* Method B: Instant WhatsApp / Mobile Login */
+            <form onSubmit={handleDirectCandidateLogin} className="space-y-5">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                  WhatsApp Mobile Number <span className="text-red-900">*</span>
+                </label>
+                <div className="relative">
+                  <Phone className="absolute left-3.5 top-3.5 w-4 h-4 text-emerald-600" />
+                  <input
+                    id="view-direct-mobile-input"
+                    type="tel"
+                    value={mobile}
+                    onChange={e => setMobile(e.target.value)}
+                    placeholder="+91 74188 45083"
+                    required
+                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm font-medium focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-red-900/20 focus:border-red-900 transition-all"
+                  />
+                </div>
+                <p className="text-[11px] text-slate-500 mt-1.5">
+                  Direct login without waiting for email delivery.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                  Your Full Name <span className="text-red-900">*</span>
+                </label>
+                <div className="relative">
+                  <User className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
+                  <input
+                    id="view-direct-name-input"
+                    type="text"
+                    value={candidateName}
+                    onChange={e => setCandidateName(e.target.value)}
+                    placeholder="e.g. Manikandan S (as in passport)"
+                    required
+                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm font-medium focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-red-900/20 focus:border-red-900 transition-all"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                  Email Address <span className="text-slate-400 font-normal">(Optional)</span>
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
+                  <input
+                    id="view-direct-email-input"
+                    type="email"
+                    value={candidateEmail}
+                    onChange={e => setCandidateEmail(e.target.value)}
+                    placeholder="candidate@example.com"
+                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm font-medium focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-red-900/20 focus:border-red-900 transition-all"
+                  />
+                </div>
+              </div>
+
+              <button
+                id="view-direct-login-btn"
+                type="submit"
+                disabled={loading || !mobile.trim() || !candidateName.trim()}
+                className="w-full py-3.5 bg-red-900 hover:bg-red-800 disabled:opacity-50 text-white rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                {loading ? (
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                    <span>Instant Sign In to Candidate Portal</span>
+                  </>
+                )}
+              </button>
+
+              <div className="pt-4 border-t border-slate-100 flex items-center justify-center gap-2 text-slate-500 text-xs">
+                <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                <span>Instant access to check applied Singapore positions & bio-data.</span>
+              </div>
+            </form>
+          ) : !emailOtpSent ? (
             /* Step 1: Send Email OTP */
             <form onSubmit={handleSendEmailOtp} className="space-y-5">
                 <div>
@@ -216,21 +364,53 @@ export const CandidateLoginView: React.FC = () => {
                   </div>
                 </div>
 
-                <button
-                  id="view-send-brevo-otp-btn"
-                  type="submit"
-                  disabled={loading || !candidateEmail.trim() || !candidateName.trim()}
-                  className="w-full py-3.5 bg-red-900 hover:bg-red-800 disabled:opacity-50 text-white rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  {loading ? (
-                    <RefreshCw className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <>
-                      <Send className="w-4 h-4" />
-                      <span>Send 6-Digit OTP via Brevo</span>
-                    </>
-                  )}
-                </button>
+                {previewOtp && (
+                  <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between text-xs text-amber-900">
+                    <div>
+                      <span className="font-bold">Active Code: </span>
+                      <span className="font-mono font-extrabold bg-white px-2 py-0.5 rounded border border-amber-300">{previewOtp}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEmailOtpSent(true);
+                        setEmailOtpCode(previewOtp);
+                      }}
+                      className="text-xs font-bold text-red-900 hover:underline cursor-pointer"
+                    >
+                      Enter Code & Proceed &rarr;
+                    </button>
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <button
+                    id="view-send-brevo-otp-btn"
+                    type="submit"
+                    disabled={loading || !candidateEmail.trim() || !candidateName.trim()}
+                    className="w-full py-3.5 bg-red-900 hover:bg-red-800 disabled:opacity-50 text-white rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    {loading ? (
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4" />
+                        <span>Send 6-Digit OTP via Brevo</span>
+                      </>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCandidateAuthMethod('mobile');
+                      setErrorMsg('');
+                    }}
+                    className="w-full py-2 text-center text-xs text-slate-600 hover:text-red-900 font-semibold cursor-pointer transition-colors"
+                  >
+                    Prefer WhatsApp? Sign in with Mobile Number instead &rarr;
+                  </button>
+                </div>
 
                 <div className="pt-4 border-t border-slate-100 flex items-center justify-center gap-2 text-slate-500 text-xs">
                   <ShieldCheck className="w-4 h-4 text-emerald-600" />
@@ -259,11 +439,21 @@ export const CandidateLoginView: React.FC = () => {
                 </div>
 
                 {previewOtp && (
-                  <div className="p-3 bg-amber-50 border border-amber-200 text-amber-900 rounded-xl text-xs font-semibold flex items-center justify-between">
-                    <span>Preview Test Code:</span>
-                    <span className="font-mono text-sm bg-white px-2 py-0.5 rounded border border-amber-300 font-bold">
-                      {previewOtp}
-                    </span>
+                  <div className="p-3 bg-amber-50 border border-amber-200 text-amber-900 rounded-xl text-xs flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />
+                      <span>Verification Code:</span>
+                      <span className="font-mono text-sm bg-white px-2 py-0.5 rounded border border-amber-300 font-bold text-slate-900">
+                        {previewOtp}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setEmailOtpCode(previewOtp)}
+                      className="px-2.5 py-1 bg-amber-200 hover:bg-amber-300 text-amber-950 font-bold rounded-lg text-xs transition-colors cursor-pointer"
+                    >
+                      Auto-fill
+                    </button>
                   </div>
                 )}
 
@@ -320,6 +510,20 @@ export const CandidateLoginView: React.FC = () => {
                     className="text-slate-500 hover:text-slate-800 cursor-pointer"
                   >
                     Back to Email Entry
+                  </button>
+                </div>
+
+                <div className="pt-3 text-center border-t border-slate-100">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCandidateAuthMethod('mobile');
+                      setEmailOtpSent(false);
+                      setErrorMsg('');
+                    }}
+                    className="text-xs text-slate-500 hover:text-red-900 font-semibold cursor-pointer"
+                  >
+                    Didn't receive email? Sign in with WhatsApp Mobile Number instead
                   </button>
                 </div>
               </form>

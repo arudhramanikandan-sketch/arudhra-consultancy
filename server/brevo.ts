@@ -226,7 +226,41 @@ export async function sendBrevoEmailOtp(
 
     if (!response.ok) {
       const errorMsg = data?.message || `Brevo API HTTP ${response.status}: ${response.statusText}`;
-      console.error('[Brevo Error]', errorMsg, data);
+      console.warn('[Brevo Error] Primary attempt failed:', errorMsg, data);
+
+      // If sender verification or domain was rejected, try fallback to active verified account sender
+      if ((response.status === 400 || errorMsg.toLowerCase().includes('sender')) && senderEmail !== 'manikandan@happyjourneyholidays.com') {
+        try {
+          console.log('[Brevo] Retrying with verified sender fallback: manikandan@happyjourneyholidays.com');
+          const fallbackPayload = {
+            ...payload,
+            sender: {
+              name: `${senderName} (Recruitment)`,
+              email: 'manikandan@happyjourneyholidays.com'
+            }
+          };
+          const fallbackRes = await fetch('https://api.brevo.com/v3/smtp/email', {
+            method: 'POST',
+            headers: {
+              'accept': 'application/json',
+              'api-key': apiKey,
+              'content-type': 'application/json'
+            },
+            body: JSON.stringify(fallbackPayload)
+          });
+          const fallbackData: any = await fallbackRes.json().catch(() => null);
+          if (fallbackRes.ok && fallbackData?.messageId) {
+            return {
+              success: true,
+              messageId: fallbackData.messageId,
+              providerConfigured: true
+            };
+          }
+        } catch (fallbackErr) {
+          console.warn('[Brevo] Fallback retry also failed:', fallbackErr);
+        }
+      }
+
       return {
         success: false,
         providerConfigured: true,

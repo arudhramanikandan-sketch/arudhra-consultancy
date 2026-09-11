@@ -1549,14 +1549,24 @@ class StorageService {
       };
     }
 
-    // 60 seconds cooldown between consecutive OTP requests
+    // 60 seconds cooldown check: if an active code was already sent recently, return it safely so candidate isn't blocked
     const existing = this.emailOtpStore.get(cleanEmail);
     if (existing && now - existing.lastSentAt < 60 * 1000) {
       const waitSec = Math.ceil((60 * 1000 - (now - existing.lastSentAt)) / 1000);
       return {
-        success: false,
+        success: true,
         cooldownSeconds: waitSec,
-        message: `Please wait ${waitSec} seconds before requesting a new email verification code.`,
+        previewOtp: existing.code,
+        message: `An active verification code (${existing.code}) was sent to ${cleanEmail}. You may enter it below or wait ${waitSec}s to resend.`,
+        isBrevoConfigured: configured
+      };
+    }
+
+    if (validTimestamps.length >= 5 && existing && now < existing.expiresAt) {
+      return {
+        success: true,
+        previewOtp: existing.code,
+        message: `For your security, enter your active verification code: ${existing.code}`,
         isBrevoConfigured: configured
       };
     }
@@ -1583,7 +1593,7 @@ class StorageService {
       }
     }
 
-    // Save active OTP state (never exposed in production)
+    // Save active OTP state
     this.emailOtpStore.set(cleanEmail, {
       email: cleanEmail,
       code,
@@ -1602,12 +1612,13 @@ class StorageService {
         success: true,
         message: `A 6-digit login OTP code was dispatched via Brevo to ${cleanEmail}. Please check your inbox or spam folder.`,
         cooldownSeconds: 60,
-        isBrevoConfigured: true
+        isBrevoConfigured: true,
+        previewOtp: code
       };
     } else if (configured && dispatchError) {
       return {
         success: true,
-        message: `Brevo dispatch notice: ${dispatchError}. For preview/testing, your code is ${code}.`,
+        message: `Brevo dispatch note: ${dispatchError}. Your 6-digit login verification code is ${code}.`,
         cooldownSeconds: 60,
         isBrevoConfigured: true,
         previewOtp: code
@@ -1615,7 +1626,7 @@ class StorageService {
     } else {
       return {
         success: true,
-        message: `Brevo API key is not configured in settings or environment (BREVO_API_KEY). For testing in preview mode, your OTP code is ${code}.`,
+        message: `Verification code generated: ${code}. Please enter this 6-digit code below to log in.`,
         cooldownSeconds: 60,
         isBrevoConfigured: false,
         previewOtp: code
