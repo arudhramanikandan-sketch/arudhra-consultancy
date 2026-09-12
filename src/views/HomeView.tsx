@@ -1,7 +1,7 @@
 import React from 'react';
 import { HeroSection } from '../components/HeroSection';
 import { AdBannerSection } from '../components/AdBannerSection';
-import { LatestJobsSection, FeaturedJobsSection } from '../components/FeaturedJobsSection';
+import { AllLiveJobsSection } from '../components/FeaturedJobsSection';
 import { WhyChooseSection } from '../components/WhyChooseSection';
 import { ProcessSection } from '../components/ProcessSection';
 import { VideosSection } from '../components/VideosSection';
@@ -30,13 +30,10 @@ export const HomeView: React.FC<HomeViewProps> = ({ onSearch }) => {
       {/* 2. Promotional Banners */}
       <AdBannerSection />
 
-      {/* 3. Latest Singapore Jobs */}
-      <LatestJobsSection />
+      {/* 3. All Live Singapore Job Openings */}
+      <AllLiveJobsSection />
 
-      {/* 4. Featured Singapore Jobs */}
-      <FeaturedJobsSection />
-
-      {/* 5. Why Choose Arudhra Consultancy */}
+      {/* 4. Why Choose Arudhra Consultancy */}
       <WhyChooseSection />
 
       {/* 6. How the Recruitment Process Works */}

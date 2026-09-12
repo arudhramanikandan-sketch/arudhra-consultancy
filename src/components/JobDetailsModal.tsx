@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Job } from '../types';
 import { useApp } from '../context/AppContext';
+import { QuickApplyWhatsAppModal } from './QuickApplyWhatsAppModal';
 import {
   MapPin,
   Banknote,
@@ -26,6 +27,7 @@ interface JobDetailsModalProps {
 
 export const JobDetailsModal: React.FC<JobDetailsModalProps> = ({ job, onClose }) => {
   const { setApplyModalJob, settings, showToast } = useApp();
+  const [isQuickApplyOpen, setIsQuickApplyOpen] = useState(false);
 
   if (!job) return null;
 
@@ -391,17 +393,22 @@ export const JobDetailsModal: React.FC<JobDetailsModalProps> = ({ job, onClose }
             <button
               id="job-detail-apply-btn"
               type="button"
-              onClick={() => {
-                onClose();
-                setApplyModalJob(job);
-              }}
-              className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-md hover:shadow-lg transition-all cursor-pointer"
+              onClick={() => setIsQuickApplyOpen(true)}
+              className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-md hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer"
             >
-              I'm Interested / Apply Now
+              <MessageSquare className="w-4 h-4" />
+              <span>Apply Now</span>
             </button>
           </div>
         </div>
       </div>
+
+      {/* Quick Apply WhatsApp Modal */}
+      <QuickApplyWhatsAppModal
+        job={job}
+        isOpen={isQuickApplyOpen}
+        onClose={() => setIsQuickApplyOpen(false)}
+      />
     </div>
   );
 };

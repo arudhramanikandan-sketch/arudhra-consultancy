@@ -12,6 +12,7 @@ import {
   ApplicationStatus
 } from '../types';
 import { initialSiteSettings, initialJobs } from '../../server/data';
+import { defaultJobs } from '../data/defaultJobs';
 import { useAuth } from './AuthContext';
 
 interface Toast {
@@ -98,7 +99,18 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, isAdmin, token } = useAuth();
-  const [jobs, setJobs] = useState<Job[]>([]);
+  const [jobs, setJobs] = useState<Job[]>(() => {
+    try {
+      const cached = localStorage.getItem('arudhra_jobs_cache');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch (e) {}
+    return defaultJobs;
+  });
   const [settings, setSettings] = useState<SiteSettings>(initialSiteSettings);
   const [videos, setVideos] = useState<VideoItem[]>([]);
   const [ads, setAds] = useState<Advertisement[]>([]);
@@ -345,6 +357,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const { ok, data } = await parseResponseSafe(res);
       if (ok && data?.success && Array.isArray(data.jobs)) {
         setJobs(data.jobs);
+        try {
+          if (!filters || Object.keys(filters).length === 0) {
+            localStorage.setItem('arudhra_jobs_cache', JSON.stringify(data.jobs));
+          }
+        } catch (e) {}
       }
     } catch (err) {
       console.warn('Failed to fetch jobs:', err);
@@ -1293,6 +1310,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   useEffect(() => {
     refreshJobs();
+
+    // Auto-refresh jobs when user tabs back or periodically to ensure admin updates propagate live immediately
+    const handleWindowFocus = () => {
+      refreshJobs();
+    };
+    window.addEventListener('focus', handleWindowFocus);
+
+    const jobsInterval = setInterval(() => {
+      refreshJobs();
+    }, 15000);
+
+    return () => {
+      window.removeEventListener('focus', handleWindowFocus);
+      clearInterval(jobsInterval);
+    };
   }, [isAdmin, refreshJobs]);
 
   useEffect(() => {
