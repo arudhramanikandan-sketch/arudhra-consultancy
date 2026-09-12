@@ -1805,39 +1805,63 @@ class StorageService {
     };
   }
 
-  public candidateDirectLogin(rawMobile: string, name?: string, email?: string): { success: boolean; user?: User; candidate?: CandidateRecord; token?: string; message: string } {
-    const cleanMobile = rawMobile.trim();
-    if (!cleanMobile || cleanMobile.replace(/\D/g, '').length < 8) {
+  public candidateDirectLogin(
+    rawIdentifier: string,
+    name?: string,
+    rawEmail?: string
+  ): { success: boolean; user?: User; candidate?: CandidateRecord; token?: string; message: string } {
+    const input = (rawIdentifier || '').trim();
+    const secondaryEmail = (rawEmail || '').trim().toLowerCase();
+    
+    // Determine whether rawIdentifier is an email or a phone number
+    const isEmailInput = input.includes('@') && input.includes('.');
+    const cleanEmail = isEmailInput ? input.toLowerCase() : secondaryEmail;
+    const cleanDigits = input.replace(/\D/g, '');
+
+    if (!isEmailInput && cleanDigits.length < 8 && (!cleanEmail || !cleanEmail.includes('@'))) {
       return {
         success: false,
-        message: 'Valid WhatsApp mobile number is required.'
+        message: 'Please enter a valid WhatsApp mobile number (min 8 digits) or Email address.'
       };
     }
 
-    const formattedNumber = formatWhatsAppNumber(cleanMobile);
+    let formattedNumber = '';
+    if (!isEmailInput && cleanDigits.length >= 8) {
+      formattedNumber = formatWhatsAppNumber(input);
+    }
 
-    // Find or create customer user
-    let user = this.users.find(u => formatWhatsAppNumber(u.mobile) === formattedNumber && u.role === 'customer');
+    // Find or create customer user by email or mobile
+    let user = this.users.find(u => {
+      if (u.role !== 'customer') return false;
+      if (cleanEmail && u.email && u.email.toLowerCase() === cleanEmail) return true;
+      if (formattedNumber && formatWhatsAppNumber(u.mobile) === formattedNumber) return true;
+      return false;
+    });
+
+    const candName = name?.trim() || (cleanEmail ? cleanEmail.split('@')[0] : `Candidate (+${formattedNumber.slice(-4)})`);
+
     if (!user) {
       user = {
         id: `USR-${Date.now().toString().slice(-5)}`,
-        mobile: `+${formattedNumber}`,
-        name: name?.trim() || `Candidate (+${formattedNumber.slice(-4)})`,
-        email: email?.trim() || '',
+        mobile: formattedNumber ? `+${formattedNumber}` : '',
+        name: candName,
+        email: cleanEmail || '',
         role: 'customer',
         createdAt: new Date().toISOString()
       };
       this.users.push(user);
     } else {
-      if (name?.trim()) user.name = name.trim();
-      if (email?.trim()) user.email = email.trim();
+      if (candName && (!user.name || user.name.startsWith('Candidate (+'))) user.name = candName;
+      if (cleanEmail && !user.email) user.email = cleanEmail;
+      if (formattedNumber && !user.mobile) user.mobile = `+${formattedNumber}`;
     }
 
     // Automatically ensure ONE permanent Candidate Master record for this customer
     const candidate = this.getOrCreateCandidateForUser(user);
     if (candidate) {
-      if (name?.trim()) candidate.fullName = name.trim();
-      if (email?.trim()) candidate.email = email.trim();
+      if (candName) candidate.fullName = candName;
+      if (cleanEmail) candidate.email = cleanEmail;
+      if (formattedNumber) candidate.mobile = `+${formattedNumber}`;
       candidate.updatedAt = new Date().toISOString();
 
       // Ensure this candidate login is automatically recorded as an Enquiry lead for Admin Dashboard
@@ -1845,6 +1869,7 @@ class StorageService {
       let enquiry = this.enquiries.find(e => {
         if (this.deletedIds.has(e.id)) return false;
         if (e.userId && (e.userId === user.id || e.userId === candidate.id)) return true;
+        if (cleanEmail && e.email && e.email.toLowerCase() === cleanEmail) return true;
         if (candMobile && this.normalizePhone(e.mobile) === candMobile && candMobile.length >= 8) return true;
         return false;
       });
@@ -1856,11 +1881,11 @@ class StorageService {
           userId: user.id,
           jobId: 'PORTAL-REGISTRATION',
           customerName: candidate.fullName || user.name || 'Candidate',
-          mobile: candidate.mobile,
+          mobile: candidate.mobile || (cleanEmail ? 'Email Candidate' : 'Candidate'),
           email: candidate.email || user.email || '',
-          jobTitle: 'Candidate Portal Registration',
+          jobTitle: 'Candidate Portal Instant Login',
           status: 'New',
-          candidateNotes: `Candidate logged in to Singapore Job Portal via WhatsApp (${candidate.mobile}). Record saved in Admin Dashboard.`,
+          candidateNotes: `Candidate logged in instantly to Singapore Job Portal (${candidate.email || candidate.mobile}). Instant access granted.`,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         };
@@ -1886,7 +1911,7 @@ class StorageService {
       user,
       candidate,
       token,
-      message: 'Direct candidate login successful.'
+      message: 'Instant candidate login successful! Welcome to the portal.'
     };
   }
 

@@ -85,10 +85,11 @@ async function startServer() {
   const handleCandidateLogin: express.RequestHandler = (req, res) => {
     try {
       const { mobile, name, email } = req.body;
-      if (!mobile) {
-        return res.status(400).json({ success: false, message: 'WhatsApp mobile number is required' });
+      const identifier = mobile || email;
+      if (!identifier) {
+        return res.status(400).json({ success: false, message: 'Email address or WhatsApp mobile number is required' });
       }
-      const result = storage.candidateDirectLogin(mobile, name, email);
+      const result = storage.candidateDirectLogin(identifier, name, email);
       if (!result.success) {
         return res.status(400).json(result);
       }
@@ -102,6 +103,7 @@ async function startServer() {
   app.post('/api/candidate/login', handleCandidateLogin);
   app.post('/api/auth/candidate-login', handleCandidateLogin);
   app.post('/api/candidate-login', handleCandidateLogin);
+  app.post('/api/auth/candidate/direct-login', handleCandidateLogin);
 
   // Authentication - Candidate Email OTP via Brevo
   app.get(['/api/brevo/status', '/api/admin/brevo/status'], (req, res) => {

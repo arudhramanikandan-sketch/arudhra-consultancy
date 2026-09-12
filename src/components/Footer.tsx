@@ -306,8 +306,19 @@ export const Footer: React.FC = () => {
               }}
               className="text-stone-400 hover:text-stone-200 flex items-center gap-1 cursor-pointer"
             >
-              <User className="w-3 h-3" />
-              <span>Candidate Portal</span>
+              <User className="w-3 h-3 text-stone-500" />
+              <span>Candidate Login</span>
+            </button>
+            <button
+              id="footer-admin-login-btn"
+              onClick={() => {
+                setCurrentTab('admin-login');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="text-stone-400 hover:text-stone-200 flex items-center gap-1 cursor-pointer"
+            >
+              <Lock className="w-3 h-3 text-stone-500" />
+              <span>Admin Login</span>
             </button>
           </div>
         </div>

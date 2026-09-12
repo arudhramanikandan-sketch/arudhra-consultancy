@@ -29,7 +29,7 @@ import {
 import { Enquiry, EnquiryStatus, ApplicationStatus, DocumentType } from '../types';
 
 export const CustomerPortalView: React.FC = () => {
-  const { user, openAuthModal, logout } = useAuth();
+  const { user, logout } = useAuth();
   const {
     enquiries,
     jobs,
