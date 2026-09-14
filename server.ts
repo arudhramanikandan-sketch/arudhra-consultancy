@@ -162,8 +162,10 @@ async function startServer() {
 
   app.post('/api/auth/email-otp/send', handleEmailOtpSend);
   app.post('/api/email-otp/send', handleEmailOtpSend);
+  app.post('/api/candidate/email-otp/send', handleEmailOtpSend);
   app.post('/api/auth/email-otp/verify', handleEmailOtpVerify);
   app.post('/api/email-otp/verify', handleEmailOtpVerify);
+  app.post('/api/candidate/email-otp/verify', handleEmailOtpVerify);
 
   // Authentication - Customer Mobile OTP via Real WhatsApp
   app.post('/api/auth/otp/send', async (req, res) => {
@@ -397,6 +399,24 @@ async function startServer() {
         return res.status(404).json({ success: false, message: 'Job not found' });
       }
       res.json({ success: true, message: 'Job deleted successfully' });
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  app.post('/api/jobs/batch-delete', requireAdminAuth, (req, res) => {
+    try {
+      const { ids } = req.body;
+      if (!Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ success: false, message: 'Array of job IDs is required' });
+      }
+      let deletedCount = 0;
+      ids.forEach(id => {
+        if (storage.deleteJob(id)) {
+          deletedCount++;
+        }
+      });
+      res.json({ success: true, deletedCount, message: `Successfully deleted ${deletedCount} jobs` });
     } catch (error: any) {
       res.status(500).json({ success: false, error: error.message });
     }
@@ -805,6 +825,56 @@ async function startServer() {
 
       const updated = storage.updateCandidateProfile(candidate.id, profileUpdates);
       res.json({ success: true, candidate: updated, message: 'Candidate Profile updated and synchronized with Admin Panel' });
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  // Update candidate's contact details (Name, Mobile, WhatsApp, Email, Address, etc.)
+  app.put('/api/candidate/me/contact', (req, res) => {
+    try {
+      const { userId, mobile, ...contactData } = req.body;
+      const lookupKey = userId || mobile;
+
+      if (!lookupKey) {
+        return res.status(400).json({ success: false, message: 'userId or mobile is required to update contact details' });
+      }
+
+      const authHeader = req.headers.authorization;
+      if (authHeader) {
+        const tokenAuth = storage.validateCustomerToken(authHeader);
+        if (tokenAuth.valid && tokenAuth.userId && tokenAuth.userId !== 'admin') {
+          if (userId && tokenAuth.userId !== userId) {
+            return res.status(403).json({ success: false, message: 'Access denied: You cannot update another candidate\'s contact details' });
+          }
+        }
+      }
+
+      let candidate = storage.getCandidateForUser(userId, mobile);
+      if (!candidate) {
+        const dummyUser = {
+          id: userId || `USR-${Date.now().toString().slice(-5)}`,
+          mobile: contactData.mobile || mobile || '',
+          name: contactData.fullName || '',
+          email: contactData.email || '',
+          role: 'customer' as const,
+          createdAt: new Date().toISOString()
+        };
+        candidate = storage.getOrCreateCandidateForUser(dummyUser);
+      }
+
+      const result = storage.updateCandidateContact(candidate.id, contactData);
+      if (!result) {
+        return res.status(404).json({ success: false, message: 'Failed to update candidate contact details' });
+      }
+
+      res.json({
+        success: true,
+        candidate: result.candidate,
+        user: result.user,
+        applications: result.candidate.applications,
+        message: 'Contact details updated and synchronized across all submitted applications'
+      });
     } catch (error: any) {
       res.status(500).json({ success: false, error: error.message });
     }

@@ -45,6 +45,7 @@ interface AppContextType {
   refreshStats: () => Promise<void>;
   saveJob: (job: Partial<Job>, options?: { replaceExisting?: boolean; clearOldLeads?: boolean }) => Promise<{ success: boolean; message?: string }>;
   deleteJob: (id: string) => Promise<{ success: boolean; message?: string }>;
+  batchDeleteJobs: (ids: string[]) => Promise<{ success: boolean; deletedCount?: number; message?: string }>;
   updateEnquiryStatus: (id: string, status: any, adminNotes?: string, followUpDate?: string) => Promise<{ success: boolean; message?: string }>;
   deleteEnquiry: (id: string) => Promise<{ success: boolean; message?: string }>;
   batchDeleteEnquiries: (ids: string[]) => Promise<{ success: boolean; deletedCount?: number; message?: string }>;
@@ -74,6 +75,17 @@ interface AppContextType {
   adminCandidates: CandidateRecord[];
   refreshCandidateMe: () => Promise<void>;
   updateCandidateProfile: (profileData: Partial<CandidateRecord>) => Promise<{ success: boolean; message?: string }>;
+  updateCandidateContact: (contactData: {
+    fullName?: string;
+    mobile?: string;
+    email?: string;
+    whatsappNumber?: string;
+    alternateMobile?: string;
+    city?: string;
+    state?: string;
+    address?: string;
+    postalCode?: string;
+  }) => Promise<{ success: boolean; message?: string }>;
   uploadCandidateDocument: (type: DocumentType, name: string, fileData?: string, fileSize?: string) => Promise<{ success: boolean; message?: string }>;
   deleteCandidateDocument: (docId: string) => Promise<{ success: boolean; message?: string }>;
   markJobInterested: (jobId: string) => Promise<{ success: boolean; message?: string }>;
@@ -95,17 +107,50 @@ interface AppContextType {
   toggleDarkMode: () => void;
 }
 
+function getLocalDeletedJobIds(): Set<string> {
+  try {
+    const raw = localStorage.getItem('arudhra_deleted_job_ids');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return new Set(parsed);
+    }
+  } catch {}
+  return new Set();
+}
+
+function addLocalDeletedJobId(id: string) {
+  try {
+    const set = getLocalDeletedJobIds();
+    set.add(id);
+    localStorage.setItem('arudhra_deleted_job_ids', JSON.stringify(Array.from(set)));
+  } catch {}
+}
+
+function removeLocalDeletedJobId(id: string) {
+  try {
+    const set = getLocalDeletedJobIds();
+    if (set.has(id)) {
+      set.delete(id);
+      localStorage.setItem('arudhra_deleted_job_ids', JSON.stringify(Array.from(set)));
+    }
+  } catch {}
+}
+
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, isAdmin, token } = useAuth();
+  const { user, isAdmin, token, updateUserProfile } = useAuth();
   const [jobs, setJobs] = useState<Job[]>(() => {
     try {
-      const cached = localStorage.getItem('arudhra_jobs_cache');
-      if (cached) {
+      // Clear legacy cache containing obsolete deleted jobs
+      localStorage.removeItem('arudhra_jobs_cache');
+      localStorage.removeItem('arudhra_jobs_cache_v3');
+      const cached = localStorage.getItem('arudhra_jobs_cache_v4');
+      const deletedIds = getLocalDeletedJobIds();
+      if (cached !== null) {
         const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed;
+        if (Array.isArray(parsed)) {
+          return parsed.filter((j: any) => j && j.id && !deletedIds.has(j.id));
         }
       }
     } catch (e) {}
@@ -353,13 +398,31 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         url += `?${params.toString()}`;
       }
 
-      const res = await fetch(url);
-      const { ok, data } = await parseResponseSafe(res);
+      let res = await fetch(url);
+      let { ok, data } = await parseResponseSafe(res);
+
+      // Fallback for static hosting (e.g. GitHub Pages or static exports without Node.js backend)
+      if (!ok || !data?.jobs || !Array.isArray(data.jobs)) {
+        try {
+          const staticRes = await fetch('/jobs.json');
+          const staticData = await parseResponseSafe(staticRes);
+          if (staticData.ok && Array.isArray(staticData.data)) {
+            ok = true;
+            data = { success: true, jobs: staticData.data };
+          } else if (staticData.ok && Array.isArray(staticData.data?.jobs)) {
+            ok = true;
+            data = { success: true, jobs: staticData.data.jobs };
+          }
+        } catch {}
+      }
+
       if (ok && data?.success && Array.isArray(data.jobs)) {
-        setJobs(data.jobs);
+        const deletedIds = getLocalDeletedJobIds();
+        const cleanJobs = data.jobs.filter((j: any) => j && j.id && !deletedIds.has(j.id));
+        setJobs(cleanJobs);
         try {
           if (!filters || Object.keys(filters).length === 0) {
-            localStorage.setItem('arudhra_jobs_cache', JSON.stringify(data.jobs));
+            localStorage.setItem('arudhra_jobs_cache_v4', JSON.stringify(cleanJobs));
           }
         } catch (e) {}
       }
@@ -479,7 +542,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       });
       const data = await res.json();
       if (data.success) {
-        showToast(data.message || (isEdit ? 'Job updated successfully' : 'Singapore Job created successfully'), 'success');
+        showToast(data.message || (isEdit ? 'Job updated successfully' : 'Singapore Job created and published live'), 'success');
+        if (data.job) {
+          removeLocalDeletedJobId(data.job.id);
+          setJobs(prev => {
+            let updatedList: Job[];
+            if (options?.replaceExisting) {
+              updatedList = [data.job];
+            } else if (isEdit) {
+              updatedList = prev.map(j => (j.id === data.job.id ? data.job : j));
+            } else {
+              updatedList = [data.job, ...prev.filter(j => j.id !== data.job.id)];
+            }
+            try {
+              localStorage.setItem('arudhra_jobs_cache_v4', JSON.stringify(updatedList));
+            } catch (e) {}
+            return updatedList;
+          });
+        }
         refreshJobs();
         refreshEnquiries();
         refreshStats();
@@ -495,14 +575,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const deleteJob = async (id: string) => {
     try {
+      addLocalDeletedJobId(id);
+      setJobs(prev => {
+        const updated = prev.filter(j => j.id !== id);
+        try {
+          localStorage.setItem('arudhra_jobs_cache_v4', JSON.stringify(updated));
+        } catch (e) {}
+        return updated;
+      });
+
       const res = await fetch(`/api/jobs/${id}`, {
         method: 'DELETE',
         headers: getAuthHeaders()
       });
       const data = await res.json();
       if (data.success) {
-        setJobs(prev => prev.filter(j => j.id !== id));
-        showToast('Job deleted successfully', 'success');
+        showToast('Job permanently deleted', 'success');
         refreshJobs();
         refreshStats();
         return { success: true };
@@ -512,6 +600,47 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } catch (err: any) {
       showToast(err.message || 'Network error deleting job', 'error');
       return { success: false };
+    }
+  };
+
+  const batchDeleteJobs = async (ids: string[]) => {
+    if (!ids || ids.length === 0) return { success: false, message: 'No jobs selected' };
+    try {
+      ids.forEach(id => addLocalDeletedJobId(id));
+      setJobs(prev => {
+        const updated = prev.filter(j => !ids.includes(j.id));
+        try {
+          localStorage.setItem('arudhra_jobs_cache_v4', JSON.stringify(updated));
+        } catch (e) {}
+        return updated;
+      });
+
+      const res = await fetch('/api/jobs/batch-delete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders()
+        },
+        body: JSON.stringify({ ids })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast(`Successfully deleted ${data.deletedCount ?? ids.length} job(s)`, 'success');
+        refreshJobs();
+        refreshStats();
+        return { success: true, deletedCount: data.deletedCount ?? ids.length };
+      }
+      // Fallback in case endpoint failed
+      for (const id of ids) {
+        await fetch(`/api/jobs/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
+      }
+      showToast(`Deleted ${ids.length} job(s)`, 'success');
+      refreshJobs();
+      refreshStats();
+      return { success: true, deletedCount: ids.length };
+    } catch (err: any) {
+      showToast(err.message || 'Network error deleting jobs', 'error');
+      return { success: false, message: err.message };
     }
   };
 
@@ -878,6 +1007,117 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       showToast('Profile saved locally', 'success');
       return { success: true };
     }
+  };
+
+  const updateCandidateContact = async (contactData: {
+    fullName?: string;
+    mobile?: string;
+    email?: string;
+    whatsappNumber?: string;
+    alternateMobile?: string;
+    city?: string;
+    state?: string;
+    address?: string;
+    postalCode?: string;
+  }) => {
+    if (!user) {
+      showToast('Please log in to update contact details', 'error');
+      return { success: false, message: 'Please log in' };
+    }
+
+    // Optimistically update candidate in state and localStorage
+    setCandidate(prev => {
+      if (!prev) return prev;
+      const updated: CandidateRecord = {
+        ...prev,
+        fullName: contactData.fullName !== undefined && contactData.fullName ? contactData.fullName : prev.fullName,
+        mobile: contactData.mobile !== undefined && contactData.mobile ? contactData.mobile : prev.mobile,
+        email: contactData.email !== undefined ? contactData.email : prev.email,
+        whatsappNumber: contactData.whatsappNumber !== undefined ? contactData.whatsappNumber : prev.whatsappNumber,
+        alternateMobile: contactData.alternateMobile !== undefined ? contactData.alternateMobile : prev.alternateMobile,
+        city: contactData.city !== undefined ? contactData.city : prev.city,
+        state: contactData.state !== undefined ? contactData.state : prev.state,
+        address: contactData.address !== undefined ? contactData.address : prev.address,
+        postalCode: contactData.postalCode !== undefined ? contactData.postalCode : prev.postalCode,
+        updatedAt: new Date().toISOString()
+      };
+      try {
+        localStorage.setItem(`arudhra_cand_${user.id}`, JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+
+    // Optimistically update user in AuthContext
+    if (updateUserProfile) {
+      updateUserProfile(
+        contactData.fullName || user.name,
+        contactData.email !== undefined ? contactData.email : user.email,
+        contactData.mobile !== undefined ? contactData.mobile : user.mobile,
+        contactData.whatsappNumber !== undefined ? contactData.whatsappNumber : user.whatsappNumber
+      );
+    }
+
+    // Optimistically update enquiries in state
+    setEnquiries(prev => {
+      const userMobClean = (contactData.mobile || user.mobile || '').replace(/\D/g, '');
+      return prev.map(e => {
+        const eMobClean = (e.mobile || '').replace(/\D/g, '');
+        const isMatch = (e.userId && (e.userId === user.id || (candidate && e.userId === candidate.id))) ||
+                        (userMobClean && eMobClean && (eMobClean.endsWith(userMobClean.slice(-8)) || userMobClean.endsWith(eMobClean.slice(-8))));
+        if (isMatch) {
+          return {
+            ...e,
+            customerName: contactData.fullName !== undefined && contactData.fullName ? contactData.fullName : e.customerName,
+            mobile: contactData.mobile !== undefined ? contactData.mobile : e.mobile,
+            email: contactData.email !== undefined ? contactData.email : e.email,
+            updatedAt: new Date().toISOString()
+          };
+        }
+        return e;
+      });
+    });
+
+    setUserEnquiries(prev => {
+      return prev.map(e => {
+        return {
+          ...e,
+          customerName: contactData.fullName !== undefined && contactData.fullName ? contactData.fullName : e.customerName,
+          mobile: contactData.mobile !== undefined ? contactData.mobile : e.mobile,
+          email: contactData.email !== undefined ? contactData.email : e.email,
+          updatedAt: new Date().toISOString()
+        };
+      });
+    });
+
+    try {
+      const payload = {
+        userId: user.id,
+        mobile: user.mobile,
+        ...contactData
+      };
+      const res = await fetch('/api/candidate/me/contact', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const { ok, data } = await parseResponseSafe(res);
+      if (ok && data?.success) {
+        if (data.candidate) {
+          setCandidate(data.candidate);
+          try {
+            localStorage.setItem(`arudhra_cand_${user.id}`, JSON.stringify(data.candidate));
+          } catch {}
+        }
+        await Promise.all([refreshCandidateMe(), refreshEnquiries()]);
+        showToast('Contact details updated and synchronized across all applications!', 'success');
+        return { success: true, message: data.message || 'Contact details updated' };
+      }
+    } catch (err: any) {
+      console.warn('Network issue updating contact:', err);
+    }
+
+    showToast('Contact details updated successfully', 'success');
+    return { success: true };
   };
 
   const uploadCandidateDocument = async (
@@ -1383,6 +1623,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         refreshStats,
         saveJob,
         deleteJob,
+        batchDeleteJobs,
         updateEnquiryStatus,
         deleteEnquiry,
         batchDeleteEnquiries,
@@ -1402,6 +1643,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         adminCandidates,
         refreshCandidateMe,
         updateCandidateProfile,
+        updateCandidateContact,
         uploadCandidateDocument,
         deleteCandidateDocument,
         markJobInterested,

@@ -49,7 +49,8 @@ import {
   QrCode,
   Sun,
   Moon,
-  ArrowLeft
+  ArrowLeft,
+  X
 } from 'lucide-react';
 import { LogoEditModal } from '../components/LogoEditModal';
 import { Admin2faQRCode } from '../components/Admin2faQRCode';
@@ -64,6 +65,7 @@ export const AdminDashboardView: React.FC = () => {
     settings,
     saveJob,
     deleteJob,
+    batchDeleteJobs,
     updateEnquiryStatus,
     deleteEnquiry,
     batchDeleteEnquiries,
@@ -101,10 +103,17 @@ export const AdminDashboardView: React.FC = () => {
   // Job Modal State & Exclusive Live Options
   const [jobModalOpen, setJobModalOpen] = useState(false);
   const [editingJob, setEditingJob] = useState<Partial<Job> | null>(null);
-  const [jobToDelete, setJobToDelete] = useState<Job | null>(null);
-  const [isDeletingJob, setIsDeletingJob] = useState(false);
   const [jobExclusiveLive, setJobExclusiveLive] = useState(false);
   const [jobClearOldLeads, setJobClearOldLeads] = useState(false);
+
+  // Job Selection & Multiple Deletion State
+  const [selectedJobIds, setSelectedJobIds] = useState<string[]>([]);
+  const [jobsDeleteTarget, setJobsDeleteTarget] = useState<{
+    ids: string[];
+    jobs: Job[];
+    isMultiple: boolean;
+  } | null>(null);
+  const [isDeletingJobsBatch, setIsDeletingJobsBatch] = useState(false);
 
   // Enquiry Update Modal State
   const [enquiryModalOpen, setEnquiryModalOpen] = useState(false);
@@ -378,6 +387,7 @@ export const AdminDashboardView: React.FC = () => {
 
   // --- JOB HANDLERS ---
   const handleOpenNewJob = () => {
+    setActiveTab('jobs');
     setJobExclusiveLive(Boolean(settings.autoReplaceOldJobs));
     setJobClearOldLeads(Boolean(settings.autoClearOldLeadsOnNewJob));
     setEditingJob({
@@ -400,11 +410,20 @@ export const AdminDashboardView: React.FC = () => {
       status: 'published'
     });
     setJobModalOpen(true);
+    setTimeout(() => {
+      const el = document.getElementById('job-management-editor-form');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 50);
   };
 
   const handleEditJob = (job: Job) => {
+    setActiveTab('jobs');
     setEditingJob({ ...job });
     setJobModalOpen(true);
+    setTimeout(() => {
+      const el = document.getElementById('job-management-editor-form');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 50);
   };
 
   const handleSaveJobSubmit = async (e: React.FormEvent) => {
@@ -416,22 +435,56 @@ export const AdminDashboardView: React.FC = () => {
     await saveJob(editingJob);
     setJobModalOpen(false);
     setEditingJob(null);
+    setActiveTab('jobs');
+  };
+
+  const handleToggleSelectJob = (jobId: string) => {
+    setSelectedJobIds(prev =>
+      prev.includes(jobId) ? prev.filter(id => id !== jobId) : [...prev, jobId]
+    );
+  };
+
+  const handleToggleSelectAllJobs = () => {
+    if (jobs.length === 0) return;
+    const allSelected = jobs.every(j => selectedJobIds.includes(j.id));
+    if (allSelected) {
+      setSelectedJobIds([]);
+    } else {
+      setSelectedJobIds(jobs.map(j => j.id));
+    }
+  };
+
+  const handleTriggerBatchJobsDelete = () => {
+    if (selectedJobIds.length === 0) return;
+    const targetJobs = jobs.filter(j => selectedJobIds.includes(j.id));
+    setJobsDeleteTarget({
+      ids: selectedJobIds,
+      jobs: targetJobs,
+      isMultiple: selectedJobIds.length > 1
+    });
   };
 
   const handleDeleteJobClick = (job: Job) => {
-    setJobToDelete(job);
+    setJobsDeleteTarget({
+      ids: [job.id],
+      jobs: [job],
+      isMultiple: false
+    });
   };
 
-  const handleConfirmDeleteJob = async () => {
-    if (!jobToDelete) return;
-    setIsDeletingJob(true);
+  const handleConfirmJobsDelete = async () => {
+    if (!jobsDeleteTarget || jobsDeleteTarget.ids.length === 0) return;
+    setIsDeletingJobsBatch(true);
     try {
-      const res = await deleteJob(jobToDelete.id);
-      if (res.success) {
-        setJobToDelete(null);
+      if (jobsDeleteTarget.ids.length === 1) {
+        await deleteJob(jobsDeleteTarget.ids[0]);
+      } else {
+        await batchDeleteJobs(jobsDeleteTarget.ids);
       }
+      setSelectedJobIds(prev => prev.filter(id => !jobsDeleteTarget.ids.includes(id)));
+      setJobsDeleteTarget(null);
     } finally {
-      setIsDeletingJob(false);
+      setIsDeletingJobsBatch(false);
     }
   };
 
@@ -1221,7 +1274,16 @@ export const AdminDashboardView: React.FC = () => {
               <div>
                 <div className="flex items-center gap-2">
                   <h2 className="text-base font-bold text-slate-900">Singapore Job Postings</h2>
-                  {jobs.length === 1 && (
+                  <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-xs font-bold border border-slate-200">
+                    {jobs.length} {jobs.length === 1 ? 'Job' : 'Jobs'}
+                  </span>
+                  {selectedJobIds.length > 0 && (
+                    <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200 flex items-center gap-1.5 animate-in fade-in">
+                      <span className="w-2 h-2 rounded-full bg-rose-600 animate-pulse"></span>
+                      {selectedJobIds.length} Selected
+                    </span>
+                  )}
+                  {jobs.length === 1 && selectedJobIds.length === 0 && (
                     <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold text-[10px] flex items-center gap-1">
                       <Check className="w-3 h-3 text-emerald-600" />
                       <span>1 Exclusive Live Job</span>
@@ -1229,52 +1291,377 @@ export const AdminDashboardView: React.FC = () => {
                   )}
                 </div>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Manage live vacancies. Adding a new job automatically deletes expired listings and resets candidate applications.
+                  Manage live vacancies. Select multiple jobs to delete them in bulk or update individual listings.
                 </p>
               </div>
-              <div className="flex items-center gap-2">
+
+              <div className="flex flex-wrap items-center gap-2">
+                {jobs.length > 0 && (
+                  <label
+                    htmlFor="select-all-jobs-checkbox"
+                    className="flex items-center gap-2 px-3 py-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 cursor-pointer transition-colors select-none"
+                    title={jobs.every(j => selectedJobIds.includes(j.id)) ? 'Deselect all jobs' : 'Select all jobs'}
+                  >
+                    <input
+                      type="checkbox"
+                      id="select-all-jobs-checkbox"
+                      checked={jobs.length > 0 && jobs.every(j => selectedJobIds.includes(j.id))}
+                      onChange={handleToggleSelectAllJobs}
+                      className="w-4 h-4 text-red-900 rounded border-slate-300 focus:ring-red-900 cursor-pointer"
+                    />
+                    <span>
+                      {jobs.every(j => selectedJobIds.includes(j.id)) ? 'Deselect All' : 'Select All'}
+                    </span>
+                  </label>
+                )}
+
+                {selectedJobIds.length > 0 && (
+                  <div className="flex items-center gap-1.5 animate-in fade-in">
+                    <button
+                      type="button"
+                      id="delete-selected-jobs-btn"
+                      onClick={handleTriggerBatchJobsDelete}
+                      className="flex items-center gap-1.5 px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-xs transition-all cursor-pointer"
+                      title="Delete selected Singapore jobs"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Delete Selected ({selectedJobIds.length})</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedJobIds([])}
+                      className="px-2.5 py-1.5 text-xs text-slate-600 hover:text-slate-900 font-semibold rounded-lg hover:bg-slate-100 cursor-pointer"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                )}
+
                 <button
-                  type="button"
-                  onClick={handleOpenPurgeAll}
-                  className="px-3 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
-                  title="Purge all old data (jobs, leads, flyers, videos)"
+                  id="admin-add-vacancy-btn"
+                  onClick={() => {
+                    if (editingJob && !editingJob.id) {
+                      setEditingJob(null);
+                      setJobModalOpen(false);
+                    } else {
+                      handleOpenNewJob();
+                    }
+                  }}
+                  className={`px-4 py-2.5 rounded-xl text-xs font-bold shadow-md flex items-center gap-1.5 cursor-pointer transition-all ${
+                    editingJob && !editingJob.id
+                      ? 'bg-slate-700 hover:bg-slate-800 text-white'
+                      : 'bg-red-900 hover:bg-red-800 text-white'
+                  }`}
                 >
-                  <Trash2 className="w-3.5 h-3.5 text-rose-600" />
-                  <span>Cleanup Old Data</span>
-                </button>
-                <button
-                  onClick={handleOpenNewJob}
-                  className="px-4 py-2.5 bg-red-900 hover:bg-red-800 text-white rounded-xl text-xs font-bold shadow-md flex items-center gap-1.5 cursor-pointer"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Add Singapore Vacancy</span>
+                  {editingJob && !editingJob.id ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                  <span>{editingJob && !editingJob.id ? 'Close Form' : 'Add Singapore Vacancy'}</span>
                 </button>
               </div>
             </div>
 
-            {jobs.length > 1 && (
-              <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 flex items-center justify-between gap-2 text-xs text-amber-900">
-                <div className="flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 text-amber-700 shrink-0" />
-                  <span>Notice: You currently have {jobs.length} jobs stored. When publishing a new vacancy with <strong>Exclusive Live Mode</strong>, old jobs will be automatically deleted so only the newest job remains active.</span>
+            {/* INLINE JOB CREATION & EDITING FORM (KEPT IN SAME JOB CONTROL SECTION) */}
+            {editingJob && (
+              <div
+                id="job-management-editor-form"
+                className="bg-white rounded-2xl border-2 border-red-900/30 shadow-md overflow-hidden transition-all animate-in fade-in duration-200"
+              >
+                <div className="bg-stone-900 text-white p-4 sm:p-5 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-red-900/90 text-amber-300 flex items-center justify-center border border-red-700/50 shrink-0">
+                      <Briefcase className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-bold text-sm sm:text-base text-white">
+                          {editingJob.id ? `Edit Vacancy: ${editingJob.title}` : 'Add New Singapore Vacancy'}
+                        </h3>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                          {editingJob.id ? 'Job Control' : 'Job Management'}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-stone-300 mt-0.5">
+                        {editingJob.id
+                          ? 'Modify role specifications, salary, pass type, and website publication status.'
+                          : 'Fill details below to add and publish a new Singapore job vacancy live to the website.'}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    id="close-inline-job-editor-btn"
+                    onClick={() => {
+                      setEditingJob(null);
+                      setJobModalOpen(false);
+                    }}
+                    className="px-3 py-1.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-white text-xs font-bold transition-all border border-stone-700 flex items-center gap-1.5 cursor-pointer"
+                    title="Cancel and close editor"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                    <span>Cancel</span>
+                  </button>
                 </div>
-                <button
-                  onClick={handleOpenPurgeAll}
-                  className="px-2.5 py-1 bg-amber-200/70 hover:bg-amber-200 text-amber-950 font-bold rounded-lg text-[11px] shrink-0 cursor-pointer"
-                >
-                  Clean Now
-                </button>
+
+                <form onSubmit={handleSaveJobSubmit} className="p-5 sm:p-6 space-y-4 text-xs bg-stone-50/40">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">Job Title *</label>
+                      <input
+                        type="text"
+                        required
+                        value={editingJob.title || ''}
+                        onChange={e => setEditingJob({ ...editingJob, title: e.target.value })}
+                        placeholder="e.g. CNC Milling Setter / Operator"
+                        className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-red-900 focus:border-red-900"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">Sector / Category *</label>
+                      <select
+                        value={editingJob.category || 'Manufacturing & Production'}
+                        onChange={e => setEditingJob({ ...editingJob, category: e.target.value as any })}
+                        className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-red-900 focus:border-red-900"
+                      >
+                        <option value="Manufacturing & Production">Manufacturing & Production</option>
+                        <option value="Marine & Shipyard">Marine & Shipyard</option>
+                        <option value="F&B & Hospitality">F&B & Hospitality</option>
+                        <option value="Logistics & Warehouse">Logistics & Warehouse</option>
+                        <option value="Construction & Civil">Construction & Civil</option>
+                        <option value="Electrical & Maintenance">Electrical & Maintenance</option>
+                        <option value="Automotive & Mechanical">Automotive & Mechanical</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">Salary (in SGD) *</label>
+                      <input
+                        type="text"
+                        required
+                        value={editingJob.salary || ''}
+                        onChange={e => setEditingJob({ ...editingJob, salary: e.target.value })}
+                        placeholder="SGD 1,800 - 2,400 + OT"
+                        className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-red-900 focus:ring-2 focus:ring-red-900 focus:border-red-900"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">Job / Pass Type *</label>
+                      <select
+                        id="admin-inline-job-pass-type"
+                        value={editingJob.jobType || 'Work Permit'}
+                        onChange={e => setEditingJob({ ...editingJob, jobType: e.target.value as any })}
+                        className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-red-900 focus:border-red-900"
+                      >
+                        <option value="Work Permit">Work Permit</option>
+                        <option value="NTS Work Permit">NTS Work Permit</option>
+                        <option value="PCM">PCM (Process, Construction & Maintenance)</option>
+                        <option value="Construction Permit">Construction Permit</option>
+                        <option value="Marine Permit">Marine Permit</option>
+                        <option value="S Pass">S Pass</option>
+                        <option value="E Pass">E Pass</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">Singapore Location *</label>
+                      <input
+                        type="text"
+                        value={editingJob.location || ''}
+                        onChange={e => setEditingJob({ ...editingJob, location: e.target.value })}
+                        placeholder="e.g. Jurong Industrial Area, Singapore"
+                        className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-red-900 focus:border-red-900"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">Experience Required</label>
+                      <input
+                        type="text"
+                        value={editingJob.experience || ''}
+                        onChange={e => setEditingJob({ ...editingJob, experience: e.target.value })}
+                        placeholder="e.g. 1-2 Years (India/Gulf/SG)"
+                        className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-red-900 focus:border-red-900"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">Qualification</label>
+                      <input
+                        type="text"
+                        value={editingJob.qualification || ''}
+                        onChange={e => setEditingJob({ ...editingJob, qualification: e.target.value })}
+                        placeholder="e.g. ITI / Diploma / Any Degree"
+                        className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-red-900 focus:border-red-900"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">Vacancy Openings</label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={editingJob.vacancyCount || 5}
+                        onChange={e => setEditingJob({ ...editingJob, vacancyCount: parseInt(e.target.value) || 1 })}
+                        className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-red-900 focus:border-red-900"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Job Description</label>
+                    <textarea
+                      rows={3}
+                      value={editingJob.description || ''}
+                      onChange={e => setEditingJob({ ...editingJob, description: e.target.value })}
+                      placeholder="Provide overview of the role, duties, shift patterns, and workshop environment..."
+                      className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-red-900 focus:border-red-900"
+                    />
+                  </div>
+
+                  <div className="space-y-3 pt-2">
+                    <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
+                      <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                        Live Website Publication Status *
+                      </label>
+                      <select
+                        id="job-publication-status-select"
+                        value={editingJob.status || 'published'}
+                        onChange={e => setEditingJob({ ...editingJob, status: e.target.value as any })}
+                        className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus:ring-2 focus:ring-red-900 focus:border-red-900"
+                      >
+                        <option value="published">🟢 Published (Live and Visible on Public Website)</option>
+                        <option value="draft">⚪ Draft (Hidden from Public Website)</option>
+                        <option value="unpublished">🟡 Unpublished / Inactive (Hidden from Website)</option>
+                        <option value="closed">🔴 Closed / Expired (Hidden from Website)</option>
+                      </select>
+                      <p className="text-[11px] text-slate-500 mt-1.5">
+                        {editingJob.status === 'published'
+                          ? '✓ This vacancy will be displayed on the public Jobs page and Homepage immediately upon saving.'
+                          : '⚠ This vacancy will be saved in admin records but hidden from candidate view on the public website.'}
+                      </p>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-6 bg-white p-3 rounded-xl border border-slate-200">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={editingJob.featured || false}
+                          onChange={e => setEditingJob({ ...editingJob, featured: e.target.checked })}
+                          className="rounded text-red-900 focus:ring-red-900 cursor-pointer"
+                        />
+                        <span className="font-bold text-slate-800 text-xs">Featured Job Badge</span>
+                      </label>
+
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={editingJob.latest || false}
+                          onChange={e => setEditingJob({ ...editingJob, latest: e.target.checked })}
+                          className="rounded text-red-900 focus:ring-red-900 cursor-pointer"
+                        />
+                        <span className="font-bold text-slate-800 text-xs">Mark as Latest Opening</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t border-slate-200 flex items-center justify-between gap-3">
+                    {editingJob.id ? (
+                      <button
+                        type="button"
+                        id="inline-delete-job-btn"
+                        onClick={() => {
+                          const targetJob = jobs.find(j => j.id === editingJob.id);
+                          if (targetJob) {
+                            setEditingJob(null);
+                            setJobModalOpen(false);
+                            handleDeleteJobClick(targetJob);
+                          }
+                        }}
+                        className="px-3.5 py-2 text-rose-600 hover:bg-rose-50 border border-rose-200 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer"
+                        title="Delete this Singapore job vacancy"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Delete Vacancy</span>
+                      </button>
+                    ) : <div />}
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingJob(null);
+                          setJobModalOpen(false);
+                        }}
+                        className="px-4 py-2 text-slate-600 hover:bg-slate-200 rounded-xl font-semibold cursor-pointer text-xs transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        className="px-6 py-2.5 bg-red-900 hover:bg-red-800 text-white font-bold rounded-xl shadow-md cursor-pointer text-xs transition-all flex items-center gap-1.5"
+                      >
+                        <Save className="w-4 h-4 text-amber-300" />
+                        <span>{editingJob.id ? 'Save Changes' : 'Save & Publish Job'}</span>
+                      </button>
+                    </div>
+                  </div>
+                </form>
               </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {jobs.map(job => (
-                <div key={job.id} className="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 flex flex-col justify-between">
+            {jobs.length === 0 ? (
+              <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center space-y-3">
+                <div className="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
+                  <Briefcase className="w-6 h-6" />
+                </div>
+                <h3 className="font-bold text-slate-900 text-sm">No Singapore Jobs Listed</h3>
+                <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                  All previous jobs have been permanently deleted or none have been published yet. Click "Publish New Singapore Job" above to add a vacancy live to the website.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleOpenNewJob}
+                  className="px-4 py-2 bg-red-900 hover:bg-red-800 text-white font-bold text-xs rounded-xl shadow-xs transition-colors cursor-pointer"
+                >
+                  + Publish New Singapore Job
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {jobs.map(job => {
+                const isSelected = selectedJobIds.includes(job.id);
+                return (
+                <div
+                  key={job.id}
+                  className={`rounded-2xl border transition-all duration-150 shadow-xs p-5 flex flex-col justify-between relative ${
+                    isSelected
+                      ? 'bg-rose-50/25 border-rose-400 ring-2 ring-rose-300/80'
+                      : 'bg-white border-slate-200 hover:border-slate-300'
+                  }`}
+                >
                   <div>
                     <div className="flex items-center justify-between text-xs mb-2">
-                      <span className="px-2 py-0.5 rounded-full bg-red-50 text-red-900 font-bold border border-red-200 text-[10px]">
-                        🇸🇬 {job.jobType}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <label
+                          htmlFor={`select-job-checkbox-${job.id}`}
+                          className="inline-flex items-center cursor-pointer p-0.5 -ml-1 rounded hover:bg-slate-100"
+                          title={`Select ${job.title}`}
+                        >
+                          <input
+                            type="checkbox"
+                            id={`select-job-checkbox-${job.id}`}
+                            checked={isSelected}
+                            onChange={() => handleToggleSelectJob(job.id)}
+                            className="w-4 h-4 text-rose-600 rounded border-slate-300 focus:ring-rose-500 cursor-pointer"
+                          />
+                        </label>
+                        <span className="px-2 py-0.5 rounded-full bg-red-50 text-red-900 font-bold border border-red-200 text-[10px]">
+                          🇸🇬 {job.jobType}
+                        </span>
+                      </div>
                       <span className="text-slate-400 font-mono text-[11px]">Ref: {job.id}</span>
                     </div>
                     <h3 className="font-bold text-slate-900 text-sm">{job.title}</h3>
@@ -1336,8 +1723,10 @@ export const AdminDashboardView: React.FC = () => {
                     </div>
                   </div>
                 </div>
-              ))}
+              );
+              })}
             </div>
+            )}
           </div>
         )}
 
@@ -2126,7 +2515,7 @@ export const AdminDashboardView: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">WhatsApp Number (with country code)</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">WhatsApp Desk Number (with country code)</label>
                   <input
                     type="text"
                     value={settingsForm.whatsappNumber}
@@ -2134,6 +2523,19 @@ export const AdminDashboardView: React.FC = () => {
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs"
                   />
                 </div>
+              </div>
+
+              {/* WhatsApp Group Link */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">WhatsApp Group Link (Candidate Community)</label>
+                <input
+                  type="text"
+                  value={settingsForm.whatsappGroupUrl || ''}
+                  onChange={e => setSettingsForm({ ...settingsForm, whatsappGroupUrl: e.target.value })}
+                  placeholder="https://chat.whatsapp.com/..."
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs"
+                />
+                <p className="text-[10px] text-slate-500 mt-1">Official candidate community invite link for daily Singapore job notifications</p>
               </div>
 
               {/* Email & Tagline */}
@@ -2170,39 +2572,57 @@ export const AdminDashboardView: React.FC = () => {
                 />
               </div>
 
-              {/* Google Reviews URL & Rating */}
+              {/* Google Location & Profile Link */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Google Maps & Profile URL</label>
+                  <input
+                    type="text"
+                    value={settingsForm.googleMapsDirectionUrl || settingsForm.googleProfileUrl || ''}
+                    onChange={e => setSettingsForm({
+                      ...settingsForm,
+                      googleMapsDirectionUrl: e.target.value,
+                      googleProfileUrl: e.target.value
+                    })}
+                    placeholder="https://maps.app.goo.gl/..."
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs"
+                  />
+                  <p className="text-[10px] text-slate-500 mt-1">Official Google Business Profile & Maps navigation link</p>
+                </div>
+
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">Google Reviews URL</label>
                   <input
                     type="text"
                     value={settingsForm.googleReviewsUrl || ''}
                     onChange={e => setSettingsForm({ ...settingsForm, googleReviewsUrl: e.target.value })}
-                    placeholder="https://g.page/r/.../review"
+                    placeholder="https://maps.app.goo.gl/... or review URL"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs"
+                  />
+                  <p className="text-[10px] text-slate-500 mt-1">Direct link for candidates to view and write reviews</p>
+                </div>
+              </div>
+
+              {/* Google Score & Rating */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Google Score</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={settingsForm.googleRating || 4.8}
+                    onChange={e => setSettingsForm({ ...settingsForm, googleRating: parseFloat(e.target.value) })}
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs"
                   />
                 </div>
-
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Google Score</label>
-                    <input
-                      type="number"
-                      step="0.1"
-                      value={settingsForm.googleRating || 4.8}
-                      onChange={e => setSettingsForm({ ...settingsForm, googleRating: parseFloat(e.target.value) })}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Review Count</label>
-                    <input
-                      type="number"
-                      value={settingsForm.totalReviewsCount || 140}
-                      onChange={e => setSettingsForm({ ...settingsForm, totalReviewsCount: parseInt(e.target.value) })}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs"
-                    />
-                  </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Review Count</label>
+                  <input
+                    type="number"
+                    value={settingsForm.totalReviewsCount || 140}
+                    onChange={e => setSettingsForm({ ...settingsForm, totalReviewsCount: parseInt(e.target.value) })}
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs"
+                  />
                 </div>
               </div>
 
@@ -2706,225 +3126,6 @@ export const AdminDashboardView: React.FC = () => {
           </div>
         )}
 
-        {/* MODAL: ADD / EDIT JOB */}
-        {jobModalOpen && editingJob && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-stone-950/75 backdrop-blur-xs">
-            <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[92vh] flex flex-col overflow-hidden shadow-2xl border border-slate-200">
-              <div className="bg-stone-900 text-white p-5 flex items-center justify-between shrink-0">
-                <h3 className="font-bold text-base text-white">
-                  {editingJob.id ? `Edit Job: ${editingJob.title}` : 'Publish New Singapore Job'}
-                </h3>
-                <button onClick={() => setJobModalOpen(false)} className="text-stone-400 hover:text-white text-sm cursor-pointer">
-                  ✕
-                </button>
-              </div>
-
-              <form onSubmit={handleSaveJobSubmit} className="p-6 overflow-y-auto space-y-4 flex-1 text-xs">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="font-bold text-slate-700 block mb-1">Job Title *</label>
-                    <input
-                      type="text"
-                      required
-                      value={editingJob.title || ''}
-                      onChange={e => setEditingJob({ ...editingJob, title: e.target.value })}
-                      placeholder="e.g. CNC Milling Setter / Operator"
-                      className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="font-bold text-slate-700 block mb-1">Sector / Category *</label>
-                    <select
-                      value={editingJob.category || 'Manufacturing & Production'}
-                      onChange={e => setEditingJob({ ...editingJob, category: e.target.value as any })}
-                      className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold"
-                    >
-                      <option value="Manufacturing & Production">Manufacturing & Production</option>
-                      <option value="Marine & Shipyard">Marine & Shipyard</option>
-                      <option value="F&B & Hospitality">F&B & Hospitality</option>
-                      <option value="Logistics & Warehouse">Logistics & Warehouse</option>
-                      <option value="Construction & Civil">Construction & Civil</option>
-                      <option value="Electrical & Maintenance">Electrical & Maintenance</option>
-                      <option value="Automotive & Mechanical">Automotive & Mechanical</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div>
-                    <label className="font-bold text-slate-700 block mb-1">Salary (in SGD) *</label>
-                    <input
-                      type="text"
-                      required
-                      value={editingJob.salary || ''}
-                      onChange={e => setEditingJob({ ...editingJob, salary: e.target.value })}
-                      placeholder="SGD 1,800 - 2,400 + OT"
-                      className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-red-900"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="font-bold text-slate-700 block mb-1">Job / Pass Type *</label>
-                    <select
-                      id="admin-job-modal-pass-type"
-                      value={editingJob.jobType || 'Work Permit'}
-                      onChange={e => setEditingJob({ ...editingJob, jobType: e.target.value as any })}
-                      className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold"
-                    >
-                      <option value="Work Permit">Work Permit</option>
-                      <option value="NTS Work Permit">NTS Work Permit</option>
-                      <option value="PCM">PCM (Process, Construction & Maintenance)</option>
-                      <option value="Construction Permit">Construction Permit</option>
-                      <option value="Marine Permit">Marine Permit</option>
-                      <option value="S Pass">S Pass</option>
-                      <option value="E Pass">E Pass</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="font-bold text-slate-700 block mb-1">Singapore Location *</label>
-                    <input
-                      type="text"
-                      value={editingJob.location || ''}
-                      onChange={e => setEditingJob({ ...editingJob, location: e.target.value })}
-                      placeholder="e.g. Jurong Industrial Area, Singapore"
-                      className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div>
-                    <label className="font-bold text-slate-700 block mb-1">Experience Required</label>
-                    <input
-                      type="text"
-                      value={editingJob.experience || ''}
-                      onChange={e => setEditingJob({ ...editingJob, experience: e.target.value })}
-                      placeholder="e.g. 1-2 Years (India/Gulf/SG)"
-                      className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="font-bold text-slate-700 block mb-1">Qualification</label>
-                    <input
-                      type="text"
-                      value={editingJob.qualification || ''}
-                      onChange={e => setEditingJob({ ...editingJob, qualification: e.target.value })}
-                      placeholder="e.g. ITI / Diploma / Any Degree"
-                      className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="font-bold text-slate-700 block mb-1">Vacancy Openings</label>
-                    <input
-                      type="number"
-                      value={editingJob.vacancyCount || 5}
-                      onChange={e => setEditingJob({ ...editingJob, vacancyCount: parseInt(e.target.value) })}
-                      className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="font-bold text-slate-700 block mb-1">Job Description</label>
-                  <textarea
-                    rows={3}
-                    value={editingJob.description || ''}
-                    onChange={e => setEditingJob({ ...editingJob, description: e.target.value })}
-                    placeholder="Provide overview of the role, shift patterns, and factory environment..."
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs"
-                  />
-                </div>
-
-                <div className="space-y-3 pt-2">
-                  <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-                    <label className="block text-xs font-bold text-slate-800 mb-1.5">
-                      Live Website Publication Status *
-                    </label>
-                    <select
-                      id="job-publication-status-select"
-                      value={editingJob.status || 'published'}
-                      onChange={e => setEditingJob({ ...editingJob, status: e.target.value as any })}
-                      className="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-red-900"
-                    >
-                      <option value="published">🟢 Published (Live and Visible on Public Website)</option>
-                      <option value="draft">⚪ Draft (Hidden from Public Website)</option>
-                      <option value="unpublished">🟡 Unpublished / Inactive (Hidden from Website)</option>
-                      <option value="closed">🔴 Closed / Expired (Hidden from Website)</option>
-                    </select>
-                    <p className="text-[11px] text-slate-500 mt-1.5">
-                      {editingJob.status === 'published'
-                        ? '✓ This vacancy will be displayed on the public Jobs page and Homepage immediately.'
-                        : '⚠ This vacancy is hidden from public view and cannot be seen by jobseekers.'}
-                    </p>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-6">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={editingJob.featured || false}
-                        onChange={e => setEditingJob({ ...editingJob, featured: e.target.checked })}
-                        className="rounded-sm text-red-900 focus:ring-red-900"
-                      />
-                      <span className="font-bold text-slate-800 text-xs">Featured Job</span>
-                    </label>
-
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={editingJob.latest || false}
-                        onChange={e => setEditingJob({ ...editingJob, latest: e.target.checked })}
-                        className="rounded-sm text-red-900 focus:ring-red-900"
-                      />
-                      <span className="font-bold text-slate-800 text-xs">Latest Opening</span>
-                    </label>
-                  </div>
-                </div>
-
-                <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
-                  {editingJob.id ? (
-                    <button
-                      type="button"
-                      id="modal-delete-job-btn"
-                      onClick={() => {
-                        const targetJob = jobs.find(j => j.id === editingJob.id);
-                        if (targetJob) {
-                          setJobModalOpen(false);
-                          setJobToDelete(targetJob);
-                        }
-                      }}
-                      className="px-3 py-2 text-rose-600 hover:bg-rose-50 border border-rose-200 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer"
-                      title="Delete this Singapore job vacancy"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                      <span>Delete Vacancy</span>
-                    </button>
-                  ) : <div />}
-                  <div className="flex items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setJobModalOpen(false)}
-                      className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl font-semibold cursor-pointer text-xs"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      className="px-6 py-2 bg-red-900 hover:bg-red-800 text-white font-bold rounded-xl shadow-md cursor-pointer text-xs"
-                    >
-                      Save & Publish Job
-                    </button>
-                  </div>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-
         {/* MODAL: UPDATE LEAD / ENQUIRY */}
         {enquiryModalOpen && selectedEnquiry && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-950/75 backdrop-blur-xs">
@@ -3038,8 +3239,8 @@ export const AdminDashboardView: React.FC = () => {
           onClose={() => setLogoModalOpen(false)}
         />
 
-        {/* JOB DELETE CONFIRMATION MODAL */}
-        {jobToDelete && (
+        {/* JOBS MULTIPLE / SINGLE DELETE CONFIRMATION MODAL */}
+        {jobsDeleteTarget && (
           <div id="delete-job-modal-overlay" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs">
             <div id="delete-job-modal" className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-150">
               <div className="flex items-center gap-3">
@@ -3047,40 +3248,69 @@ export const AdminDashboardView: React.FC = () => {
                   <Trash2 className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-base text-slate-900">Delete Singapore Job Listing</h3>
-                  <p className="text-xs text-slate-500">Permanent Vacancy Removal</p>
+                  <h3 className="font-bold text-base text-slate-900">
+                    {jobsDeleteTarget.isMultiple
+                      ? `Delete ${jobsDeleteTarget.ids.length} Singapore Jobs`
+                      : 'Delete Singapore Job Listing'}
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    {jobsDeleteTarget.isMultiple
+                      ? 'Multiple Vacancies Removal'
+                      : 'Permanent Vacancy Removal'}
+                  </p>
                 </div>
               </div>
 
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2 text-xs">
-                <div className="flex justify-between items-center py-1 border-b border-slate-200/60">
-                  <span className="text-slate-500 font-medium">Job Reference:</span>
-                  <span className="font-mono font-bold text-red-900 bg-red-50 px-2 py-0.5 rounded border border-red-200">
-                    {jobToDelete.id}
-                  </span>
+              {jobsDeleteTarget.isMultiple ? (
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2 text-xs max-h-56 overflow-y-auto">
+                  <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                    Selected Jobs to Delete ({jobsDeleteTarget.jobs.length}):
+                  </div>
+                  {jobsDeleteTarget.jobs.map(item => (
+                    <div key={item.id} className="p-2.5 bg-white rounded-xl border border-slate-200/80 flex items-center justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="font-bold text-slate-900 truncate">{item.title}</div>
+                        <div className="text-[11px] text-slate-500 truncate">
+                          {item.salary} • {item.jobType}
+                        </div>
+                      </div>
+                      <span className="shrink-0 font-mono text-[10px] font-bold text-red-900 bg-red-50 px-2 py-0.5 rounded border border-red-200">
+                        {item.id}
+                      </span>
+                    </div>
+                  ))}
                 </div>
-                <div className="flex justify-between items-center py-1 border-b border-slate-200/60">
-                  <span className="text-slate-500 font-medium">Title:</span>
-                  <span className="font-bold text-slate-900 truncate max-w-[200px]">{jobToDelete.title}</span>
+              ) : (
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2 text-xs">
+                  <div className="flex justify-between items-center py-1 border-b border-slate-200/60">
+                    <span className="text-slate-500 font-medium">Job Reference:</span>
+                    <span className="font-mono font-bold text-red-900 bg-red-50 px-2 py-0.5 rounded border border-red-200">
+                      {jobsDeleteTarget.jobs[0]?.id}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-200/60">
+                    <span className="text-slate-500 font-medium">Title:</span>
+                    <span className="font-bold text-slate-900 truncate max-w-[200px]">{jobsDeleteTarget.jobs[0]?.title}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-200/60">
+                    <span className="text-slate-500 font-medium">Salary (SGD):</span>
+                    <span className="font-bold text-red-900">{jobsDeleteTarget.jobs[0]?.salary}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-200/60">
+                    <span className="text-slate-500 font-medium">Category:</span>
+                    <span className="text-slate-700">{jobsDeleteTarget.jobs[0]?.category}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1">
+                    <span className="text-slate-500 font-medium">Pass Type & Location:</span>
+                    <span className="text-slate-700">{jobsDeleteTarget.jobs[0]?.jobType} • {jobsDeleteTarget.jobs[0]?.location}</span>
+                  </div>
                 </div>
-                <div className="flex justify-between items-center py-1 border-b border-slate-200/60">
-                  <span className="text-slate-500 font-medium">Salary (SGD):</span>
-                  <span className="font-bold text-red-900">{jobToDelete.salary}</span>
-                </div>
-                <div className="flex justify-between items-center py-1 border-b border-slate-200/60">
-                  <span className="text-slate-500 font-medium">Category:</span>
-                  <span className="text-slate-700">{jobToDelete.category}</span>
-                </div>
-                <div className="flex justify-between items-center py-1">
-                  <span className="text-slate-500 font-medium">Pass Type & Location:</span>
-                  <span className="text-slate-700">{jobToDelete.jobType} • {jobToDelete.location}</span>
-                </div>
-              </div>
+              )}
 
               <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 flex items-start gap-2.5 text-[11px] text-amber-900">
                 <AlertCircle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
                 <p>
-                  Warning: Deleting this Singapore job vacancy will permanently remove it from the public jobs page, candidate bookmarks, and application forms.
+                  Warning: Deleting {jobsDeleteTarget.isMultiple ? 'these Singapore job vacancies' : 'this Singapore job vacancy'} will permanently remove them from the public website, candidate bookmarks, and application forms.
                 </p>
               </div>
 
@@ -3088,8 +3318,8 @@ export const AdminDashboardView: React.FC = () => {
                 <button
                   type="button"
                   id="cancel-delete-job-btn"
-                  onClick={() => setJobToDelete(null)}
-                  disabled={isDeletingJob}
+                  onClick={() => setJobsDeleteTarget(null)}
+                  disabled={isDeletingJobsBatch}
                   className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-colors cursor-pointer"
                 >
                   Cancel
@@ -3097,12 +3327,18 @@ export const AdminDashboardView: React.FC = () => {
                 <button
                   type="button"
                   id="confirm-delete-job-btn"
-                  onClick={handleConfirmDeleteJob}
-                  disabled={isDeletingJob}
+                  onClick={handleConfirmJobsDelete}
+                  disabled={isDeletingJobsBatch}
                   className="px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs transition-colors shadow-sm cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
-                  <span>{isDeletingJob ? 'Deleting Job...' : 'Yes, Delete Job'}</span>
+                  <span>
+                    {isDeletingJobsBatch
+                      ? 'Deleting...'
+                      : jobsDeleteTarget.isMultiple
+                      ? `Yes, Delete All ${jobsDeleteTarget.ids.length} Jobs`
+                      : 'Yes, Delete Job'}
+                  </span>
                 </button>
               </div>
             </div>

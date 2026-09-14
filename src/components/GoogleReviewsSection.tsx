@@ -39,16 +39,16 @@ export const GoogleReviewsSection: React.FC = () => {
                 </div>
               </div>
 
-              {settings.googleReviewsUrl && (
+              {(settings.googleReviewsUrl || settings.googleProfileUrl || settings.googleMapsDirectionUrl) && (
                 <div>
                   <a
                     id="view-all-google-reviews-btn"
-                    href={settings.googleReviewsUrl}
+                    href={settings.googleReviewsUrl || settings.googleProfileUrl || settings.googleMapsDirectionUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center justify-center gap-2 w-full py-3 px-5 bg-red-900 hover:bg-red-800 text-white text-xs font-bold rounded-xl shadow-md transition-all cursor-pointer"
                   >
-                    <span>View All Reviews on Google</span>
+                    <span>View Reviews & Profile on Google</span>
                     <ExternalLink className="w-4 h-4" />
                   </a>
                 </div>

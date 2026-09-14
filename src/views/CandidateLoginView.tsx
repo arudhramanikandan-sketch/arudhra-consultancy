@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useApp } from '../context/AppContext';
 import {
@@ -9,7 +9,8 @@ import {
   ShieldCheck,
   CheckCircle2,
   AlertCircle,
-  RefreshCw
+  RefreshCw,
+  Info
 } from 'lucide-react';
 import { SubpageBackButton } from '../components/SubpageBackButton';
 
@@ -26,8 +27,21 @@ export const CandidateLoginView: React.FC = () => {
   // Status & OTP states
   const [step, setStep] = useState<'input' | 'verify'>('input');
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [cooldown, setCooldown] = useState(0);
+
+  // Active 60s countdown timer
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = setInterval(() => {
+      setCooldown(prev => {
+        if (prev <= 1) return 0;
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [cooldown]);
 
   // If already logged in as candidate, redirect to candidate portal
   if (user && user.role === 'customer') {
@@ -98,9 +112,29 @@ export const CandidateLoginView: React.FC = () => {
     if (res.success) {
       setStep('verify');
       setCooldown(res.cooldownSeconds || 60);
-      showToast('Verification code sent to your email inbox / spam folder', 'success');
+      showToast('Verification code dispatched to your email inbox / spam folder', 'success');
     } else {
       setErrorMsg(res.message || 'Unable to send email verification code.');
+    }
+  };
+
+  // Handle Email OTP Resend
+  const handleResendOtp = async () => {
+    if (cooldown > 0 || resending || loading) return;
+    setErrorMsg('');
+    setResending(true);
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanName = fullName.trim() || cleanEmail.split('@')[0];
+    const cleanMobile = mobile.trim();
+    const res = await sendEmailOtp(cleanEmail, cleanName, cleanMobile);
+    setResending(false);
+
+    if (res.success) {
+      setCooldown(res.cooldownSeconds || 60);
+      showToast('New verification code sent! Check your inbox and spam folder.', 'success');
+    } else {
+      setErrorMsg(res.message || 'Unable to resend verification code.');
+      showToast(res.message, 'error');
     }
   };
 
@@ -205,7 +239,41 @@ export const CandidateLoginView: React.FC = () => {
                     Change Email Address
                   </button>
 
-                  <span>{cooldown > 0 ? `Resend in ${cooldown}s` : 'Code received?'}</span>
+                  {cooldown > 0 ? (
+                    <span
+                      id="candidate-otp-cooldown-badge"
+                      className="inline-flex items-center gap-1.5 font-mono text-red-900 font-semibold bg-red-50 px-2.5 py-1 rounded-lg border border-red-200 shadow-2xs"
+                    >
+                      <RefreshCw className="w-3 h-3 animate-spin text-red-700" />
+                      <span>Resend OTP in <strong>{cooldown}s</strong></span>
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      id="candidate-resend-otp-btn"
+                      onClick={handleResendOtp}
+                      disabled={resending || loading}
+                      className="text-red-900 hover:text-red-800 font-bold underline cursor-pointer inline-flex items-center gap-1 py-1"
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 ${resending ? 'animate-spin' : ''}`} />
+                      <span>{resending ? 'Sending...' : 'Resend Verification Code'}</span>
+                    </button>
+                  )}
+                </div>
+
+                {/* Email Delivery & Spam Advisory */}
+                <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-600 space-y-1.5">
+                  <div className="flex items-start gap-2">
+                    <Info className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-semibold text-slate-800">
+                        Check your Inbox & Spam / Junk Folder
+                      </p>
+                      <p className="text-[11px] text-slate-500 mt-0.5">
+                        Emails are sent from <strong>info@arudhraconsultancy.com</strong>. Depending on your email provider, it may take up to 60 seconds or land in your Spam/Promotions tab.
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
                 <button

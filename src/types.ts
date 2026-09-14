@@ -103,6 +103,8 @@ export interface CandidateRecord {
   fullName: string;
   mobile: string;
   email?: string;
+  whatsappNumber?: string;
+  alternateMobile?: string;
   dateOfBirth?: string;
   dob?: string;
   gender?: 'Male' | 'Female' | 'Other' | 'male' | 'female' | 'other';
@@ -212,6 +214,8 @@ export interface User {
   mobile: string;
   name: string;
   email?: string;
+  whatsappNumber?: string;
+  alternateMobile?: string;
   role: 'customer' | 'admin';
   trade?: string;
   experience?: string;
@@ -260,6 +264,7 @@ export interface SiteSettings {
   tagline: string;
   phone: string;
   whatsappNumber: string;
+  whatsappGroupUrl?: string;
   email: string;
   officeAddress: string;
   city: string;
@@ -277,6 +282,7 @@ export interface SiteSettings {
   // Google Maps & Reviews
   googleMapsEmbedUrl: string;
   googleMapsDirectionUrl: string;
+  googleProfileUrl?: string;
   facebookUrl: string;
   instagramUrl: string;
   youtubeUrl: string;

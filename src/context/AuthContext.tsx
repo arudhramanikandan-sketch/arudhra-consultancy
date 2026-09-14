@@ -47,7 +47,7 @@ interface AuthContextType {
   resendAdmin2faCode: (temp2faToken: string) => Promise<{ success: boolean; message: string; previewCode?: string; dynamicCode?: string }>;
   resetAdmin2faEnrollment: () => Promise<{ success: boolean; message: string; otpAuthUri?: string; secretKey?: string }>;
   logout: () => void;
-  updateUserProfile: (name: string, email?: string) => void;
+  updateUserProfile: (name: string, email?: string, mobile?: string, whatsappNumber?: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -592,9 +592,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem('arudhra_auth_token');
   };
 
-  const updateUserProfile = (name: string, email?: string) => {
+  const updateUserProfile = (name: string, email?: string, mobile?: string, whatsappNumber?: string) => {
     if (user) {
-      setUser({ ...user, name, email });
+      const updated: User = {
+        ...user,
+        name: name || user.name,
+        email: email !== undefined ? email : user.email,
+        mobile: mobile !== undefined && mobile ? mobile : user.mobile,
+        whatsappNumber: whatsappNumber !== undefined ? whatsappNumber : user.whatsappNumber
+      };
+      setUser(updated);
+      try {
+        localStorage.setItem('arudhra_auth_user', JSON.stringify(updated));
+      } catch {}
     }
   };
 

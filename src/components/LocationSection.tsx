@@ -97,17 +97,31 @@ export const LocationSection: React.FC = () => {
             </div>
 
             {/* Directions Action */}
-            <div className="pt-4 border-t border-stone-800 flex flex-col sm:flex-row gap-3">
+            <div className="pt-4 border-t border-stone-800 flex flex-col sm:flex-row gap-2.5">
               {settings.googleMapsDirectionUrl && (
                 <a
                   id="get-directions-btn"
                   href={settings.googleMapsDirectionUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-1 inline-flex items-center justify-center gap-2 py-3 px-4 bg-red-900 hover:bg-red-800 text-white text-xs font-bold rounded-xl shadow-md transition-all"
+                  className="flex-1 inline-flex items-center justify-center gap-2 py-3 px-3.5 bg-red-900 hover:bg-red-800 text-white text-xs font-bold rounded-xl shadow-md transition-all"
+                  title="Open directions on Google Maps"
                 >
                   <Navigation className="w-4 h-4" />
                   <span>Get Directions</span>
+                </a>
+              )}
+              {(settings.googleProfileUrl || settings.googleMapsDirectionUrl) && (
+                <a
+                  id="view-google-profile-btn"
+                  href={settings.googleProfileUrl || settings.googleMapsDirectionUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-1.5 py-3 px-3.5 bg-stone-800 hover:bg-stone-700 text-amber-400 hover:text-amber-300 text-xs font-semibold rounded-xl border border-stone-700 transition-all"
+                  title="View Official Google Business Profile & Location"
+                >
+                  <MapPin className="w-4 h-4 text-red-400" />
+                  <span>Google Profile</span>
                 </a>
               )}
               <a
@@ -115,10 +129,10 @@ export const LocationSection: React.FC = () => {
                 href={getWhatsAppUrl()}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 inline-flex items-center justify-center gap-2 py-3 px-4 bg-stone-800 hover:bg-stone-700 text-white text-xs font-semibold rounded-xl border border-stone-700 transition-all"
+                className="inline-flex items-center justify-center gap-2 py-3 px-3.5 bg-stone-800 hover:bg-stone-700 text-white text-xs font-semibold rounded-xl border border-stone-700 transition-all"
               >
                 <MessageSquare className="w-4 h-4 text-emerald-400" />
-                <span>Message Desk</span>
+                <span>WhatsApp</span>
               </a>
             </div>
           </div>

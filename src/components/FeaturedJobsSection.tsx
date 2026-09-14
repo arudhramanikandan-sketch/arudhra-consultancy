@@ -147,6 +147,26 @@ export const AllLiveJobsSection: React.FC = () => {
               <JobCard key={job.id} job={job} />
             ))}
           </div>
+        ) : publishedJobs.length === 0 ? (
+          <div className="bg-white rounded-2xl p-10 text-center border border-slate-200 shadow-sm space-y-3 max-w-lg mx-auto">
+            <div className="w-12 h-12 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto">
+              <Briefcase className="w-6 h-6" />
+            </div>
+            <h3 className="text-base font-bold text-slate-900">No Active Vacancies Currently Published</h3>
+            <p className="text-xs text-slate-500 max-w-sm mx-auto">
+              All previous job openings have been filled or closed. New Singapore work permit and S-Pass openings are updated frequently by our recruitment desk.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setCurrentTab('register');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="px-5 py-2.5 bg-red-900 text-white text-xs font-bold rounded-xl hover:bg-red-800 transition-colors cursor-pointer"
+            >
+              Register Candidate Profile for Alerts
+            </button>
+          </div>
         ) : (
           <div className="bg-white rounded-2xl p-10 text-center border border-slate-200 shadow-sm space-y-3">
             <div className="w-12 h-12 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto">

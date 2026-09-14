@@ -24,7 +24,11 @@ import {
   Star,
   MapPin,
   Calendar,
-  GraduationCap
+  GraduationCap,
+  Edit3,
+  Mail,
+  X,
+  RefreshCw
 } from 'lucide-react';
 import { Enquiry, EnquiryStatus, ApplicationStatus, DocumentType } from '../types';
 
@@ -40,6 +44,7 @@ export const CustomerPortalView: React.FC = () => {
     candidate,
     candidateLoading,
     updateCandidateProfile,
+    updateCandidateContact,
     uploadCandidateDocument,
     deleteCandidateDocument,
     removeJobInterested,
@@ -92,7 +97,21 @@ export const CustomerPortalView: React.FC = () => {
   const [uploadDocName, setUploadDocName] = useState('');
   const [uploadingDoc, setUploadingDoc] = useState(false);
 
-  // Populate profile form when candidate data loads
+  // Candidate Contact Edit Modal State (Accessible from My Applications)
+  const [isEditContactModalOpen, setIsEditContactModalOpen] = useState(false);
+  const [savingContact, setSavingContact] = useState(false);
+  const [contactForm, setContactForm] = useState({
+    fullName: '',
+    mobile: '',
+    email: '',
+    whatsappNumber: '',
+    alternateMobile: '',
+    city: '',
+    state: 'Tamil Nadu',
+    address: ''
+  });
+
+  // Populate profile form & contact form when candidate data loads
   useEffect(() => {
     if (candidate) {
       setProfileForm({
@@ -130,13 +149,66 @@ export const CustomerPortalView: React.FC = () => {
         skillsText: candidate.skills ? candidate.skills.join(', ') : '',
         languagesText: candidate.languages ? candidate.languages.join(', ') : 'Tamil, English'
       });
+
+      setContactForm({
+        fullName: candidate.fullName || user?.name || '',
+        mobile: candidate.mobile || user?.mobile || '',
+        email: candidate.email || user?.email || '',
+        whatsappNumber: candidate.whatsappNumber || candidate.mobile || user?.mobile || '',
+        alternateMobile: candidate.alternateMobile || '',
+        city: candidate.city || '',
+        state: candidate.state || 'Tamil Nadu',
+        address: candidate.address || ''
+      });
     } else if (user) {
       setProfileForm(prev => ({
         ...prev,
         fullName: user.name || prev.fullName
       }));
+
+      setContactForm(prev => ({
+        ...prev,
+        fullName: user.name || prev.fullName,
+        mobile: user.mobile || prev.mobile,
+        email: user.email || prev.email,
+        whatsappNumber: prev.whatsappNumber || user.mobile || ''
+      }));
     }
   }, [candidate, user]);
+
+  const handleContactSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanName = contactForm.fullName.trim();
+    if (!cleanName) {
+      showToast('Please enter your full name', 'error');
+      return;
+    }
+    const cleanMobile = contactForm.mobile.trim();
+    if (!cleanMobile || cleanMobile.replace(/\D/g, '').length < 8) {
+      showToast('Please enter a valid mobile number with country code (e.g., +91 74188 45083)', 'error');
+      return;
+    }
+
+    setSavingContact(true);
+    const res = await updateCandidateContact({
+      fullName: cleanName,
+      mobile: cleanMobile,
+      email: contactForm.email.trim(),
+      whatsappNumber: contactForm.whatsappNumber.trim() || cleanMobile,
+      alternateMobile: contactForm.alternateMobile.trim(),
+      city: contactForm.city.trim(),
+      state: contactForm.state.trim(),
+      address: contactForm.address.trim()
+    });
+    setSavingContact(false);
+
+    if (res.success) {
+      showToast('Contact details successfully updated and synchronized across all applications!', 'success');
+      setIsEditContactModalOpen(false);
+    } else {
+      showToast(res.message || 'Failed to update contact details', 'error');
+    }
+  };
 
   const handleSignOut = () => {
     logout();
@@ -357,7 +429,7 @@ export const CustomerPortalView: React.FC = () => {
           {[
             { id: 'applications', label: `My Applications (${userEnquiries.length})`, icon: Briefcase },
             { id: 'interested', label: `Interested Jobs (${candidate?.interestedJobs?.length || 0})`, icon: Star },
-            { id: 'profile', label: 'My Candidate Profile', icon: User },
+            { id: 'profile', label: 'Profile', icon: User },
             { id: 'documents', label: `My Documents (${candidate?.documents?.length || 0})`, icon: FileText }
           ].map(tab => {
             const Icon = tab.icon;
@@ -382,11 +454,83 @@ export const CustomerPortalView: React.FC = () => {
         {/* SUBTAB 1: MY APPLICATIONS */}
         {activeSubTab === 'applications' && (
           <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg sm:text-xl font-bold text-slate-900">
-                Singapore Job Applications & Live Tracking
-              </h2>
-              <span className="text-xs text-slate-500">{userEnquiries.length} recorded</span>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h2 className="text-lg sm:text-xl font-bold text-slate-900">
+                  Singapore Job Applications & Live Tracking
+                </h2>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Track the real-time status of your overseas applications and maintain your verified recruitment contact info.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  id="portal-edit-contact-btn"
+                  onClick={() => setIsEditContactModalOpen(true)}
+                  className="px-3.5 py-2 bg-red-900 hover:bg-red-800 text-white text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+                >
+                  <Edit3 className="w-3.5 h-3.5" />
+                  <span>Edit Contact Details</span>
+                </button>
+                <span className="text-xs text-slate-600 font-semibold px-3 py-1.5 bg-slate-100 border border-slate-200 rounded-xl">
+                  {userEnquiries.length} {userEnquiries.length === 1 ? 'Application' : 'Applications'}
+                </span>
+              </div>
+            </div>
+
+            {/* Applicant Contact Summary Card */}
+            <div className="bg-gradient-to-r from-slate-900 to-slate-800 text-white p-5 sm:p-6 rounded-3xl shadow-sm border border-slate-700">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-500/20 text-red-300 border border-red-500/30">
+                      Verified Candidate Contact
+                    </span>
+                    {candidate?.candidateId && (
+                      <span className="text-[11px] font-mono text-slate-400">
+                        Candidate ID: {candidate.candidateId}
+                      </span>
+                    )}
+                  </div>
+                  <h3 className="text-base sm:text-lg font-bold text-white">
+                    {contactForm.fullName || user.name || 'Candidate'}
+                  </h3>
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-300 pt-1">
+                    <span className="flex items-center gap-1.5">
+                      <Phone className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>{contactForm.mobile || user.mobile}</span>
+                    </span>
+                    {(contactForm.whatsappNumber || user.mobile) && (
+                      <span className="flex items-center gap-1.5">
+                        <MessageSquare className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>WA: {contactForm.whatsappNumber || user.mobile}</span>
+                      </span>
+                    )}
+                    {(contactForm.email || user.email) && (
+                      <span className="flex items-center gap-1.5">
+                        <Mail className="w-3.5 h-3.5 text-amber-300" />
+                        <span>{contactForm.email || user.email}</span>
+                      </span>
+                    )}
+                    {(contactForm.city || candidate?.city) && (
+                      <span className="flex items-center gap-1.5">
+                        <MapPin className="w-3.5 h-3.5 text-rose-300" />
+                        <span>{contactForm.city || candidate?.city}, {contactForm.state || candidate?.state || 'Tamil Nadu'}</span>
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  id="open-contact-modal-quick-btn"
+                  onClick={() => setIsEditContactModalOpen(true)}
+                  className="self-start md:self-center px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold rounded-xl border border-white/20 transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                >
+                  <Edit3 className="w-3.5 h-3.5" />
+                  <span>Update Contact Details</span>
+                </button>
+              </div>
             </div>
 
             {userEnquiries.length > 0 ? (
@@ -1169,6 +1313,203 @@ export const CustomerPortalView: React.FC = () => {
                   </p>
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* EDIT CONTACT DETAILS MODAL */}
+        {isEditContactModalOpen && (
+          <div
+            id="edit-contact-modal-overlay"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs overflow-y-auto"
+          >
+            <div
+              id="edit-contact-modal-card"
+              className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden my-8"
+            >
+              {/* Header */}
+              <div className="bg-slate-900 text-white p-6 relative">
+                <button
+                  type="button"
+                  id="close-edit-contact-modal-btn"
+                  onClick={() => setIsEditContactModalOpen(false)}
+                  className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-500/20 text-red-300 border border-red-500/30">
+                    Candidate Profile & Applications
+                  </span>
+                </div>
+                <h3 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
+                  <Edit3 className="w-5 h-5 text-red-400" />
+                  <span>Edit Contact Details</span>
+                </h3>
+                <p className="text-xs text-slate-300 mt-1">
+                  Updates will instantly synchronize across your candidate profile and all submitted Singapore job applications.
+                </p>
+              </div>
+
+              {/* Form Body */}
+              <form id="edit-contact-details-form" onSubmit={handleContactSubmit} className="p-6 space-y-4">
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                    Candidate Full Name <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <User className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
+                    <input
+                      id="contact-fullname-input"
+                      type="text"
+                      value={contactForm.fullName}
+                      onChange={e => setContactForm(prev => ({ ...prev, fullName: e.target.value }))}
+                      required
+                      placeholder="e.g. Manikandan Arudhra"
+                      className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs font-medium focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-red-900/20 focus:border-red-900"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                      Primary Mobile Number <span className="text-rose-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <Phone className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
+                      <input
+                        id="contact-mobile-input"
+                        type="tel"
+                        value={contactForm.mobile}
+                        onChange={e => setContactForm(prev => ({ ...prev, mobile: e.target.value }))}
+                        required
+                        placeholder="+91 74188 45083"
+                        className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs font-medium focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-red-900/20 focus:border-red-900"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                      WhatsApp Number
+                    </label>
+                    <div className="relative">
+                      <MessageSquare className="absolute left-3.5 top-3.5 w-4 h-4 text-emerald-500" />
+                      <input
+                        id="contact-whatsapp-input"
+                        type="tel"
+                        value={contactForm.whatsappNumber}
+                        onChange={e => setContactForm(prev => ({ ...prev, whatsappNumber: e.target.value }))}
+                        placeholder="+91 74188 45083"
+                        className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs font-medium focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-red-900/20 focus:border-red-900"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                      Email Address
+                    </label>
+                    <div className="relative">
+                      <Mail className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
+                      <input
+                        id="contact-email-input"
+                        type="email"
+                        value={contactForm.email}
+                        onChange={e => setContactForm(prev => ({ ...prev, email: e.target.value }))}
+                        placeholder="candidate@example.com"
+                        className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs font-medium focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-red-900/20 focus:border-red-900"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                      Alternate Mobile / Guardian
+                    </label>
+                    <input
+                      id="contact-alt-mobile-input"
+                      type="tel"
+                      value={contactForm.alternateMobile}
+                      onChange={e => setContactForm(prev => ({ ...prev, alternateMobile: e.target.value }))}
+                      placeholder="+91 98765 43210"
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs font-medium focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-red-900/20 focus:border-red-900"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                      Current City / District
+                    </label>
+                    <input
+                      id="contact-city-input"
+                      type="text"
+                      value={contactForm.city}
+                      onChange={e => setContactForm(prev => ({ ...prev, city: e.target.value }))}
+                      placeholder="e.g. Coimbatore / Chennai"
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs font-medium focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-red-900/20 focus:border-red-900"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                      State / Province
+                    </label>
+                    <input
+                      id="contact-state-input"
+                      type="text"
+                      value={contactForm.state}
+                      onChange={e => setContactForm(prev => ({ ...prev, state: e.target.value }))}
+                      placeholder="e.g. Tamil Nadu"
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs font-medium focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-red-900/20 focus:border-red-900"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                    Address / Residence Details
+                  </label>
+                  <textarea
+                    id="contact-address-input"
+                    rows={2}
+                    value={contactForm.address}
+                    onChange={e => setContactForm(prev => ({ ...prev, address: e.target.value }))}
+                    placeholder="Full residential address for visa documentation"
+                    className="w-full px-4 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-xs font-medium focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-red-900/20 focus:border-red-900 resize-none"
+                  />
+                </div>
+
+                {/* Footer Controls */}
+                <div className="pt-2 flex items-center justify-end gap-2.5 border-t border-slate-100">
+                  <button
+                    type="button"
+                    onClick={() => setIsEditContactModalOpen(false)}
+                    disabled={savingContact}
+                    className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    id="save-contact-details-btn"
+                    type="submit"
+                    disabled={savingContact || !contactForm.fullName.trim() || !contactForm.mobile.trim()}
+                    className="px-5 py-2.5 bg-red-900 hover:bg-red-800 text-white text-xs font-bold rounded-xl shadow-md hover:shadow-lg transition-all disabled:opacity-50 flex items-center gap-2 cursor-pointer"
+                  >
+                    {savingContact ? (
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Save className="w-3.5 h-3.5" />
+                    )}
+                    <span>{savingContact ? 'Saving Changes...' : 'Save & Sync Applications'}</span>
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         )}

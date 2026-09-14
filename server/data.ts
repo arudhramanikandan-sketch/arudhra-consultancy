@@ -5,6 +5,7 @@ export const initialSiteSettings: SiteSettings = {
   tagline: 'Singapore Overseas Recruitment & Placement Support',
   phone: '7418845083',
   whatsappNumber: '7418845083',
+  whatsappGroupUrl: 'https://chat.whatsapp.com/GJOntCsJT3dKskOFm16T6R?s=cl&p=a&mlu=4&ilr=4',
   email: 'info@arudhraconsultancy.com',
   officeAddress: '1/149, Ganesh Complex, Avinashi Road, Neelambur, Coimbatore – 641062',
   city: 'Coimbatore',
@@ -18,12 +19,13 @@ export const initialSiteSettings: SiteSettings = {
   logoDisplayMode: 'image_only',
   logoEmblemBg: '#7f1d1d',
   logoEmblemShape: 'rounded-xl',
-  googleMapsEmbedUrl: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3916.141753177726!2d77.0855!3d11.0665!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3ba8f89a9f24c3e7%3A0x289759c9918b958e!2sNeelambur%2C%20Tamil%20Nadu!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin',
-  googleMapsDirectionUrl: 'https://www.google.com/maps/search/?api=1&query=1/149,+Ganesh+Complex,+Avinashi+Road,+Neelambur,+Coimbatore+641062',
+  googleMapsEmbedUrl: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3916.141753177726!2d77.0855!3d11.0665!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3ba85781b186657d%3A0x10e361bff5a411c3!2sARUDHRA%20CONSULTANCY!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin',
+  googleMapsDirectionUrl: 'https://maps.app.goo.gl/fK584Kff5UEfDLNM8?g_st=awb',
+  googleProfileUrl: 'https://maps.app.goo.gl/fK584Kff5UEfDLNM8?g_st=awb',
   facebookUrl: 'https://www.facebook.com/share/1CnqEMkex8/',
-  instagramUrl: 'https://www.instagram.com/arudhraconsultamcysgd?utm_source=qr&igsi=MWw3YmpnczM0bm9pdg==',
-  youtubeUrl: 'https://youtube.com/@arudhraconsultancy',
-  googleReviewsUrl: 'https://search.google.com/local/writereview?placeid=ChIJN1t_tDeuEmsRUsoyG83frY4',
+  instagramUrl: 'https://www.instagram.com/arudhraconsultancysgd?utm_source=qr&stkn=MWw3YmpnczM0bm9pdg==',
+  youtubeUrl: 'https://youtube.com/@arudhraconsultancy-v4o?si=kV4Tv7-nazoqeVcD',
+  googleReviewsUrl: 'https://maps.app.goo.gl/fK584Kff5UEfDLNM8?g_st=awb',
   googleRating: 4.9,
   totalReviewsCount: 128,
   heroHeadline: 'Singapore Overseas Recruitment & Placement Support',
@@ -53,128 +55,11 @@ export const initialSiteSettings: SiteSettings = {
   autoPruneOldLeads: false
 };
 
-export const initialJobs: Job[] = [
-  {
-    id: 'SG-JOB-101',
-    title: 'CNC Milling & Turning Machinist',
-    employer: 'Precision Engineering Pte Ltd',
-    category: 'Manufacturing & Production',
-    location: 'Jurong Industrial Estate, Singapore',
-    salary: 'SGD 2,400 - 3,200 / month',
-    qualification: 'ITI / Diploma (Mechanical / Tool & Die)',
-    experience: '2-5 Years (Fanuc / Siemens CNC Controller)',
-    jobType: 'Work Permit',
-    vacancyCount: 6,
-    description: 'Direct recruitment for precision aerospace and oil & gas machining facility in Jurong. Operating 3-axis and 5-axis CNC Milling / Turning centers with Fanuc / Siemens controls.',
-    responsibilities: [
-      'Set up and operate CNC Milling and CNC Lathe machines independently',
-      'Interpret engineering drawings and technical GD&T specifications',
-      'Perform tool preset, fixture alignment, and basic G-code / M-code editing',
-      'Conduct in-process dimensional inspection using micrometers, vernier calipers, and bore gauges'
-    ],
-    requirements: [
-      'Valid Indian Passport with at least 18 months validity',
-      'Minimum 2 years proven hands-on CNC machining experience',
-      'Ability to understand workshop technical drawings and basic English'
-    ],
-    benefits: [
-      'Overtime allowance (1.5x on weekdays, 2.0x on Sundays/PH)',
-      'Subsidized company hostel accommodation & transport',
-      'Comprehensive medical and hospitalization insurance coverage under MOM regulations',
-      'Annual leave, medical leave, and performance bonus'
-    ],
-    requiredDocuments: [
-      'Updated Resume / Bio-data with detailed machine models',
-      'Color copy of Passport (all 36 pages)',
-      'Educational and ITI / Diploma Certificates',
-      'Trade experience certificates and work sample photos/videos'
-    ],
-    status: 'published',
-    featured: true,
-    latest: true,
-    postedDate: '2026-08-25',
-    createdAt: '2026-08-25T10:00:00.000Z',
-    updatedAt: '2026-08-25T10:00:00.000Z'
-  },
-  {
-    id: 'SG-JOB-102',
-    title: '6G Pipe Welder (TIG & ARC)',
-    employer: 'Marine Engineering Services Singapore',
-    category: 'Marine & Shipyard',
-    location: 'Tuas Shipyard Basin, Singapore',
-    salary: 'SGD 2,600 - 3,500 / month',
-    qualification: 'ITI Welder / 6G WQR Certified',
-    experience: '3+ Years in High Pressure Piping or Marine Shipyard',
-    jobType: 'Work Permit',
-    vacancyCount: 8,
-    description: 'Urgent requirement for certified 6G Pipe Welders for offshore vessel maintenance and pressure piping fabrication in Tuas Shipyard.',
-    responsibilities: [
-      'Perform GTAW (TIG) root pass and SMAW (ARC) capping on carbon and stainless steel pipes in 6G position',
-      'Pass 100% visual and X-ray / Radiographic Testing (RT) weld criteria',
-      'Comply strictly with Singapore shipyard safety, permit-to-work (PTW), and confined space protocols'
-    ],
-    requirements: [
-      'Valid Indian Passport with 2+ years validity',
-      'Valid or previous 6G Welding Performance Qualification record (WQR)',
-      'Gulf or Singapore shipyard experience preferred'
-    ],
-    benefits: [
-      'High overtime availability (average 60-70 hours OT/month)',
-      'Shipyard safety boots, helmets, and protective gear provided',
-      'Approved dormitory accommodation with Indian food catering option',
-      'MOM standard medical and hospitalization insurance'
-    ],
-    requiredDocuments: [
-      'Passport original color scan',
-      '6G Welder qualification certificates and past weld logbooks',
-      'Short 1-2 minute video of TIG welding root & face'
-    ],
-    status: 'published',
-    featured: true,
-    latest: true,
-    postedDate: '2026-08-26',
-    createdAt: '2026-08-26T09:00:00.000Z',
-    updatedAt: '2026-08-26T09:00:00.000Z'
-  },
-  {
-    id: 'SG-JOB-103',
-    title: 'Heavy Reach Truck & Forklift Operator',
-    employer: 'Global Logistics Hub Singapore',
-    category: 'Logistics & Warehouse',
-    location: 'Changi South Logistics Park, Singapore',
-    salary: 'SGD 2,200 - 2,800 / month',
-    qualification: '10th / 12th Pass + Forklift License',
-    experience: '2+ Years in High-Bay Warehouse Operations',
-    jobType: 'Work Permit',
-    vacancyCount: 5,
-    description: 'Operating reach trucks and counterbalance forklifts in temperature-controlled FMCG distribution warehouse in Changi South.',
-    responsibilities: [
-      'Safe operation of high-reach trucks up to 10-meter bay racking',
-      'Loading, unloading containerized cargo, and pallet put-away',
-      'Scan barcodes and perform stock movement verification using RF guns'
-    ],
-    requirements: [
-      'Valid driving license / heavy vehicle experience',
-      'Physical fitness to work in warehouse shift environment',
-      'Clear police verification and valid Indian passport'
-    ],
-    benefits: [
-      'Shift allowance and guaranteed overtime',
-      'Air-conditioned warehouse environment',
-      'Company transport pick-up points across major dormitories'
-    ],
-    requiredDocuments: [
-      'Passport full scan',
-      'Driving license and heavy equipment experience letters'
-    ],
-    status: 'published',
-    featured: false,
-    latest: true,
-    postedDate: '2026-08-28',
-    createdAt: '2026-08-28T08:00:00.000Z',
-    updatedAt: '2026-08-28T08:00:00.000Z'
-  }
-];
+/**
+ * Initial jobs array is kept empty so deleted jobs never resurrect.
+ * Jobs are dynamically loaded and saved to persistent disk storage (storage_data.json).
+ */
+export const initialJobs: Job[] = [];
 
 export const initialEnquiries: Enquiry[] = [
   {

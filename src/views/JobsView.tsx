@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { JobCard } from '../components/JobCard';
-import { Search, Filter, Briefcase, RefreshCw, Sparkles, Clock, X, SlidersHorizontal } from 'lucide-react';
+import { Search, Filter, Briefcase, RefreshCw, Sparkles, Clock, X, SlidersHorizontal, Users } from 'lucide-react';
 import { JobCategory, JobType } from '../types';
 import { SubpageBackButton } from '../components/SubpageBackButton';
 
@@ -11,7 +11,7 @@ interface JobsViewProps {
 }
 
 export const JobsView: React.FC<JobsViewProps> = ({ initialSearch = '', initialCategory = 'All' }) => {
-  const { jobs, refreshJobs } = useApp();
+  const { jobs, refreshJobs, setCurrentTab, settings } = useApp();
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Ensure latest persisted jobs are pulled immediately on mount
@@ -133,7 +133,7 @@ export const JobsView: React.FC<JobsViewProps> = ({ initialSearch = '', initialC
         <SubpageBackButton label="Back to Home" currentPageTitle="Singapore Jobs" fallbackTab="home" />
 
         {/* Header Title */}
-        <div className="bg-slate-900 text-white rounded-3xl p-6 sm:p-10 relative overflow-hidden shadow-xl">
+        <div className="bg-slate-900 text-white rounded-3xl p-6 sm:p-10 relative overflow-hidden shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="relative z-10 max-w-2xl space-y-2">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/20 text-rose-300 text-xs font-bold border border-rose-500/30">
               <span>🇸🇬 Singapore Overseas Jobs Directory</span>
@@ -145,6 +145,22 @@ export const JobsView: React.FC<JobsViewProps> = ({ initialSearch = '', initialC
               Browse current Singapore openings with transparent salary terms in SGD, verified employer locations, and immediate application tracking.
             </p>
           </div>
+
+          {settings.whatsappGroupUrl && (
+            <div className="relative z-10 shrink-0">
+              <a
+                id="jobs-join-whatsapp-group-btn"
+                href={settings.whatsappGroupUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2.5 px-5 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs sm:text-sm font-bold shadow-lg shadow-emerald-950/40 border border-emerald-400/30 transition-all hover:scale-[1.02]"
+                title="Join WhatsApp Group for Daily Singapore Job Alerts"
+              >
+                <Users className="w-4 h-4" />
+                <span>Join WhatsApp Job Group</span>
+              </a>
+            </div>
+          )}
         </div>
 
         {/* Search & Quick Controls Bar */}
@@ -371,8 +387,32 @@ export const JobsView: React.FC<JobsViewProps> = ({ initialSearch = '', initialC
               <JobCard key={job.id} job={job} />
             ))}
           </div>
+        ) : jobs.length === 0 ? (
+          /* Empty State: No Jobs Published */
+          <div id="jobs-empty-state-none" className="bg-white rounded-3xl p-12 text-center border border-slate-200 max-w-lg mx-auto space-y-4 shadow-sm">
+            <div className="w-16 h-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto">
+              <Briefcase className="w-8 h-8" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-slate-900">No Active Jobs Currently Published</h3>
+              <p className="text-xs text-slate-600 mt-1">
+                All previously published openings are currently closed or filled. Our Singapore overseas recruitment desk updates verified employer vacancies frequently.
+              </p>
+            </div>
+            <button
+              id="empty-register-profile-btn"
+              type="button"
+              onClick={() => {
+                setCurrentTab('register');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="px-5 py-2.5 bg-red-900 hover:bg-red-800 text-white text-xs font-bold rounded-xl transition-all shadow-sm cursor-pointer"
+            >
+              Register Candidate Profile for Alerts
+            </button>
+          </div>
         ) : (
-          /* Empty State */
+          /* Empty State: Filter Mismatch */
           <div id="jobs-empty-state" className="bg-white rounded-3xl p-12 text-center border border-slate-200 max-w-lg mx-auto space-y-4 shadow-sm">
             <div className="w-16 h-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto">
               <Briefcase className="w-8 h-8" />
@@ -387,9 +427,9 @@ export const JobsView: React.FC<JobsViewProps> = ({ initialSearch = '', initialC
               id="empty-reset-filters-btn"
               type="button"
               onClick={resetFilters}
-              className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-all"
+              className="px-5 py-2.5 bg-red-900 hover:bg-red-800 text-white text-xs font-bold rounded-xl transition-all shadow-sm cursor-pointer"
             >
-              Show All Available Jobs
+              Show All Available Jobs ({jobs.length})
             </button>
           </div>
         )}

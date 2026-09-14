@@ -19,9 +19,12 @@ import {
   Sparkles,
   Facebook,
   Instagram,
+  Youtube,
   Sun,
   Moon,
-  ArrowLeft
+  ArrowLeft,
+  MapPin,
+  Users
 } from 'lucide-react';
 import { LogoEditModal } from './LogoEditModal';
 import { ThemeSelectorModal } from './ThemeSelectorModal';
@@ -147,6 +150,45 @@ export const Navbar: React.FC = () => {
               >
                 <Instagram className="w-3 h-3 text-pink-400" />
                 <span>Instagram</span>
+              </a>
+            )}
+            {settings.youtubeUrl && (
+              <a
+                id="top-bar-youtube"
+                href={settings.youtubeUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hidden md:flex items-center gap-1.5 text-stone-300 hover:text-red-400 transition-colors"
+                title="Subscribe on YouTube"
+              >
+                <Youtube className="w-3 h-3 text-red-500" />
+                <span>YouTube</span>
+              </a>
+            )}
+            {(settings.googleProfileUrl || settings.googleMapsDirectionUrl) && (
+              <a
+                id="top-bar-google-location"
+                href={settings.googleProfileUrl || settings.googleMapsDirectionUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hidden sm:flex items-center gap-1.5 text-stone-300 hover:text-amber-400 transition-colors"
+                title="Visit Arudhra Consultancy on Google Profile & Location"
+              >
+                <MapPin className="w-3 h-3 text-red-400" />
+                <span>Google Profile</span>
+              </a>
+            )}
+            {settings.whatsappGroupUrl && (
+              <a
+                id="top-bar-whatsapp-group"
+                href={settings.whatsappGroupUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hidden lg:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-900/70 border border-emerald-500/40 text-emerald-300 hover:text-white hover:bg-emerald-800 transition-colors font-semibold text-[11px]"
+                title="Join Arudhra Consultancy WhatsApp Group for Instant Singapore Job Updates"
+              >
+                <Users className="w-3 h-3 text-emerald-400" />
+                <span>WhatsApp Group</span>
               </a>
             )}
           </div>
@@ -291,9 +333,7 @@ export const Navbar: React.FC = () => {
           </nav>
 
           {/* Right Action Controls */}
-          <div className="hidden sm:flex items-center gap-3">
-
-
+          <div className="flex items-center gap-2 sm:gap-3">
             {/* Auth Buttons */}
             {user ? (
               <div className="flex items-center gap-2">
@@ -301,27 +341,28 @@ export const Navbar: React.FC = () => {
                   <button
                     id="admin-dashboard-nav-btn"
                     onClick={() => handleNavClick('admin')}
-                    className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                       currentTab === 'admin'
                         ? 'bg-stone-900 text-white shadow-md'
                         : 'bg-red-900 text-white hover:bg-red-800'
                     }`}
                   >
                     <Shield className="w-3.5 h-3.5 text-amber-400" />
-                    <span>Admin Dashboard</span>
+                    <span className="hidden xs:inline">Admin Dashboard</span>
+                    <span className="xs:hidden">Admin</span>
                   </button>
                 ) : (
                   <button
                     id="customer-portal-nav-btn"
                     onClick={() => handleNavClick('portal')}
-                    className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                       currentTab === 'portal'
                         ? 'bg-red-900 text-white shadow-md'
                         : 'bg-red-900 text-white hover:bg-red-800'
                     }`}
                   >
                     <User className="w-3.5 h-3.5" />
-                    <span>My Applications</span>
+                    <span>Candidate Login</span>
                   </button>
                 )}
               </div>
@@ -330,30 +371,30 @@ export const Navbar: React.FC = () => {
                 <button
                   id="open-candidate-login-btn"
                   onClick={() => handleNavClick('candidate-login')}
-                  className={`flex items-center gap-1.5 px-3.5 py-2 text-white text-xs font-bold rounded-lg shadow-xs hover:shadow-md transition-all cursor-pointer ${
+                  className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 text-white text-xs font-bold rounded-lg shadow-sm hover:shadow-md transition-all cursor-pointer ${
                     currentTab === 'candidate-login'
-                      ? 'bg-red-800'
+                      ? 'bg-red-800 ring-2 ring-amber-400/50'
                       : 'bg-red-900 hover:bg-red-800'
                   }`}
-                  title="Candidate Portal Login"
+                  title="Candidate Portal Login & Sign Up"
                 >
-                  <User className="w-3.5 h-3.5" />
+                  <User className="w-3.5 h-3.5 text-amber-300" />
                   <span>Candidate Login</span>
                 </button>
               </div>
             )}
-          </div>
 
-          {/* Mobile Hamburger Button */}
-          <div className="flex items-center gap-2 lg:hidden">
-            <button
-              id="mobile-menu-toggle-btn"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-lg text-slate-700 hover:text-slate-950 hover:bg-slate-100 focus:outline-hidden"
-              aria-label="Toggle menu"
-            >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
+            {/* Mobile Hamburger Button */}
+            <div className="flex items-center lg:hidden">
+              <button
+                id="mobile-menu-toggle-btn"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="p-2 rounded-lg text-slate-700 hover:text-slate-950 hover:bg-slate-100 focus:outline-hidden"
+                aria-label="Toggle menu"
+              >
+                {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -401,7 +442,7 @@ export const Navbar: React.FC = () => {
                     className="w-full flex items-center justify-center gap-2 py-3 bg-red-900 text-white rounded-lg text-xs font-bold shadow-xs cursor-pointer"
                   >
                     <User className="w-4 h-4" />
-                    <span>My Applications & Enquiries</span>
+                    <span>Candidate Login</span>
                   </button>
                 )}
 
@@ -425,7 +466,7 @@ export const Navbar: React.FC = () => {
                   className="w-full flex items-center justify-center gap-2 py-3 bg-red-900 hover:bg-red-800 text-white rounded-lg text-xs font-bold shadow-md cursor-pointer"
                 >
                   <User className="w-4 h-4" />
-                  <span>Candidate Portal Login</span>
+                  <span>Candidate Login</span>
                 </button>
               </div>
             )}
@@ -451,6 +492,19 @@ export const Navbar: React.FC = () => {
               </a>
             </div>
 
+            {settings.whatsappGroupUrl && (
+              <a
+                id="mobile-drawer-whatsapp-group"
+                href={settings.whatsappGroupUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-xs transition-colors"
+              >
+                <Users className="w-4 h-4" />
+                <span>Join Official WhatsApp Group</span>
+              </a>
+            )}
+
             <div className="grid grid-cols-2 gap-2">
               {settings.facebookUrl && (
                 <a
@@ -474,6 +528,31 @@ export const Navbar: React.FC = () => {
                 >
                   <Instagram className="w-3.5 h-3.5" />
                   <span>Instagram</span>
+                </a>
+              )}
+              {settings.youtubeUrl && (
+                <a
+                  id="mobile-drawer-youtube"
+                  href={settings.youtubeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-1.5 py-2.5 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-lg text-xs font-bold transition-colors"
+                >
+                  <Youtube className="w-3.5 h-3.5 text-red-600" />
+                  <span>YouTube</span>
+                </a>
+              )}
+              {(settings.googleProfileUrl || settings.googleMapsDirectionUrl) && (
+                <a
+                  id="mobile-drawer-google-profile"
+                  href={settings.googleProfileUrl || settings.googleMapsDirectionUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-1.5 py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 rounded-lg text-xs font-bold transition-colors"
+                  title="Google Business Profile & Location"
+                >
+                  <MapPin className="w-3.5 h-3.5 text-red-600" />
+                  <span>Google Profile</span>
                 </a>
               )}
             </div>

@@ -179,6 +179,13 @@ class StorageService {
         this.settings.autoReplaceOldFlyers = false;
         this.settings.autoReplaceOldVideos = false;
         console.log(`[Storage] Persistent storage loaded. Jobs: ${this.jobs.length}, Enquiries: ${this.enquiries.length}, Candidates: ${this.candidates.length}, Users: ${this.users.length}, Tracked deleted items: ${this.deletedIds.size}`);
+        try {
+          const publicDir = path.join(process.cwd(), 'public');
+          if (!fs.existsSync(publicDir)) {
+            fs.mkdirSync(publicDir, { recursive: true });
+          }
+          fs.writeFileSync(path.join(publicDir, 'jobs.json'), JSON.stringify(this.jobs, null, 2), 'utf-8');
+        } catch (e) {}
         return;
       }
     } catch (err) {
@@ -190,6 +197,7 @@ class StorageService {
 
   private saveToDisk(): void {
     try {
+      this.jobs = this.jobs.filter(j => !this.deletedIds.has(j.id));
       const dataToSave = {
         jobs: this.jobs,
         enquiries: this.enquiries.filter(e => !this.deletedIds.has(e.id)),
@@ -205,6 +213,17 @@ class StorageService {
       const tempPath = `${this.filePath}.tmp`;
       fs.writeFileSync(tempPath, JSON.stringify(dataToSave, null, 2), 'utf-8');
       fs.renameSync(tempPath, this.filePath);
+
+      // Also sync public/jobs.json for static builds and direct client fallback
+      try {
+        const publicDir = path.join(process.cwd(), 'public');
+        if (!fs.existsSync(publicDir)) {
+          fs.mkdirSync(publicDir, { recursive: true });
+        }
+        fs.writeFileSync(path.join(publicDir, 'jobs.json'), JSON.stringify(this.jobs, null, 2), 'utf-8');
+      } catch (e) {
+        // Ignore static file write error
+      }
     } catch (err) {
       console.error('[Storage] Error persisting to disk:', err);
     }
@@ -388,26 +407,44 @@ class StorageService {
     // Disallow overwriting permanent ID or userId
     const { id, userId, documents, interestedJobs, applications, createdAt, ...allowedUpdates } = updates;
 
+    const prevCandMobile = this.normalizePhone(candidate.mobile);
+    const prevEmail = (candidate.email || '').trim().toLowerCase();
+
     Object.assign(candidate, allowedUpdates);
     candidate.updatedAt = new Date().toISOString();
 
-    // Also sync user record name/email
+    // Also sync user record name/email/phone
     const user = this.users.find(u => u.id === candidate.userId);
     if (user) {
       if (candidate.fullName) user.name = candidate.fullName;
       if (candidate.email) user.email = candidate.email;
+      if (candidate.mobile) user.mobile = candidate.mobile;
+      if (candidate.whatsappNumber) user.whatsappNumber = candidate.whatsappNumber;
+      if (candidate.alternateMobile) user.alternateMobile = candidate.alternateMobile;
     }
 
     // Sync corresponding enquiries in Admin Dashboard with candidate's latest details
-    const candMobile = this.normalizePhone(candidate.mobile);
+    const newCandMobile = this.normalizePhone(candidate.mobile);
+    const newEmail = (candidate.email || '').trim().toLowerCase();
+
     this.enquiries.forEach(e => {
       if (this.deletedIds.has(e.id)) return;
-      if (
+      const eNormMobile = this.normalizePhone(e.mobile);
+      const eEmail = (e.email || '').trim().toLowerCase();
+
+      const isMatch = (
         (e.userId && (e.userId === candidate.userId || e.userId === candidate.id)) ||
-        (candMobile && this.normalizePhone(e.mobile) === candMobile && candMobile.length >= 8)
-      ) {
+        (prevCandMobile && eNormMobile === prevCandMobile && prevCandMobile.length >= 8) ||
+        (newCandMobile && eNormMobile === newCandMobile && newCandMobile.length >= 8) ||
+        (prevEmail && eEmail && eEmail === prevEmail) ||
+        (newEmail && eEmail && eEmail === newEmail)
+      );
+
+      if (isMatch) {
+        if (!e.userId) e.userId = candidate.userId || candidate.id;
         if (candidate.fullName) e.customerName = candidate.fullName;
-        if (candidate.email && !e.email) e.email = candidate.email;
+        if (candidate.mobile) e.mobile = candidate.mobile;
+        if (candidate.email) e.email = candidate.email;
         if (candidate.trade) e.candidateTrade = candidate.trade;
         if (candidate.totalExperienceYears) e.candidateExperience = `${candidate.totalExperienceYears} Years`;
         e.updatedAt = new Date().toISOString();
@@ -417,6 +454,26 @@ class StorageService {
     this.syncCandidateApplications(candidate);
     this.saveToDisk();
     return candidate;
+  }
+
+  public updateCandidateContact(
+    candidateIdOrUserId: string,
+    contactData: {
+      fullName?: string;
+      mobile?: string;
+      email?: string;
+      whatsappNumber?: string;
+      alternateMobile?: string;
+      city?: string;
+      state?: string;
+      address?: string;
+      postalCode?: string;
+    }
+  ): { candidate: CandidateRecord; user?: User } | undefined {
+    const updated = this.updateCandidateProfile(candidateIdOrUserId, contactData);
+    if (!updated) return undefined;
+    const user = this.users.find(u => u.id === updated.userId);
+    return { candidate: updated, user };
   }
 
   // ----------------------------------------------------
@@ -759,7 +816,7 @@ class StorageService {
     status?: string;
     adminView?: boolean;
   }): Job[] {
-    let result = [...this.jobs];
+    let result = this.jobs.filter(j => !this.deletedIds.has(j.id));
 
     if (!filter?.adminView) {
       result = result.filter(j => j.status === 'published');
@@ -851,10 +908,7 @@ class StorageService {
 
   public deleteJob(id: string): boolean {
     this.deletedIds.add(id);
-    const index = this.jobs.findIndex(j => j.id === id);
-    if (index !== -1) {
-      this.jobs.splice(index, 1);
-    }
+    this.jobs = this.jobs.filter(j => j.id !== id);
     // Clean up interestedJobs across all candidates
     this.candidates.forEach(c => {
       if (c.interestedJobs) {

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { Phone, MessageSquare, Mail, MapPin, Navigation, Send, CheckCircle2, Clock, ShieldCheck, Facebook, Instagram, Youtube } from 'lucide-react';
+import { Phone, MessageSquare, Mail, MapPin, Navigation, Send, CheckCircle2, Clock, ShieldCheck, Facebook, Instagram, Youtube, Users } from 'lucide-react';
 import { SubpageBackButton } from '../components/SubpageBackButton';
 
 export const ContactView: React.FC = () => {
@@ -133,17 +133,31 @@ export const ContactView: React.FC = () => {
               </div>
 
               {/* Direct Buttons */}
-              <div className="pt-4 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div className="pt-4 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
                 <a
                   id="contact-whatsapp-direct"
                   href={getWhatsAppUrl()}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 py-3 px-4 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-xs transition-all"
+                  className="flex items-center justify-center gap-2 py-3 px-3 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-xs transition-all"
                 >
                   <MessageSquare className="w-4 h-4" />
                   <span>WhatsApp Desk</span>
                 </a>
+
+                {settings.whatsappGroupUrl && (
+                  <a
+                    id="contact-whatsapp-group-direct"
+                    href={settings.whatsappGroupUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 py-3 px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-bold rounded-xl shadow-xs transition-all"
+                    title="Join WhatsApp Group for Daily Singapore Job Alerts"
+                  >
+                    <Users className="w-4 h-4 text-emerald-600" />
+                    <span>WhatsApp Group</span>
+                  </a>
+                )}
 
                 {settings.googleMapsDirectionUrl && (
                   <a
@@ -151,21 +165,48 @@ export const ContactView: React.FC = () => {
                     href={settings.googleMapsDirectionUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 py-3 px-4 bg-red-900 hover:bg-red-800 text-white text-xs font-bold rounded-xl shadow-xs transition-all"
+                    className="flex items-center justify-center gap-2 py-3 px-3 bg-red-900 hover:bg-red-800 text-white text-xs font-bold rounded-xl shadow-xs transition-all"
                   >
                     <Navigation className="w-4 h-4" />
                     <span>Get Directions</span>
                   </a>
                 )}
+
+                {(settings.googleProfileUrl || settings.googleMapsDirectionUrl) && (
+                  <a
+                    id="contact-google-profile-direct"
+                    href={settings.googleProfileUrl || settings.googleMapsDirectionUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-1.5 py-3 px-3 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-xs font-bold rounded-xl shadow-xs transition-all"
+                    title="View Official Google Business Profile & Location"
+                  >
+                    <MapPin className="w-4 h-4 text-red-600" />
+                    <span>Google Profile</span>
+                  </a>
+                )}
               </div>
 
-              {/* Official Social Media Channels including Facebook */}
-              {(settings.facebookUrl || settings.instagramUrl || settings.youtubeUrl) && (
+              {/* Official Social Media Channels including Facebook & Google */}
+              {(settings.facebookUrl || settings.instagramUrl || settings.youtubeUrl || settings.googleProfileUrl || settings.whatsappGroupUrl) && (
                 <div className="pt-4 border-t border-slate-100 space-y-2">
                   <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-                    Official Social Channels
+                    Official Social & Community Channels
                   </span>
                   <div className="flex flex-wrap items-center gap-2">
+                    {settings.whatsappGroupUrl && (
+                      <a
+                        id="contact-whatsapp-group-channel"
+                        href={settings.whatsappGroupUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 min-w-[140px] flex items-center justify-center gap-2 py-2.5 px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-bold rounded-xl transition-all shadow-2xs"
+                        title="Join Official WhatsApp Group for Daily Jobs"
+                      >
+                        <Users className="w-4 h-4 text-emerald-600" />
+                        <span>WhatsApp Group</span>
+                      </a>
+                    )}
                     {settings.facebookUrl && (
                       <a
                         id="contact-facebook-link"
@@ -176,7 +217,7 @@ export const ContactView: React.FC = () => {
                         title="Follow Arudhra Consultancy on Facebook"
                       >
                         <Facebook className="w-4 h-4" />
-                        <span>Facebook Page</span>
+                        <span>Facebook</span>
                       </a>
                     )}
                     {settings.instagramUrl && (
@@ -203,6 +244,19 @@ export const ContactView: React.FC = () => {
                       >
                         <Youtube className="w-4 h-4" />
                         <span>YouTube</span>
+                      </a>
+                    )}
+                    {(settings.googleProfileUrl || settings.googleMapsDirectionUrl) && (
+                      <a
+                        id="contact-google-profile-channel"
+                        href={settings.googleProfileUrl || settings.googleMapsDirectionUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 min-w-[130px] flex items-center justify-center gap-2 py-2.5 px-3 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-xs font-bold rounded-xl transition-all shadow-2xs"
+                        title="Official Google Business Profile & Location"
+                      >
+                        <MapPin className="w-4 h-4 text-red-600" />
+                        <span>Google Profile</span>
                       </a>
                     )}
                   </div>

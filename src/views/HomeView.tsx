@@ -8,7 +8,7 @@ import { VideosSection } from '../components/VideosSection';
 import { GoogleReviewsSection } from '../components/GoogleReviewsSection';
 import { LocationSection } from '../components/LocationSection';
 import { useApp } from '../context/AppContext';
-import { MessageSquare, Phone, Briefcase } from 'lucide-react';
+import { MessageSquare, Phone, Briefcase, Users } from 'lucide-react';
 
 interface HomeViewProps {
   onSearch: (keyword: string, category: string) => void;
@@ -86,6 +86,20 @@ export const HomeView: React.FC<HomeViewProps> = ({ onSearch }) => {
               <MessageSquare className="w-4 h-4" />
               <span>WhatsApp Consultation</span>
             </a>
+
+            {settings.whatsappGroupUrl && (
+              <a
+                id="cta-bottom-whatsapp-group"
+                href={settings.whatsappGroupUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-6 py-3 bg-emerald-700/80 hover:bg-emerald-600 text-white text-xs sm:text-sm font-bold rounded-xl border border-emerald-400/40 shadow-lg transition-all flex items-center gap-2 cursor-pointer"
+                title="Join Arudhra Consultancy WhatsApp Group"
+              >
+                <Users className="w-4 h-4" />
+                <span>Join WhatsApp Group</span>
+              </a>
+            )}
 
             <a
               id="cta-bottom-call"

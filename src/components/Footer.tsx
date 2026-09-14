@@ -15,7 +15,8 @@ import {
   Briefcase,
   ChevronRight,
   User,
-  Lock
+  Lock,
+  Users
 } from 'lucide-react';
 
 export const Footer: React.FC = () => {
@@ -107,6 +108,30 @@ export const Footer: React.FC = () => {
                     title="YouTube Channel"
                   >
                     <Youtube className="w-4 h-4" />
+                  </a>
+                )}
+                {settings.whatsappGroupUrl && (
+                  <a
+                    id="footer-social-whatsapp-group"
+                    href={settings.whatsappGroupUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-9 h-9 rounded-lg bg-emerald-950/80 hover:bg-emerald-600 text-emerald-400 hover:text-white flex items-center justify-center transition-colors border border-emerald-800/60"
+                    title="Join Official WhatsApp Group"
+                  >
+                    <Users className="w-4 h-4" />
+                  </a>
+                )}
+                {(settings.googleProfileUrl || settings.googleMapsDirectionUrl) && (
+                  <a
+                    id="footer-social-google"
+                    href={settings.googleProfileUrl || settings.googleMapsDirectionUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-9 h-9 rounded-lg bg-stone-900 hover:bg-amber-600 text-stone-300 hover:text-white flex items-center justify-center transition-colors border border-stone-800"
+                    title="Official Google Business Profile & Location"
+                  >
+                    <MapPin className="w-4 h-4 text-red-400" />
                   </a>
                 )}
               </div>
@@ -241,7 +266,21 @@ export const Footer: React.FC = () => {
             <div className="space-y-2.5 text-xs text-stone-400">
               <div className="flex items-start gap-2.5">
                 <MapPin className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
-                <span className="leading-snug">{settings.officeAddress}</span>
+                <div>
+                  <span className="leading-snug block">{settings.officeAddress}</span>
+                  {(settings.googleMapsDirectionUrl || settings.googleProfileUrl) && (
+                    <a
+                      id="footer-google-maps-link"
+                      href={settings.googleMapsDirectionUrl || settings.googleProfileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-[11px] text-amber-400 hover:text-amber-300 font-semibold mt-1 hover:underline"
+                    >
+                      <span>Open in Google Maps & Profile</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  )}
+                </div>
               </div>
               <div className="flex items-center gap-2.5">
                 <Phone className="w-4 h-4 text-red-400 shrink-0" />
@@ -255,6 +294,20 @@ export const Footer: React.FC = () => {
                   WhatsApp: +91 {settings.whatsappNumber}
                 </a>
               </div>
+              {settings.whatsappGroupUrl && (
+                <div className="flex items-center gap-2.5">
+                  <Users className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <a
+                    id="footer-whatsapp-group-link"
+                    href={settings.whatsappGroupUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-emerald-400 hover:text-emerald-300 font-semibold hover:underline"
+                  >
+                    Join WhatsApp Job Group
+                  </a>
+                </div>
+              )}
               <div className="flex items-center gap-2.5">
                 <Mail className="w-4 h-4 text-red-400 shrink-0" />
                 <a href={`mailto:${settings.email}`} className="hover:text-white transition-colors">
