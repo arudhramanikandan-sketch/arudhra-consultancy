@@ -10,7 +10,7 @@ export const AllLiveJobsSection: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   const publishedJobs = useMemo(() => {
-    return jobs.filter(j => j.status === 'published');
+    return jobs.filter(j => !j.status || j.status.toLowerCase() === 'published' || j.status.toLowerCase() === 'active');
   }, [jobs]);
 
   const categories: { label: string; count: number }[] = useMemo(() => {
@@ -66,14 +66,14 @@ export const AllLiveJobsSection: React.FC = () => {
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 shrink-0">
+          <div className="flex flex-wrap items-center gap-3 shrink-0 w-full sm:w-auto">
             <button
               id="home-view-all-jobs-top-btn"
               onClick={() => {
                 setCurrentTab('jobs');
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-red-900 hover:bg-red-800 text-white text-xs sm:text-sm font-bold rounded-xl shadow-md hover:shadow-lg transition-all cursor-pointer"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-red-900 hover:bg-red-800 text-white text-xs sm:text-sm font-bold rounded-xl shadow-md hover:shadow-lg transition-all cursor-pointer"
             >
               <span>View Full Directory & Filters</span>
               <ArrowRight className="w-4 h-4" />
@@ -84,7 +84,7 @@ export const AllLiveJobsSection: React.FC = () => {
         {/* Filter Controls: Search & Category Pills */}
         <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
           {/* Quick Search */}
-          <div className="flex flex-col sm:flex-row items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
             <div className="relative flex-1 w-full">
               <Search className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
               <input
@@ -93,20 +93,20 @@ export const AllLiveJobsSection: React.FC = () => {
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 placeholder="Search live jobs by title, trade, skill, or Singapore location..."
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-red-900/20 focus:border-red-900 transition-all"
+                className="w-full pl-10 pr-14 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-red-900/20 focus:border-red-900 transition-all"
               />
               {searchQuery && (
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-3 text-xs text-slate-400 hover:text-slate-600 font-bold"
+                  className="absolute right-3 top-3 text-xs text-slate-400 hover:text-slate-600 font-bold cursor-pointer"
                 >
                   Clear
                 </button>
               )}
             </div>
 
-            <div className="text-xs font-bold text-slate-500 whitespace-nowrap">
+            <div className="text-xs font-bold text-slate-500 self-start sm:self-center shrink-0">
               Showing <span className="text-red-900 font-extrabold">{filteredJobs.length}</span> of {publishedJobs.length} jobs
             </div>
           </div>

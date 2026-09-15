@@ -146,11 +146,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       localStorage.removeItem('arudhra_jobs_cache');
       localStorage.removeItem('arudhra_jobs_cache_v3');
       const cached = localStorage.getItem('arudhra_jobs_cache_v4');
-      const deletedIds = getLocalDeletedJobIds();
       if (cached !== null) {
         const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed)) {
-          return parsed.filter((j: any) => j && j.id && !deletedIds.has(j.id));
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
         }
       }
     } catch (e) {}
@@ -260,6 +259,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
       if (path === '/contact' || hash === '#contact' || tabParam === 'contact') {
         return 'contact';
+      }
+      if (path === '/esim' || hash === '#esim' || tabParam === 'esim') {
+        return 'esim';
       }
     } catch {}
     return 'home';
@@ -417,12 +419,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
 
       if (ok && data?.success && Array.isArray(data.jobs)) {
-        const deletedIds = getLocalDeletedJobIds();
-        const cleanJobs = data.jobs.filter((j: any) => j && j.id && !deletedIds.has(j.id));
-        setJobs(cleanJobs);
+        try {
+          const localDeleted = getLocalDeletedJobIds();
+          if (localDeleted.size > 0) {
+            data.jobs.forEach((j: any) => {
+              if (j && j.id) localDeleted.delete(j.id);
+            });
+            localStorage.setItem('arudhra_deleted_job_ids', JSON.stringify(Array.from(localDeleted)));
+          }
+        } catch (e) {}
+
+        setJobs(data.jobs);
         try {
           if (!filters || Object.keys(filters).length === 0) {
-            localStorage.setItem('arudhra_jobs_cache_v4', JSON.stringify(cleanJobs));
+            localStorage.setItem('arudhra_jobs_cache_v4', JSON.stringify(data.jobs));
           }
         } catch (e) {}
       }

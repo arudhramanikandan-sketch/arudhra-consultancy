@@ -24,7 +24,16 @@ import {
   ApplicationStatus
 } from '../src/types';
 import { sendWhatsAppOtp, isWhatsAppConfigured, formatWhatsAppNumber } from './whatsapp';
-import { sendBrevoEmailOtp, isBrevoConfigured, getBrevoConfig, sendBrevoTestEmail, sendBrevoApplicationEmail, BrevoStatus } from './brevo';
+import {
+  sendBrevoEmailOtp,
+  isBrevoConfigured,
+  getBrevoConfig,
+  sendBrevoTestEmail,
+  sendBrevoApplicationEmail,
+  BrevoStatus,
+  DEFAULT_BREVO_SENDER_EMAIL,
+  DEFAULT_BREVO_SENDER_NAME
+} from './brevo';
 
 interface OtpRecord {
   mobile: string;
@@ -173,12 +182,19 @@ class StorageService {
         if (!this.settings.admin2faSecret) {
           this.settings.admin2faSecret = 'ARUDHRA7MZQK4X2P';
         }
+        // Ensure Brevo sender configuration defaults
+        if (!this.settings.brevoSenderEmail) {
+          this.settings.brevoSenderEmail = process.env.BREVO_SENDER_EMAIL?.trim() || DEFAULT_BREVO_SENDER_EMAIL;
+        }
+        if (!this.settings.brevoSenderName) {
+          this.settings.brevoSenderName = process.env.BREVO_SENDER_NAME?.trim() || DEFAULT_BREVO_SENDER_NAME;
+        }
         // Force autoReplace settings to false so jobs stay live on the website permanently
         this.settings.autoReplaceOldJobs = false;
         this.settings.autoClearOldLeadsOnNewJob = false;
         this.settings.autoReplaceOldFlyers = false;
         this.settings.autoReplaceOldVideos = false;
-        console.log(`[Storage] Persistent storage loaded. Jobs: ${this.jobs.length}, Enquiries: ${this.enquiries.length}, Candidates: ${this.candidates.length}, Users: ${this.users.length}, Tracked deleted items: ${this.deletedIds.size}`);
+        console.log(`[Storage] Persistent storage loaded. Jobs: ${this.jobs.length}, Enquiries: ${this.enquiries.length}, Candidates: ${this.candidates.length}, Users: ${this.users.length}, Tracked deleted items: ${this.deletedIds.size}, Brevo configured: ${isBrevoConfigured(this.settings.brevoApiKey)}`);
         try {
           const publicDir = path.join(process.cwd(), 'public');
           if (!fs.existsSync(publicDir)) {
@@ -198,12 +214,16 @@ class StorageService {
   private saveToDisk(): void {
     try {
       this.jobs = this.jobs.filter(j => !this.deletedIds.has(j.id));
+      const settingsToSave = { ...this.settings };
+      // Security: never persist API keys into storage_data.json on disk
+      delete settingsToSave.brevoApiKey;
+
       const dataToSave = {
         jobs: this.jobs,
         enquiries: this.enquiries.filter(e => !this.deletedIds.has(e.id)),
         videos: this.videos.filter(v => !this.deletedIds.has(v.id)),
         advertisements: this.advertisements.filter(a => !this.deletedIds.has(a.id)),
-        settings: this.settings,
+        settings: settingsToSave,
         users: this.users,
         candidates: this.candidates.filter(c => !this.deletedIds.has(c.id) && !this.deletedIds.has(c.candidateId)),
         candidateCounter: this.candidateCounter,
@@ -819,7 +839,7 @@ class StorageService {
     let result = this.jobs.filter(j => !this.deletedIds.has(j.id));
 
     if (!filter?.adminView) {
-      result = result.filter(j => j.status === 'published');
+      result = result.filter(j => !j.status || j.status.toLowerCase() === 'published' || j.status.toLowerCase() === 'active');
     }
 
     if (filter?.category && filter.category !== 'All') {
@@ -863,7 +883,7 @@ class StorageService {
     if (this.deletedIds.has(id)) return undefined;
     const job = this.jobs.find(j => j.id === id);
     if (!job) return undefined;
-    if (!adminView && job.status !== 'published') {
+    if (!adminView && job.status && job.status.toLowerCase() !== 'published' && job.status.toLowerCase() !== 'active') {
       return undefined;
     }
     return job;
@@ -1043,7 +1063,7 @@ class StorageService {
     // Send transactional application acknowledgment email via Brevo if candidate email is provided
     if (enquiryData.email && enquiryData.email.includes('@')) {
       const cleanCandEmail = enquiryData.email.trim().toLowerCase();
-      const apiKey = this.settings.brevoApiKey?.trim() || process.env.BREVO_API_KEY?.trim();
+      const apiKey = process.env.BREVO_API_KEY?.trim() || this.settings.brevoApiKey?.trim();
       if (isBrevoConfigured(apiKey)) {
         sendBrevoApplicationEmail(
           cleanCandEmail,
@@ -1340,16 +1360,23 @@ class StorageService {
       delete s.admin2faSecret;
       delete s.admin2faPin;
       delete s.admin2faBackupCodes;
-      if (s.brevoApiKey) {
-        s.brevoApiKey = s.brevoApiKey.length > 8 ? `${s.brevoApiKey.slice(0, 8)}••••••••` : '••••••••';
+      delete s.brevoApiKey;
+    } else {
+      // Even for admin settings view, never expose raw API key to client
+      if (s.brevoApiKey || process.env.BREVO_API_KEY) {
+        s.brevoApiKey = '••••••••••••••••';
       }
     }
     return s;
   }
 
   public updateSettings(updates: Partial<SiteSettings>): SiteSettings {
-    // If updating 2FA settings, protect integrity
-    this.settings = { ...this.settings, ...updates };
+    const cleanUpdates = { ...updates };
+    // Prevent masked apiKey (which contains dots •) or empty strings from overwriting valid Brevo API key
+    if (cleanUpdates.brevoApiKey && (cleanUpdates.brevoApiKey.includes('••••') || !cleanUpdates.brevoApiKey.trim())) {
+      delete cleanUpdates.brevoApiKey;
+    }
+    this.settings = { ...this.settings, ...cleanUpdates };
     this.saveToDisk();
     return this.getSettings(true);
   }
@@ -1579,7 +1606,7 @@ class StorageService {
     previewOtp?: string;
   }> {
     const cleanEmail = rawEmail.trim().toLowerCase();
-    const effectiveApiKey = this.settings.brevoApiKey?.trim() || process.env.BREVO_API_KEY?.trim();
+    const effectiveApiKey = process.env.BREVO_API_KEY?.trim() || this.settings.brevoApiKey?.trim() || '';
     const configured = isBrevoConfigured(effectiveApiKey);
 
     if (!cleanEmail || !cleanEmail.includes('@') || !cleanEmail.includes('.')) {
@@ -1638,8 +1665,8 @@ class StorageService {
         name,
         {
           apiKey: effectiveApiKey,
-          email: this.settings.brevoSenderEmail || this.settings.email,
-          name: this.settings.brevoSenderName || this.settings.businessName
+          email: this.settings.brevoSenderEmail || DEFAULT_BREVO_SENDER_EMAIL,
+          name: this.settings.brevoSenderName || DEFAULT_BREVO_SENDER_NAME
         }
       );
       if (!brevoResult.success) {

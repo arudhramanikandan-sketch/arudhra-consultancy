@@ -6,6 +6,7 @@ import { WhyChooseSection } from '../components/WhyChooseSection';
 import { ProcessSection } from '../components/ProcessSection';
 import { VideosSection } from '../components/VideosSection';
 import { GoogleReviewsSection } from '../components/GoogleReviewsSection';
+import { TravelESimSection } from '../components/TravelESimSection';
 import { LocationSection } from '../components/LocationSection';
 import { useApp } from '../context/AppContext';
 import { MessageSquare, Phone, Briefcase, Users } from 'lucide-react';
@@ -45,7 +46,10 @@ export const HomeView: React.FC<HomeViewProps> = ({ onSearch }) => {
       {/* 8. Google Reviews & Trust */}
       <GoogleReviewsSection />
 
-      {/* 9. Office Location & Map */}
+      {/* 9. Travel eSIM Promotional Section */}
+      <TravelESimSection />
+
+      {/* 10. Office Location & Map */}
       <LocationSection />
 
       {/* 10. Contact / Enquiry CTA Banner */}

@@ -432,7 +432,11 @@ export const AdminDashboardView: React.FC = () => {
       showToast('Please fill in Job Title and Salary', 'error');
       return;
     }
-    await saveJob(editingJob);
+    const jobToSave = {
+      ...editingJob,
+      status: editingJob.status || 'published'
+    };
+    await saveJob(jobToSave);
     setJobModalOpen(false);
     setEditingJob(null);
     setActiveTab('jobs');
@@ -1283,10 +1287,10 @@ export const AdminDashboardView: React.FC = () => {
                       {selectedJobIds.length} Selected
                     </span>
                   )}
-                  {jobs.length === 1 && selectedJobIds.length === 0 && (
+                  {jobs.length > 0 && selectedJobIds.length === 0 && (
                     <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold text-[10px] flex items-center gap-1">
                       <Check className="w-3 h-3 text-emerald-600" />
-                      <span>1 Exclusive Live Job</span>
+                      <span>{jobs.filter(j => !j.status || j.status.toLowerCase() === 'published').length} Live on Website</span>
                     </span>
                   )}
                 </div>
@@ -2734,7 +2738,7 @@ export const AdminDashboardView: React.FC = () => {
                           type={showBrevoApiKey ? 'text' : 'password'}
                           value={settingsForm.brevoApiKey || ''}
                           onChange={e => setSettingsForm({ ...settingsForm, brevoApiKey: e.target.value })}
-                          placeholder="xkeysib-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx-xxxxxxxx"
+                          placeholder="Enter Brevo v3 API Key (or set via BREVO_API_KEY environment variable)"
                           className="w-full pl-3 pr-24 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-800/20 focus:border-red-800"
                         />
                         <button

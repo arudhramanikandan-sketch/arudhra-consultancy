@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { useApp } from '../context/AppContext';
 import { JobCard } from '../components/JobCard';
 import { Search, Filter, Briefcase, RefreshCw, Sparkles, Clock, X, SlidersHorizontal, Users } from 'lucide-react';
@@ -28,8 +29,8 @@ export const JobsView: React.FC<JobsViewProps> = ({ initialSearch = '', initialC
     }
   };
 
-  const [search, setSearch] = useState(initialSearch);
-  const [category, setCategory] = useState<string>(initialCategory);
+  const [search, setSearch] = useState(initialSearch || '');
+  const [category, setCategory] = useState<string>(initialCategory || 'All');
   const [jobType, setJobType] = useState<string>('All');
   const [experienceLevel, setExperienceLevel] = useState<string>('All');
   const [featuredOnly, setFeaturedOnly] = useState(false);
@@ -37,8 +38,8 @@ export const JobsView: React.FC<JobsViewProps> = ({ initialSearch = '', initialC
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
   useEffect(() => {
-    if (initialSearch) setSearch(initialSearch);
-    if (initialCategory) setCategory(initialCategory);
+    setSearch(initialSearch || '');
+    setCategory(initialCategory || 'All');
   }, [initialSearch, initialCategory]);
 
   const categories: JobCategory[] = [
@@ -68,9 +69,10 @@ export const JobsView: React.FC<JobsViewProps> = ({ initialSearch = '', initialC
 
   // Filter jobs locally
   const filteredJobs = jobs.filter(job => {
-    if (job.status !== 'published') return false;
+    const isLive = !job.status || job.status.toLowerCase() === 'published' || job.status.toLowerCase() === 'active';
+    if (!isLive) return false;
 
-    if (category !== 'All' && job.category.toLowerCase() !== category.toLowerCase()) {
+    if (category && category !== 'All' && job.category.toLowerCase() !== category.toLowerCase()) {
       return false;
     }
 
@@ -147,13 +149,13 @@ export const JobsView: React.FC<JobsViewProps> = ({ initialSearch = '', initialC
           </div>
 
           {settings.whatsappGroupUrl && (
-            <div className="relative z-10 shrink-0">
+            <div className="relative z-10 shrink-0 w-full sm:w-auto">
               <a
                 id="jobs-join-whatsapp-group-btn"
                 href={settings.whatsappGroupUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2.5 px-5 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs sm:text-sm font-bold shadow-lg shadow-emerald-950/40 border border-emerald-400/30 transition-all hover:scale-[1.02]"
+                className="w-full sm:w-auto flex items-center justify-center gap-2.5 px-5 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs sm:text-sm font-bold shadow-lg shadow-emerald-950/40 border border-emerald-400/30 transition-all hover:scale-[1.02]"
                 title="Join WhatsApp Group for Daily Singapore Job Alerts"
               >
                 <Users className="w-4 h-4" />
@@ -181,7 +183,7 @@ export const JobsView: React.FC<JobsViewProps> = ({ initialSearch = '', initialC
                 <button
                   type="button"
                   onClick={() => setSearch('')}
-                  className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
+                  className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -194,7 +196,7 @@ export const JobsView: React.FC<JobsViewProps> = ({ initialSearch = '', initialC
                 id="toggle-mobile-filters-btn"
                 type="button"
                 onClick={() => setMobileFilterOpen(!mobileFilterOpen)}
-                className="md:hidden flex items-center gap-2 px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-xl"
+                className="md:hidden flex-1 flex items-center justify-center gap-2 px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-xl cursor-pointer"
               >
                 <SlidersHorizontal className="w-4 h-4" />
                 <span>Filters {activeFiltersCount > 0 && `(${activeFiltersCount})`}</span>
@@ -370,6 +372,27 @@ export const JobsView: React.FC<JobsViewProps> = ({ initialSearch = '', initialC
           )}
         </div>
 
+        {/* Quick Category Pills Scroll (Mobile & Tablet Friendly) */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-1 no-scrollbar text-xs w-full">
+          {categories.map(c => {
+            const isActive = category === c;
+            return (
+              <button
+                key={c}
+                type="button"
+                onClick={() => setCategory(c)}
+                className={`px-3 py-1.5 rounded-xl font-bold transition-all whitespace-nowrap shrink-0 cursor-pointer ${
+                  isActive
+                    ? 'bg-red-900 text-white shadow-xs'
+                    : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
+                }`}
+              >
+                {c === 'All' ? 'All Singapore Sectors' : c}
+              </button>
+            );
+          })}
+        </div>
+
         {/* Results Counter */}
         <div className="flex items-center justify-between text-xs text-slate-600 font-medium px-1">
           <span>Showing <strong>{filteredJobs.length}</strong> Singapore vacancies</span>
@@ -382,14 +405,40 @@ export const JobsView: React.FC<JobsViewProps> = ({ initialSearch = '', initialC
 
         {/* Jobs Grid */}
         {filteredJobs.length > 0 ? (
-          <div id="jobs-grid-container" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredJobs.map(job => (
-              <JobCard key={job.id} job={job} />
-            ))}
-          </div>
+          <motion.div
+            id="jobs-grid-container"
+            layout
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
+            <AnimatePresence mode="popLayout">
+              {filteredJobs.map((job, index) => (
+                <motion.div
+                  key={job.id}
+                  layout
+                  initial={{ opacity: 0, y: 16, scale: 0.985 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 8, scale: 0.98 }}
+                  transition={{
+                    duration: 0.32,
+                    ease: [0.25, 0.1, 0.25, 1],
+                    delay: Math.min(index * 0.04, 0.28)
+                  }}
+                  className="h-full flex flex-col"
+                >
+                  <JobCard job={job} />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </motion.div>
         ) : jobs.length === 0 ? (
           /* Empty State: No Jobs Published */
-          <div id="jobs-empty-state-none" className="bg-white rounded-3xl p-12 text-center border border-slate-200 max-w-lg mx-auto space-y-4 shadow-sm">
+          <motion.div
+            id="jobs-empty-state-none"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="bg-white rounded-3xl p-12 text-center border border-slate-200 max-w-lg mx-auto space-y-4 shadow-sm"
+          >
             <div className="w-16 h-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto">
               <Briefcase className="w-8 h-8" />
             </div>
@@ -410,10 +459,16 @@ export const JobsView: React.FC<JobsViewProps> = ({ initialSearch = '', initialC
             >
               Register Candidate Profile for Alerts
             </button>
-          </div>
+          </motion.div>
         ) : (
           /* Empty State: Filter Mismatch */
-          <div id="jobs-empty-state" className="bg-white rounded-3xl p-12 text-center border border-slate-200 max-w-lg mx-auto space-y-4 shadow-sm">
+          <motion.div
+            id="jobs-empty-state"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="bg-white rounded-3xl p-12 text-center border border-slate-200 max-w-lg mx-auto space-y-4 shadow-sm"
+          >
             <div className="w-16 h-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto">
               <Briefcase className="w-8 h-8" />
             </div>
@@ -431,7 +486,7 @@ export const JobsView: React.FC<JobsViewProps> = ({ initialSearch = '', initialC
             >
               Show All Available Jobs ({jobs.length})
             </button>
-          </div>
+          </motion.div>
         )}
       </div>
     </div>

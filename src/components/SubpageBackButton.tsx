@@ -99,7 +99,7 @@ export const SubpageBackButton: React.FC<SubpageBackButtonProps> = ({
         ) : currentPageTitle ? (
           <>
             <ChevronRight className={`w-3.5 h-3.5 ${isDark ? 'text-stone-600' : 'text-slate-300'}`} />
-            <span className={`font-bold truncate max-w-[200px] sm:max-w-xs ${isDark ? 'text-stone-200' : 'text-slate-900'}`}>
+            <span className={`font-bold truncate max-w-[120px] xs:max-w-[180px] sm:max-w-xs ${isDark ? 'text-stone-200' : 'text-slate-900'}`}>
               {currentPageTitle}
             </span>
           </>

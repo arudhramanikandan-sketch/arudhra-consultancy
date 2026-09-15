@@ -257,7 +257,8 @@ export type AppTab =
   | 'candidate-login'
   | 'portal'
   | 'admin-login'
-  | 'admin';
+  | 'admin'
+  | 'esim';
 
 export interface SiteSettings {
   businessName: string;

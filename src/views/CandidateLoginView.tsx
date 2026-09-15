@@ -30,6 +30,7 @@ export const CandidateLoginView: React.FC = () => {
   const [resending, setResending] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [cooldown, setCooldown] = useState(0);
+  const [serverNotice, setServerNotice] = useState('');
 
   // Active 60s countdown timer
   useEffect(() => {
@@ -112,7 +113,10 @@ export const CandidateLoginView: React.FC = () => {
     if (res.success) {
       setStep('verify');
       setCooldown(res.cooldownSeconds || 60);
-      showToast('Verification code dispatched to your email inbox / spam folder', 'success');
+      if (res.message) {
+        setServerNotice(res.message);
+      }
+      showToast('Verification code dispatched! Check your email inbox or spam folder.', 'success');
     } else {
       setErrorMsg(res.message || 'Unable to send email verification code.');
     }
@@ -131,6 +135,9 @@ export const CandidateLoginView: React.FC = () => {
 
     if (res.success) {
       setCooldown(res.cooldownSeconds || 60);
+      if (res.message) {
+        setServerNotice(res.message);
+      }
       showToast('New verification code sent! Check your inbox and spam folder.', 'success');
     } else {
       setErrorMsg(res.message || 'Unable to resend verification code.');
@@ -227,7 +234,7 @@ export const CandidateLoginView: React.FC = () => {
                   />
                 </div>
 
-                <div className="flex items-center justify-between text-xs text-slate-500 pt-1">
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500 pt-1">
                   <button
                     type="button"
                     onClick={() => {
@@ -269,8 +276,8 @@ export const CandidateLoginView: React.FC = () => {
                       <p className="font-semibold text-slate-800">
                         Check your Inbox & Spam / Junk Folder
                       </p>
-                      <p className="text-[11px] text-slate-500 mt-0.5">
-                        Emails are sent from <strong>info@arudhraconsultancy.com</strong>. Depending on your email provider, it may take up to 60 seconds or land in your Spam/Promotions tab.
+                      <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                        Emails are dispatched from <strong>info@arudhraconsultancy.com</strong>. Depending on your email provider (Gmail, Yahoo, Outlook), it may take 30–60 seconds or land in your Spam/Promotions tab. Search <code className="bg-slate-200 px-1 py-0.5 rounded text-slate-800">Arudhra</code> in your email search bar.
                       </p>
                     </div>
                   </div>

@@ -17,6 +17,7 @@ import { CustomerPortalView } from './views/CustomerPortalView';
 import { CandidateLoginView } from './views/CandidateLoginView';
 import { AdminLoginView } from './views/AdminLoginView';
 import { AdminDashboardView } from './views/AdminDashboardView';
+import { TravelESimView } from './views/TravelESimView';
 import { GoogleReviewsSection } from './components/GoogleReviewsSection';
 import { SubpageBackButton } from './components/SubpageBackButton';
 
@@ -123,18 +124,19 @@ const MainAppContent: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-white text-slate-900 font-sans antialiased selection:bg-red-900 selection:text-white">
+    <div className="min-h-screen w-full max-w-full overflow-x-hidden flex flex-col bg-white text-slate-900 font-sans antialiased selection:bg-red-900 selection:text-white">
       {/* Global Navigation Header */}
       <Navbar />
 
       {/* Main Content Area */}
-      <main className="flex-1">
+      <main className="flex-1 w-full max-w-full overflow-x-hidden">
         {currentTab === 'home' && <HomeView onSearch={handleHeroSearch} />}
         {currentTab === 'jobs' && (
           <JobsView initialSearch={jobSearchQuery} initialCategory={jobCategoryQuery} />
         )}
         {currentTab === 'about' && <AboutUsView />}
         {currentTab === 'videos' && <VideosView />}
+        {currentTab === 'esim' && <TravelESimView />}
         {currentTab === 'reviews' && (
           <div className="py-8 bg-slate-50 min-h-screen">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">

@@ -12,6 +12,11 @@ export interface BrevoSendResult {
   providerConfigured: boolean;
 }
 
+// Brevo credentials default config (API key MUST be supplied via BREVO_API_KEY environment variable)
+export const DEFAULT_BREVO_API_KEY = '';
+export const DEFAULT_BREVO_SENDER_EMAIL = 'info@arudhraconsultancy.com';
+export const DEFAULT_BREVO_SENDER_NAME = 'ARUDHRA CONSULTANCY';
+
 export interface BrevoStatus {
   isConfigured: boolean;
   senderEmail: string;
@@ -28,7 +33,7 @@ export function isBrevoConfigured(apiKeyOverride?: string): boolean {
   return Boolean(
     apiKey &&
     apiKey !== 'MY_BREVO_API_KEY' &&
-    apiKey !== 'xkeysib-your-api-key-here' &&
+    !apiKey.toLowerCase().includes('your-api-key') &&
     apiKey.length > 10
   );
 }
@@ -37,8 +42,8 @@ export function isBrevoConfigured(apiKeyOverride?: string): boolean {
  * Get Brevo configuration details with masked API key for safe admin display
  */
 export function getBrevoConfig(
-  fallbackEmail = 'info@arudhraconsultancy.com',
-  fallbackName = 'ARUDHRA CONSULTANCY',
+  fallbackEmail = DEFAULT_BREVO_SENDER_EMAIL,
+  fallbackName = DEFAULT_BREVO_SENDER_NAME,
   storedApiKey?: string,
   storedSenderEmail?: string,
   storedSenderName?: string
@@ -50,7 +55,7 @@ export function getBrevoConfig(
 
   let maskedApiKey: string | undefined;
   if (configured && effectiveKey.length >= 8) {
-    maskedApiKey = `${effectiveKey.slice(0, 8)}••••••••${effectiveKey.slice(-4)}`;
+    maskedApiKey = `${effectiveKey.slice(0, 4)}••••••••${effectiveKey.slice(-4)}`;
   }
 
   const source: 'database' | 'environment' | 'none' = storedApiKey?.trim() && isBrevoConfigured(storedApiKey)
@@ -175,7 +180,7 @@ export async function sendBrevoEmailOtp(
   recipientName?: string,
   senderOverride?: { name?: string; email?: string; apiKey?: string }
 ): Promise<BrevoSendResult> {
-  const apiKey = senderOverride?.apiKey?.trim() || process.env.BREVO_API_KEY?.trim();
+  const apiKey = senderOverride?.apiKey?.trim() || process.env.BREVO_API_KEY?.trim() || '';
 
   if (!isBrevoConfigured(apiKey) || !apiKey) {
     return {
@@ -185,8 +190,8 @@ export async function sendBrevoEmailOtp(
     };
   }
 
-  const senderEmail = senderOverride?.email?.trim() || process.env.BREVO_SENDER_EMAIL?.trim() || 'info@arudhraconsultancy.com';
-  const senderName = senderOverride?.name?.trim() || process.env.BREVO_SENDER_NAME?.trim() || 'ARUDHRA CONSULTANCY';
+  const senderEmail = senderOverride?.email?.trim() || process.env.BREVO_SENDER_EMAIL?.trim() || DEFAULT_BREVO_SENDER_EMAIL;
+  const senderName = senderOverride?.name?.trim() || process.env.BREVO_SENDER_NAME?.trim() || DEFAULT_BREVO_SENDER_NAME;
   const cleanName = recipientName?.trim() || 'Candidate';
 
   const payload = {
@@ -363,7 +368,7 @@ export async function sendBrevoApplicationEmail(
   appData: { enquiryId: string; jobTitle: string; location?: string; salary?: string },
   senderOverride?: { name?: string; email?: string; apiKey?: string; phone?: string }
 ): Promise<BrevoSendResult> {
-  const apiKey = senderOverride?.apiKey?.trim() || process.env.BREVO_API_KEY?.trim();
+  const apiKey = senderOverride?.apiKey?.trim() || process.env.BREVO_API_KEY?.trim() || '';
 
   if (!isBrevoConfigured(apiKey) || !apiKey) {
     return {
@@ -373,8 +378,8 @@ export async function sendBrevoApplicationEmail(
     };
   }
 
-  const senderEmail = senderOverride?.email?.trim() || process.env.BREVO_SENDER_EMAIL?.trim() || 'info@arudhraconsultancy.com';
-  const senderName = senderOverride?.name?.trim() || process.env.BREVO_SENDER_NAME?.trim() || 'ARUDHRA CONSULTANCY';
+  const senderEmail = senderOverride?.email?.trim() || process.env.BREVO_SENDER_EMAIL?.trim() || DEFAULT_BREVO_SENDER_EMAIL;
+  const senderName = senderOverride?.name?.trim() || process.env.BREVO_SENDER_NAME?.trim() || DEFAULT_BREVO_SENDER_NAME;
   const contactPhone = senderOverride?.phone?.trim() || '+91 7418845083';
   const cleanName = candidateName?.trim() || 'Candidate';
 
@@ -443,7 +448,7 @@ export async function sendBrevoTestEmail(
   recipientEmail: string,
   senderOverride?: { name?: string; email?: string; apiKey?: string }
 ): Promise<BrevoSendResult> {
-  const apiKey = senderOverride?.apiKey?.trim() || process.env.BREVO_API_KEY?.trim();
+  const apiKey = senderOverride?.apiKey?.trim() || process.env.BREVO_API_KEY?.trim() || '';
 
   if (!isBrevoConfigured(apiKey) || !apiKey) {
     return {
@@ -453,8 +458,8 @@ export async function sendBrevoTestEmail(
     };
   }
 
-  const senderEmail = senderOverride?.email?.trim() || process.env.BREVO_SENDER_EMAIL?.trim() || 'info@arudhraconsultancy.com';
-  const senderName = senderOverride?.name?.trim() || process.env.BREVO_SENDER_NAME?.trim() || 'ARUDHRA CONSULTANCY';
+  const senderEmail = senderOverride?.email?.trim() || process.env.BREVO_SENDER_EMAIL?.trim() || DEFAULT_BREVO_SENDER_EMAIL;
+  const senderName = senderOverride?.name?.trim() || process.env.BREVO_SENDER_NAME?.trim() || DEFAULT_BREVO_SENDER_NAME;
   const cleanRecipient = recipientEmail.trim().toLowerCase();
 
   const testOtp = Math.floor(100000 + Math.random() * 900000).toString();

@@ -198,6 +198,19 @@ export const Footer: React.FC = () => {
               </li>
               <li>
                 <button
+                  id="footer-link-esim"
+                  onClick={() => {
+                    setCurrentTab('esim');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="hover:text-red-300 transition-colors flex items-center gap-1.5 cursor-pointer"
+                >
+                  <ChevronRight className="w-3.5 h-3.5 text-stone-600" />
+                  <span>Travel eSIM (Stay Connected)</span>
+                </button>
+              </li>
+              <li>
+                <button
                   id="footer-link-reviews"
                   onClick={() => {
                     setCurrentTab('reviews');
