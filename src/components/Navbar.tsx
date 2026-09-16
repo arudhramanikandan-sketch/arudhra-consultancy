@@ -338,7 +338,7 @@ export const Navbar: React.FC = () => {
           {/* Right Action Controls */}
           <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
             {/* Auth Buttons */}
-            {user ? (
+            {user && (
               <div className="flex items-center gap-1.5">
                 {isAdmin ? (
                   <button
@@ -370,21 +370,6 @@ export const Navbar: React.FC = () => {
                   </button>
                 )}
               </div>
-            ) : (
-              <button
-                id="open-candidate-login-btn"
-                onClick={() => handleNavClick('candidate-login')}
-                className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-4 py-2 text-white text-xs font-bold rounded-lg shadow-sm hover:shadow-md transition-all cursor-pointer ${
-                  currentTab === 'candidate-login'
-                    ? 'bg-red-800 ring-2 ring-amber-400/50'
-                    : 'bg-red-900 hover:bg-red-800'
-                }`}
-                title="Candidate Portal Login & Sign Up"
-              >
-                <User className="w-3.5 h-3.5 text-amber-300" />
-                <span className="hidden sm:inline">Candidate Login</span>
-                <span className="sm:hidden">Login</span>
-              </button>
             )}
 
             {/* Mobile Hamburger Button */}
@@ -461,18 +446,7 @@ export const Navbar: React.FC = () => {
                   <span>Logout</span>
                 </button>
               </>
-            ) : (
-              <div className="space-y-2">
-                <button
-                  id="mobile-candidate-login-btn"
-                  onClick={() => handleNavClick('candidate-login')}
-                  className="w-full flex items-center justify-center gap-2 py-3 bg-red-900 hover:bg-red-800 text-white rounded-lg text-xs font-bold shadow-md cursor-pointer"
-                >
-                  <User className="w-4 h-4" />
-                  <span>Candidate Login</span>
-                </button>
-              </div>
-            )}
+            ) : null}
 
             <div className="grid grid-cols-2 gap-2 pt-2">
               <a
