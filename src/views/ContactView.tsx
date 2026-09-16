@@ -21,26 +21,49 @@ export const ContactView: React.FC = () => {
 
   const handleGeneralSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !mobile) {
-      showToast('Please enter your Name and Mobile number', 'error');
-      return;
+    setLoading(true);
+
+    // Save enquiry to records in the background if details are provided
+    if (name.trim() || mobile.trim()) {
+      try {
+        await submitEnquiry({
+          jobId: 'SG-GENERAL-ENQ',
+          customerName: name.trim() || 'WhatsApp Enquirer',
+          mobile: mobile.trim() || 'Not Provided',
+          email: email.trim(),
+          candidateTrade: trade.trim() || 'General Singapore Enquiry',
+          candidateNotes: message.trim()
+        });
+      } catch (err) {
+        console.error('Enquiry logging error:', err);
+      }
     }
 
-    setLoading(true);
-    // Submit as general Singapore recruitment enquiry
-    const res = await submitEnquiry({
-      jobId: 'SG-GENERAL-ENQ',
-      customerName: name,
-      mobile,
-      email,
-      candidateTrade: trade || 'General Singapore Enquiry',
-      candidateNotes: message
-    });
     setLoading(false);
 
-    if (res.success) {
-      setSubmitted(true);
+    // Construct WhatsApp message with user details
+    const rawNumber = settings.whatsappNumber.replace(/\D/g, '') || '917418845083';
+    let text = 'Hello Arudhra Consultancy, I would like to get in touch regarding Singapore overseas recruitment.';
+
+    if (name.trim() || mobile.trim() || trade.trim() || message.trim()) {
+      const lines = [
+        'Hello Arudhra Consultancy,',
+        '',
+        'I would like to enquire about Singapore overseas recruitment & job vacancies:',
+        name.trim() ? `👤 Name: ${name.trim()}` : '',
+        mobile.trim() ? `📱 Mobile: ${mobile.trim()}` : '',
+        email.trim() ? `✉️ Email: ${email.trim()}` : '',
+        trade.trim() ? `🛠️ Trade / Field: ${trade.trim()}` : '',
+        message.trim() ? `📝 Message: ${message.trim()}` : '',
+        '',
+        'Please guide me with available Singapore work pass vacancies, eligibility, and next steps. Thank you!'
+      ].filter(Boolean);
+      text = lines.join('\n');
     }
+
+    const whatsappUrl = `https://wa.me/${rawNumber}?text=${encodeURIComponent(text)}`;
+    window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+    showToast('Opening WhatsApp with your enquiry details...', 'success');
   };
 
   return (
@@ -301,7 +324,7 @@ export const ContactView: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-                      Your Full Name <span className="text-red-600">*</span>
+                      Your Full Name <span className="text-slate-400 font-normal">(Optional)</span>
                     </label>
                     <input
                       id="contact-form-name"
@@ -309,14 +332,13 @@ export const ContactView: React.FC = () => {
                       value={name}
                       onChange={e => setName(e.target.value)}
                       placeholder="e.g. Balaji S"
-                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-red-900"
-                      required
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-emerald-600"
                     />
                   </div>
 
                   <div>
                     <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-                      Mobile Number <span className="text-red-600">*</span>
+                      Mobile Number <span className="text-slate-400 font-normal">(Optional)</span>
                     </label>
                     <input
                       id="contact-form-mobile"
@@ -324,8 +346,7 @@ export const ContactView: React.FC = () => {
                       value={mobile}
                       onChange={e => setMobile(e.target.value)}
                       placeholder="+91 63745 09488"
-                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-red-900"
-                      required
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-emerald-600"
                     />
                   </div>
                 </div>
@@ -341,7 +362,7 @@ export const ContactView: React.FC = () => {
                       value={email}
                       onChange={e => setEmail(e.target.value)}
                       placeholder="name@gmail.com"
-                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-red-900"
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-emerald-600"
                     />
                   </div>
 
@@ -355,7 +376,7 @@ export const ContactView: React.FC = () => {
                       value={trade}
                       onChange={e => setTrade(e.target.value)}
                       placeholder="e.g. CNC Machinist / 6G Welder / F&B"
-                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-red-900"
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-emerald-600"
                     />
                   </div>
                 </div>
@@ -370,14 +391,14 @@ export const ContactView: React.FC = () => {
                     value={message}
                     onChange={e => setMessage(e.target.value)}
                     placeholder="Tell us about your qualification, previous experience in India/Gulf/Singapore, and passport status..."
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-red-900 resize-none"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-emerald-600 resize-none"
                   />
                 </div>
 
-                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-600 flex items-start gap-2">
-                  <ShieldCheck className="w-4 h-4 text-red-900 shrink-0 mt-0.5" />
+                <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-xs text-emerald-800 flex items-start gap-2">
+                  <MessageSquare className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                   <span>
-                    Your contact information will only be used by Arudhra Consultancy to follow up on your Singapore recruitment enquiry.
+                    Clicking below directly opens WhatsApp with Arudhra Singapore Recruitment Desk (+{settings.whatsappNumber}).
                   </span>
                 </div>
 
@@ -385,14 +406,14 @@ export const ContactView: React.FC = () => {
                   id="contact-form-submit-btn"
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3.5 bg-red-900 hover:bg-red-800 text-white font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+                  className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
                   {loading ? (
-                    <span>Submitting Enquiry...</span>
+                    <span>Opening WhatsApp...</span>
                   ) : (
                     <>
-                      <Send className="w-4 h-4" />
-                      <span>Submit Singapore Enquiry</span>
+                      <MessageSquare className="w-5 h-5 text-white" />
+                      <span>Send via WhatsApp (+{settings.whatsappNumber})</span>
                     </>
                   )}
                 </button>

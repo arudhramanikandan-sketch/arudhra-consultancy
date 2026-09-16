@@ -28,6 +28,7 @@ const MainAppContent: React.FC = () => {
     currentTab,
     setCurrentTab,
     goBack,
+    jobs,
     selectedJob,
     setSelectedJob,
     applyModalJob,
@@ -37,6 +38,20 @@ const MainAppContent: React.FC = () => {
   const { user, isAdmin } = useAuth();
   const [jobSearchQuery, setJobSearchQuery] = useState('');
   const [jobCategoryQuery, setJobCategoryQuery] = useState('All');
+
+  // Auto-open job details when URL contains ?job=<jobId>
+  React.useEffect(() => {
+    try {
+      const searchParams = new URLSearchParams(window.location.search);
+      const jobId = searchParams.get('job');
+      if (jobId && jobs.length > 0 && !selectedJob) {
+        const found = jobs.find(j => j.id.toLowerCase() === jobId.toLowerCase());
+        if (found) {
+          setSelectedJob(found);
+        }
+      }
+    } catch {}
+  }, [jobs, selectedJob, setSelectedJob]);
 
   // Global Back Key Handler across entire application
   React.useEffect(() => {

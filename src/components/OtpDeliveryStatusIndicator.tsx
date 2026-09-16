@@ -9,8 +9,7 @@ import {
   Send,
   Info,
   KeyRound,
-  Check,
-  ShieldCheck
+  Check
 } from 'lucide-react';
 
 interface OtpDeliveryStatusIndicatorProps {
@@ -37,7 +36,6 @@ export const OtpDeliveryStatusIndicator: React.FC<OtpDeliveryStatusIndicatorProp
   const [statusResult, setStatusResult] = useState<OtpDeliveryStatusResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [lastChecked, setLastChecked] = useState<Date | null>(null);
-  const [showSpamGuide, setShowSpamGuide] = useState(false);
   const [pollCount, setPollCount] = useState(0);
 
   const pollTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -304,44 +302,6 @@ export const OtpDeliveryStatusIndicator: React.FC<OtpDeliveryStatusIndicatorProp
             </span>
             {cooldown > 0 && (
               <span className="font-semibold text-slate-700">Resend in {cooldown}s</span>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Accordion / Toggle: Spam & Delivery Tips */}
-      <div className="pt-1 border-t border-black/5">
-        <button
-          type="button"
-          onClick={() => setShowSpamGuide(!showSpamGuide)}
-          className="text-[11px] text-slate-600 hover:text-red-900 font-semibold flex items-center gap-1 cursor-pointer transition-colors"
-        >
-          <Info className="w-3.5 h-3.5 text-slate-500" />
-          <span>{showSpamGuide ? 'Hide email delivery tips' : 'Email didn\'t arrive? View quick tips'}</span>
-        </button>
-
-        {showSpamGuide && (
-          <div className="mt-2 p-3 bg-white/90 border border-slate-200 rounded-lg text-[11px] text-slate-700 space-y-2 animate-fadeIn">
-            <ul className="list-disc list-inside space-y-1">
-              <li>Check your <strong>Spam / Junk</strong> folder or <strong>Promotions</strong> tab.</li>
-              <li>Search your mailbox for <code className="font-bold text-slate-900">Arudhra Consultancy</code> or <code className="font-bold text-slate-900">info@arudhraconsultancy.com</code>.</li>
-              <li>Certain enterprise firewalls or school accounts delay outside transactional emails by up to 2 minutes.</li>
-              <li>If your email address had a typo, click the Back button below to correct it.</li>
-            </ul>
-
-            {/* If emergency preview OTP is available, allow 1-click use */}
-            {previewOtp && onUseCode && (
-              <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
-                <span className="text-slate-600 font-medium">Instant backup code:</span>
-                <button
-                  type="button"
-                  onClick={() => onUseCode(previewOtp)}
-                  className="px-2.5 py-1 bg-red-900 hover:bg-red-800 text-white font-bold rounded text-[11px] transition-all cursor-pointer flex items-center gap-1"
-                >
-                  <ShieldCheck className="w-3 h-3" />
-                  <span>Auto-Fill {previewOtp}</span>
-                </button>
-              </div>
             )}
           </div>
         )}

@@ -17,7 +17,9 @@ import {
   Share2,
   Calendar,
   Printer,
-  ArrowLeft
+  ArrowLeft,
+  Check,
+  Copy
 } from 'lucide-react';
 
 interface JobDetailsModalProps {
@@ -28,19 +30,62 @@ interface JobDetailsModalProps {
 export const JobDetailsModal: React.FC<JobDetailsModalProps> = ({ job, onClose }) => {
   const { setApplyModalJob, settings, showToast } = useApp();
   const [isQuickApplyOpen, setIsQuickApplyOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   if (!job) return null;
 
-  const handleShare = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: `${job.title} - Singapore Jobs | Arudhra Consultancy`,
-        text: `Check out this Singapore job opportunity: ${job.title} (${job.salary})`,
-        url: window.location.href
-      }).catch(() => {});
-    } else {
-      navigator.clipboard.writeText(window.location.href);
-      showToast('Job link copied to clipboard!', 'info');
+  const getJobShareUrl = () => {
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set('job', job.id);
+      url.hash = 'jobs';
+      return url.toString();
+    } catch {
+      return `${window.location.origin}/?job=${encodeURIComponent(job.id)}#jobs`;
+    }
+  };
+
+  const handleShare = async () => {
+    const shareUrl = getJobShareUrl();
+    const shareTitle = `${job.title} - Singapore Work Opening | ${settings.businessName || 'Arudhra Consultancy'}`;
+    const shareText = `🇸🇬 Singapore Job Opportunity: ${job.title} (${job.salary}, Ref: ${job.id}) via Arudhra Consultancy. View details and apply:`;
+
+    // Try Web Share API (native mobile share sheet on iOS, Android, and supported desktop browsers)
+    if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+      try {
+        await navigator.share({
+          title: shareTitle,
+          text: shareText,
+          url: shareUrl
+        });
+        showToast('Shared job successfully!', 'success');
+        return;
+      } catch (err: any) {
+        // If user cancelled the share sheet, return gracefully
+        if (err?.name === 'AbortError') return;
+      }
+    }
+
+    // Fallback: Copy link to clipboard
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(shareUrl);
+      } else {
+        const textArea = document.createElement('textarea');
+        textArea.value = shareUrl;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-9999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
+      setCopied(true);
+      showToast('Job link copied to clipboard!', 'success');
+      setTimeout(() => setCopied(false), 2500);
+    } catch (err) {
+      showToast('Unable to copy link to clipboard', 'error');
     }
   };
 
@@ -145,6 +190,20 @@ export const JobDetailsModal: React.FC<JobDetailsModalProps> = ({ job, onClose }
                 </kbd>
               </button>
               <button
+                id="share-job-btn"
+                type="button"
+                onClick={handleShare}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-semibold transition-all cursor-pointer ${
+                  copied
+                    ? 'bg-emerald-600/30 text-emerald-300 border-emerald-500/50'
+                    : 'bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border-slate-700'
+                }`}
+                title="Share Job (Mobile share sheet or copy link)"
+              >
+                {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Share2 className="w-3.5 h-3.5 text-sky-400" />}
+                <span className="hidden sm:inline">{copied ? 'Copied!' : 'Share'}</span>
+              </button>
+              <button
                 id="print-job-btn"
                 type="button"
                 onClick={handlePrint}
@@ -153,16 +212,6 @@ export const JobDetailsModal: React.FC<JobDetailsModalProps> = ({ job, onClose }
               >
                 <Printer className="w-4 h-4" />
                 <span className="sr-only">Print Job Posting</span>
-              </button>
-              <button
-                id="share-job-btn"
-                type="button"
-                onClick={handleShare}
-                className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
-                title="Share Job"
-              >
-                <Share2 className="w-4 h-4" />
-                <span className="sr-only">Share Job</span>
               </button>
               <button
                 id="close-job-modal-btn"
@@ -346,7 +395,30 @@ export const JobDetailsModal: React.FC<JobDetailsModalProps> = ({ job, onClose }
 
         {/* Sticky Action Footer (Screen only) */}
         <div className="p-4 bg-slate-50 border-t border-slate-200 shrink-0 flex flex-wrap items-center justify-between gap-3 no-print modal-actions-footer">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              id="job-detail-share-btn"
+              type="button"
+              onClick={handleShare}
+              className={`inline-flex items-center gap-1.5 px-3.5 py-2.5 text-xs font-bold rounded-xl transition-all border cursor-pointer shadow-2xs ${
+                copied
+                  ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                  : 'bg-white hover:bg-slate-100 text-slate-800 hover:text-slate-950 border-slate-300'
+              }`}
+              title="Share job opening via mobile share sheet or copy link"
+            >
+              {copied ? (
+                <>
+                  <Check className="w-4 h-4 text-emerald-600" />
+                  <span>Link Copied!</span>
+                </>
+              ) : (
+                <>
+                  <Share2 className="w-4 h-4 text-sky-600" />
+                  <span>Share Job</span>
+                </>
+              )}
+            </button>
             <a
               id="job-detail-whatsapp-btn"
               href={getWhatsAppUrl()}
@@ -369,7 +441,7 @@ export const JobDetailsModal: React.FC<JobDetailsModalProps> = ({ job, onClose }
               id="job-detail-print-action-btn"
               type="button"
               onClick={handlePrint}
-              className="inline-flex items-center gap-1.5 px-3 py-2.5 bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold rounded-xl transition-all border border-slate-300 cursor-pointer shadow-2xs"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-2.5 bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold rounded-xl transition-all border border-slate-300 cursor-pointer shadow-2xs"
               title="Print Job Posting"
             >
               <Printer className="w-4 h-4 text-slate-600" />
