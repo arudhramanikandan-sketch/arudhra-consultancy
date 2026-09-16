@@ -276,7 +276,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       return {
         success: false,
-        message: data?.message || 'Failed to dispatch verification email. Please check your email address and try again.',
+        message: data?.message || data?.error || (res.status === 400 ? 'Please enter a valid email address and try again.' : 'Failed to dispatch verification email. Please check your email address and try again.'),
         cooldownSeconds: data?.cooldownSeconds,
         isBrevoConfigured: data?.isBrevoConfigured
       };
@@ -284,7 +284,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.warn('Backend email OTP network call failed:', err);
       return {
         success: false,
-        message: 'Network error communicating with authentication server. Please check your connection.',
+        message: 'Network error communicating with authentication server. Please check your connection and try again.',
         isBrevoConfigured: false
       };
     }

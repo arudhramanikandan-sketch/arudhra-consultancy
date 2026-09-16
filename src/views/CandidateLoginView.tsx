@@ -126,8 +126,9 @@ export const CandidateLoginView: React.FC = () => {
       }
       showToast(res.message || 'Verification code dispatched! Please check your Inbox and Spam folder.', 'success');
     } else {
-      setErrorMsg(res.message || 'Unable to send email verification code.');
-      showToast(res.message || 'Unable to send email verification code.', 'error');
+      const displayError = res.message || 'Unable to send email verification code. Please check your email address and try again.';
+      setErrorMsg(displayError);
+      showToast(displayError, 'error');
     }
   };
 
@@ -153,8 +154,9 @@ export const CandidateLoginView: React.FC = () => {
       }
       showToast(res.message || 'New verification code sent! Check your inbox and spam folder.', 'success');
     } else {
-      setErrorMsg(res.message || 'Unable to resend verification code.');
-      showToast(res.message, 'error');
+      const displayError = res.message || 'Unable to resend verification code. Please check your email address and try again.';
+      setErrorMsg(displayError);
+      showToast(displayError, 'error');
     }
   };
 
