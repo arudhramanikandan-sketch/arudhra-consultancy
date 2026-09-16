@@ -89,3 +89,28 @@ To run the local server with the full Admin Dashboard, 2FA security, candidate a
    npm run dev
    ```
 3. Open your browser at **`http://localhost:3000`**.
+
+---
+
+## 5. Deploying to Vercel (100% Live Candidate Login + Brevo Email OTP)
+
+This repository includes pre-configured **`vercel.json`** and **`api/index.ts`** for instant zero-configuration deployment to Vercel with full Serverless backend support.
+
+### Step-by-Step Vercel Setup:
+1. Push your code to GitHub (via `upload_to_github.bat` or git CLI).
+2. Go to **[vercel.com](https://vercel.com)** and log in with your GitHub account.
+3. Click **"Add New..."** -> **"Project"**.
+4. Select your imported GitHub repository and click **Import**.
+5. In the **Environment Variables** section, add your production keys:
+   - `BREVO_API_KEY`: Your Brevo API v3 key (`xkeysib-...`)
+   - `BREVO_SENDER_EMAIL`: Your verified sender email (e.g., `info@arudhraconsultancy.com`)
+   - `BREVO_SENDER_NAME`: `ARUDHRA CONSULTANCY`
+   - `WHATSAPP_API_TOKEN`: *(Optional)* Your Meta WhatsApp Cloud API access token
+   - `WHATSAPP_PHONE_NUMBER_ID`: *(Optional)* Your WhatsApp Phone Number ID
+6. Click **Deploy**.
+
+Vercel will:
+- Automatically run `npm run build` and publish your Vite frontend to global edge CDN.
+- Deploy `/api/*` routes via `api/index.ts` as serverless functions.
+- Securely execute candidate email OTP generation, Brevo API v3 email dispatch, and verification on the backend!
+

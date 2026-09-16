@@ -34,9 +34,7 @@ export const CandidateLoginView: React.FC = () => {
   const [errorMsg, setErrorMsg] = useState('');
   const [cooldown, setCooldown] = useState(0);
   const [serverNotice, setServerNotice] = useState('');
-  const [previewOtp, setPreviewOtp] = useState<string | undefined>(undefined);
   const [isBrevoActive, setIsBrevoActive] = useState<boolean>(true);
-  const [showDirectCode, setShowDirectCode] = useState<boolean>(false);
 
   // Active 60s countdown timer
   useEffect(() => {
@@ -119,9 +117,6 @@ export const CandidateLoginView: React.FC = () => {
     if (res.success) {
       setStep('verify');
       setCooldown(res.cooldownSeconds || 60);
-      if (res.previewOtp) {
-        setPreviewOtp(res.previewOtp);
-      }
       if (res.messageId) {
         setMessageId(res.messageId);
       }
@@ -129,13 +124,10 @@ export const CandidateLoginView: React.FC = () => {
       if (res.message) {
         setServerNotice(res.message);
       }
-      if (res.isBrevoConfigured) {
-        showToast('Verification code dispatched! Please check your Inbox and Spam folder.', 'success');
-      } else {
-        showToast(`Verification code generated: ${res.previewOtp || 'Ready'}`, 'info');
-      }
+      showToast(res.message || 'Verification code dispatched! Please check your Inbox and Spam folder.', 'success');
     } else {
       setErrorMsg(res.message || 'Unable to send email verification code.');
+      showToast(res.message || 'Unable to send email verification code.', 'error');
     }
   };
 
@@ -152,9 +144,6 @@ export const CandidateLoginView: React.FC = () => {
 
     if (res.success) {
       setCooldown(res.cooldownSeconds || 60);
-      if (res.previewOtp) {
-        setPreviewOtp(res.previewOtp);
-      }
       if (res.messageId) {
         setMessageId(res.messageId);
       }
@@ -162,11 +151,7 @@ export const CandidateLoginView: React.FC = () => {
       if (res.message) {
         setServerNotice(res.message);
       }
-      if (res.isBrevoConfigured) {
-        showToast('New verification code sent! Check your inbox and spam folder.', 'success');
-      } else {
-        showToast(`New verification code: ${res.previewOtp}`, 'info');
-      }
+      showToast(res.message || 'New verification code sent! Check your inbox and spam folder.', 'success');
     } else {
       setErrorMsg(res.message || 'Unable to resend verification code.');
       showToast(res.message, 'error');
@@ -250,8 +235,6 @@ export const CandidateLoginView: React.FC = () => {
                   email={email}
                   messageId={messageId}
                   cooldown={cooldown}
-                  previewOtp={previewOtp}
-                  onUseCode={(code) => setOtpCode(code)}
                   onRetry={() => {
                     setStep('input');
                     setErrorMsg('');
@@ -281,7 +264,6 @@ export const CandidateLoginView: React.FC = () => {
                     onClick={() => {
                       setStep('input');
                       setOtpCode('');
-                      setShowDirectCode(false);
                     }}
                     className="text-slate-600 hover:text-slate-900 font-medium underline cursor-pointer"
                   >

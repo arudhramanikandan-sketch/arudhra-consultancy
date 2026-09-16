@@ -8,7 +8,6 @@ import {
   Mail,
   Send,
   Info,
-  KeyRound,
   Check
 } from 'lucide-react';
 
@@ -18,8 +17,6 @@ interface OtpDeliveryStatusIndicatorProps {
   onRetry?: () => void;
   canRetry?: boolean;
   cooldown?: number;
-  previewOtp?: string;
-  onUseCode?: (code: string) => void;
 }
 
 export const OtpDeliveryStatusIndicator: React.FC<OtpDeliveryStatusIndicatorProps> = ({
@@ -27,9 +24,7 @@ export const OtpDeliveryStatusIndicator: React.FC<OtpDeliveryStatusIndicatorProp
   messageId,
   onRetry,
   canRetry = false,
-  cooldown = 0,
-  previewOtp,
-  onUseCode
+  cooldown = 0
 }) => {
   const { checkEmailOtpDeliveryStatus } = useAuth();
 
@@ -140,15 +135,6 @@ export const OtpDeliveryStatusIndicator: React.FC<OtpDeliveryStatusIndicatorProp
           title: 'Delivery Deferred by Server',
           subtext: statusResult?.statusDescription || 'Your mail server temporarily delayed delivery (greylisting). In automatic retry queue.',
           step: 2
-        };
-      case 'direct':
-        return {
-          containerClass: 'bg-amber-50/90 border-amber-300 text-amber-950',
-          badgeClass: 'bg-amber-100 text-amber-800 border-amber-300',
-          icon: <KeyRound className="w-5 h-5 text-amber-700 shrink-0" />,
-          title: 'Direct Instant Verification',
-          subtext: statusResult?.statusDescription || 'Offline relay mode active. Use the instant on-screen code below.',
-          step: 3
         };
       case 'in_transit':
       default:

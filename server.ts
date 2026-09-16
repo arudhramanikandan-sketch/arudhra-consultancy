@@ -1,30 +1,28 @@
+import 'dotenv/config';
 import express from 'express';
 import path from 'path';
 import fs from 'fs';
-import { createServer as createViteServer } from 'vite';
 import { storage } from './server/storage';
 
-async function startServer() {
-  const app = express();
-  const PORT = 3000;
+export const app = express();
 
-  // Enable CORS & Preflight handling for all requests (including iframes, previews, mobile, custom domains)
-  app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-    if (req.method === 'OPTIONS') {
-      return res.sendStatus(200);
-    }
-    next();
-  });
+// Enable CORS & Preflight handling for all requests (including iframes, previews, mobile, custom domains)
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
 
-  // JSON Body Parser with reasonable payload limit for image data
-  app.use(express.json({ limit: '10mb' }));
-  app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+// JSON Body Parser with reasonable payload limit for image data
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-  // Serve static assets from public directory (e.g. permanent logos, icons)
-  app.use(express.static(path.join(process.cwd(), 'public')));
+// Serve static assets from public directory (e.g. permanent logos, icons)
+app.use(express.static(path.join(process.cwd(), 'public')));
 
   // --- API ROUTES ---
 
@@ -146,7 +144,9 @@ async function startServer() {
 
   const handleEmailOtpVerify: express.RequestHandler = (req, res) => {
     try {
-      const { email, code, name, mobile } = req.body;
+      const email = req.body.email;
+      const code = req.body.code || req.body.otp;
+      const { name, mobile } = req.body;
       if (!email || !code) {
         return res.status(400).json({ success: false, message: 'Email address and 6-digit OTP code are required' });
       }
@@ -1340,7 +1340,9 @@ async function startServer() {
     next(err);
   });
 
-  // --- VITE MIDDLEWARE / SPA FALLBACK ---
+  // --- VITE MIDDLEWARE / SPA FALLBACK & STANDALONE SERVER BOOT ---
+async function startServer() {
+  const PORT = 3000;
   const distPath = path.join(process.cwd(), 'dist');
   const distIndexExists = fs.existsSync(path.join(distPath, 'index.html'));
 
@@ -1351,6 +1353,7 @@ async function startServer() {
     });
   } else {
     // If running in development OR if dist hasn't been built yet, use Vite dev middleware
+    const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',
@@ -1363,6 +1366,10 @@ async function startServer() {
   });
 }
 
-startServer().catch(err => {
-  console.error('Failed to start server:', err);
-});
+// In standard environments (local dev, Cloud Run, Docker, VPS), boot the server listener.
+// In serverless environments (e.g. Vercel), the exported app handles requests directly.
+if (!process.env.VERCEL) {
+  startServer().catch(err => {
+    console.error('Failed to start server:', err);
+  });
+}

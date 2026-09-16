@@ -53,7 +53,15 @@ If you downloaded this project as a ZIP file from Google AI Studio and experienc
 
 ### Production Deployment / Hosting Options
 
-#### Option A: Node.js VPS / Cloud Run / Render / Railway / Heroku
+#### Option A: Vercel (Zero-Config Serverless Deployment with Live Email OTP)
+1. Import your GitHub repository into **[vercel.com](https://vercel.com)**.
+2. In Project Settings -> Environment Variables, add:
+   - `BREVO_API_KEY`: Your Brevo API v3 key
+   - `BREVO_SENDER_EMAIL`: info@arudhraconsultancy.com
+   - `BREVO_SENDER_NAME`: ARUDHRA CONSULTANCY
+3. Click **Deploy**. The included `vercel.json` and `api/index.ts` deploy the full backend automatically.
+
+#### Option B: Node.js VPS / Cloud Run / Render / Railway / Docker
 To build and run the production server:
 ```bash
 npm run build
@@ -61,7 +69,7 @@ npm start
 ```
 The server will run on port `3000` (or the port defined in your `PORT` environment variable).
 
-#### Option B: GitHub Pages Deployment (Zero Build Steps)
+#### Option C: GitHub Pages Deployment (Zero Build Steps)
 For full instructions on deploying to GitHub Pages without missing hidden files or design assets, see **`GITHUB_SETUP_GUIDE.md`**:
 1. Push your repository to GitHub using **`upload_to_github.bat`** (or git command line).
 2. In GitHub repository **Settings -> Pages**:
@@ -69,7 +77,7 @@ For full instructions on deploying to GitHub Pages without missing hidden files 
    - Branch: **main**, Folder: **/docs**
    - Click **Save**. The website design and styling will show properly on your `.github.io` domain!
 
-#### Option C: Pre-built Static Files (`dist/` or `docs/` folder)
+#### Option D: Pre-built Static Files (`dist/` or `docs/` folder)
 If you want static HTML/CSS/JS files to upload to cPanel `public_html`, Apache, Nginx, or Netlify:
 1. Run:
    ```bash

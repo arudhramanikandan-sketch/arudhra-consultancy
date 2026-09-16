@@ -53,7 +53,7 @@ interface EmailOtpRecord {
   name?: string;
   mobile?: string;
   messageId?: string;
-  dispatchStatus?: 'dispatched' | 'failed' | 'direct';
+  dispatchStatus?: 'dispatched' | 'failed';
   dispatchError?: string;
 }
 
@@ -1607,7 +1607,6 @@ class StorageService {
     message: string;
     cooldownSeconds?: number;
     isBrevoConfigured: boolean;
-    previewOtp?: string;
     messageId?: string;
   }> {
     const cleanEmail = rawEmail.trim().toLowerCase();
@@ -1619,6 +1618,14 @@ class StorageService {
         success: false,
         message: 'Please enter a valid email address (e.g. candidate@example.com).',
         isBrevoConfigured: configured
+      };
+    }
+
+    if (!configured) {
+      return {
+        success: false,
+        message: 'Email delivery service is currently not configured. Please contact Arudhra Consultancy administration or check Brevo settings.',
+        isBrevoConfigured: false
       };
     }
 
@@ -1635,16 +1642,15 @@ class StorageService {
       };
     }
 
-    // 60 seconds cooldown check: if an active code was already sent recently, return it safely so candidate isn't blocked
+    // 60 seconds cooldown check: if an active code was already sent recently, don't resend immediately
     const existing = this.emailOtpStore.get(cleanEmail);
     if (existing && now - existing.lastSentAt < 60 * 1000) {
       const waitSec = Math.ceil((60 * 1000 - (now - existing.lastSentAt)) / 1000);
       return {
         success: true,
         cooldownSeconds: waitSec,
-        previewOtp: existing.code,
         messageId: existing.messageId,
-        message: `An active verification code (${existing.code}) was sent to ${cleanEmail}. You may enter it below or wait ${waitSec}s to resend.`,
+        message: `A verification code was already dispatched to ${cleanEmail}. Please check your inbox or wait ${waitSec}s to resend.`,
         isBrevoConfigured: configured
       };
     }
@@ -1652,9 +1658,8 @@ class StorageService {
     if (validTimestamps.length >= 5 && existing && now < existing.expiresAt) {
       return {
         success: true,
-        previewOtp: existing.code,
         messageId: existing.messageId,
-        message: `For your security, enter your active verification code: ${existing.code}`,
+        message: `An active verification code has already been dispatched to your email. Please check your inbox or spam folder.`,
         isBrevoConfigured: configured
       };
     }
@@ -1666,22 +1671,20 @@ class StorageService {
     let dispatchError: string | undefined;
     let dispatchedMessageId: string | undefined;
 
-    if (configured) {
-      const brevoResult = await sendBrevoEmailOtp(
-        cleanEmail,
-        code,
-        name,
-        {
-          apiKey: effectiveApiKey,
-          email: this.settings.brevoSenderEmail || DEFAULT_BREVO_SENDER_EMAIL,
-          name: this.settings.brevoSenderName || DEFAULT_BREVO_SENDER_NAME
-        }
-      );
-      if (brevoResult.success) {
-        dispatchedMessageId = brevoResult.messageId;
-      } else {
-        dispatchError = brevoResult.error;
+    const brevoResult = await sendBrevoEmailOtp(
+      cleanEmail,
+      code,
+      name,
+      {
+        apiKey: effectiveApiKey,
+        email: this.settings.brevoSenderEmail || DEFAULT_BREVO_SENDER_EMAIL,
+        name: this.settings.brevoSenderName || DEFAULT_BREVO_SENDER_NAME
       }
+    );
+    if (brevoResult.success) {
+      dispatchedMessageId = brevoResult.messageId;
+    } else {
+      dispatchError = brevoResult.error;
     }
 
     // Save active OTP state
@@ -1694,38 +1697,28 @@ class StorageService {
       name: name?.trim(),
       mobile: mobile?.trim(),
       messageId: dispatchedMessageId,
-      dispatchStatus: configured ? (dispatchError ? 'failed' : 'dispatched') : 'direct',
+      dispatchStatus: dispatchError ? 'failed' : 'dispatched',
       dispatchError
     });
 
     validTimestamps.push(now);
     this.emailOtpRateLimits.set(cleanEmail, { timestamps: validTimestamps });
 
-    if (configured && !dispatchError) {
+    if (!dispatchError) {
       return {
         success: true,
-        message: `A 6-digit login OTP code was dispatched via Brevo to ${cleanEmail}. Please check your inbox or spam folder.`,
+        message: `A 6-digit verification code was dispatched to ${cleanEmail}. Please check your inbox or spam folder.`,
         cooldownSeconds: 60,
         isBrevoConfigured: true,
-        previewOtp: code,
-        messageId: dispatchedMessageId
-      };
-    } else if (configured && dispatchError) {
-      return {
-        success: true,
-        message: `Brevo dispatch note: ${dispatchError}. Your 6-digit login verification code is ${code}.`,
-        cooldownSeconds: 60,
-        isBrevoConfigured: true,
-        previewOtp: code,
         messageId: dispatchedMessageId
       };
     } else {
       return {
-        success: true,
-        message: `Verification code generated: ${code}. Please enter this 6-digit code below to log in.`,
-        cooldownSeconds: 60,
-        isBrevoConfigured: false,
-        previewOtp: code
+        success: false,
+        message: `Failed to dispatch email verification: ${dispatchError}. Please verify your email address and try again.`,
+        cooldownSeconds: 30,
+        isBrevoConfigured: true,
+        messageId: dispatchedMessageId
       };
     }
   }
@@ -1872,7 +1865,7 @@ class StorageService {
     messageId?: string
   ): Promise<{
     success: boolean;
-    status: 'delivered' | 'in_transit' | 'opened' | 'bounced' | 'deferred' | 'direct' | 'unknown';
+    status: 'delivered' | 'in_transit' | 'opened' | 'bounced' | 'deferred' | 'unknown';
     statusTitle: string;
     statusDescription: string;
     event?: string;
@@ -1891,10 +1884,10 @@ class StorageService {
 
     if (!configured) {
       return {
-        success: true,
-        status: 'direct',
-        statusTitle: 'Direct Instant Mode',
-        statusDescription: 'Brevo email relay is offline or not configured. Use the instant on-screen verification code.',
+        success: false,
+        status: 'unknown',
+        statusTitle: 'Email Service Not Configured',
+        statusDescription: 'Brevo email relay is offline or not configured.',
         recipientEmail: cleanEmail,
         canRetry: false,
         isBrevoConfigured: false
@@ -2169,7 +2162,7 @@ class StorageService {
       user,
       candidate,
       token,
-      message: 'Instant candidate login successful! Welcome to the portal.'
+      message: 'Candidate login successful! Welcome to the portal.'
     };
   }
 

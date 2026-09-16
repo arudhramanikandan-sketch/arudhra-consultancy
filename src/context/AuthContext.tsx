@@ -16,13 +16,12 @@ export interface EmailOtpSendResult {
   message: string;
   cooldownSeconds?: number;
   isBrevoConfigured?: boolean;
-  previewOtp?: string;
   messageId?: string;
 }
 
 export interface OtpDeliveryStatusResult {
   success: boolean;
-  status: 'delivered' | 'in_transit' | 'opened' | 'bounced' | 'deferred' | 'direct' | 'unknown';
+  status: 'delivered' | 'in_transit' | 'opened' | 'bounced' | 'deferred' | 'unknown';
   statusTitle: string;
   statusDescription: string;
   event?: string;
@@ -198,32 +197,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { success: true, message: data.message || 'Logged in successfully' };
       }
       
-      if (data && !data.success && data.message && res.status < 500) {
+      if (data && !data.success && data.message) {
         return { success: false, message: data.message };
       }
+      return { success: false, message: 'Authentication failed. Please try again.' };
     } catch (err) {
-      console.warn('Backend candidate login network request failed, proceeding with client session:', err);
+      console.warn('Backend candidate login network request failed:', err);
+      return { success: false, message: 'Network error connecting to authentication server. Please try again.' };
     }
-
-    // Resilient fallback: If backend API is temporarily unavailable,
-    // seamlessly authenticate the candidate locally so login NEVER fails!
-    const localUser: User = {
-      id: `USR-${Date.now().toString().slice(-6)}`,
-      mobile: formattedMobile || cleanMobile || '+91 7418845083',
-      name: cleanName,
-      email: cleanEmail,
-      role: 'customer',
-      createdAt: new Date().toISOString()
-    };
-
-    setUser(localUser);
-    setToken(`cust-token-${Date.now()}`);
-    setIsAuthModalOpen(false);
-    if (authSuccessCallback) {
-      authSuccessCallback();
-      setAuthSuccessCallback(null);
-    }
-    return { success: true, message: 'Instant candidate login successful.' };
   };
 
   const sendOtp = async (mobile: string) => {
@@ -268,27 +249,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (data && !data.success) {
         return { success: false, message: data.message || 'Invalid verification code' };
       }
+      return { success: false, message: 'Verification failed. Please try again.' };
     } catch (err: any) {
       console.warn('Backend verify OTP request failed:', err);
+      return { success: false, message: err?.message || 'Network error verifying code. Please try again.' };
     }
-
-    // Client-side fallback if backend is unreachable
-    const localUser: User = {
-      id: `USR-${Date.now().toString().slice(-6)}`,
-      mobile: formattedMobile,
-      name: cleanName,
-      email: cleanEmail,
-      role: 'customer',
-      createdAt: new Date().toISOString()
-    };
-    setUser(localUser);
-    setToken(`cust-token-${Date.now()}`);
-    setIsAuthModalOpen(false);
-    if (authSuccessCallback) {
-      authSuccessCallback();
-      setAuthSuccessCallback(null);
-    }
-    return { success: true, message: 'Candidate logged in successfully' };
   };
 
   const sendEmailOtp = async (email: string, name?: string, mobile?: string): Promise<EmailOtpSendResult> => {
@@ -309,42 +274,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (data && data.success) {
         return data;
       }
-      // If server returned data with previewOtp even on non-200
-      if (data && data.previewOtp) {
-        return {
-          success: true,
-          previewOtp: data.previewOtp,
-          message: data.message || `Verification code: ${data.previewOtp}`,
-          cooldownSeconds: data.cooldownSeconds || 60,
-          isBrevoConfigured: data.isBrevoConfigured ?? true
-        };
-      }
+      return {
+        success: false,
+        message: data?.message || 'Failed to dispatch verification email. Please check your email address and try again.',
+        cooldownSeconds: data?.cooldownSeconds,
+        isBrevoConfigured: data?.isBrevoConfigured
+      };
     } catch (err: any) {
-      console.warn('Backend email OTP network call failed, activating resilient offline session:', err);
+      console.warn('Backend email OTP network call failed:', err);
+      return {
+        success: false,
+        message: 'Network error communicating with authentication server. Please check your connection.',
+        isBrevoConfigured: false
+      };
     }
-
-    // Resilient fallback: If live website API route is temporarily unreachable or Brevo network is delayed,
-    // generate a safe verification code so the candidate can ALWAYS sign in without being blocked!
-    const fallbackCode = Math.floor(100000 + Math.random() * 900000).toString();
-    try {
-      sessionStorage.setItem('arudhra_email_otp_fallback', JSON.stringify({
-        email: cleanEmail,
-        code: fallbackCode,
-        name: cleanName,
-        mobile: cleanMobile,
-        expiresAt: Date.now() + 10 * 60 * 1000
-      }));
-    } catch {
-      // Ignore quota error
-    }
-
-    return {
-      success: true,
-      cooldownSeconds: 60,
-      isBrevoConfigured: false,
-      previewOtp: fallbackCode,
-      message: `Instant verification code generated: ${fallbackCode}. Enter this code below to proceed.`
-    };
   };
 
   const verifyEmailOtp = async (email: string, code: string, name?: string, mobile?: string) => {
@@ -370,87 +313,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
         return { success: true, message: 'Logged in successfully via Email OTP' };
       }
-      if (data && !data.success && data.message && res.status < 500) {
-        // Check if matching client fallback
-        const stored = sessionStorage.getItem('arudhra_email_otp_fallback');
-        if (stored) {
-          try {
-            const parsed = JSON.parse(stored);
-            if (parsed.email === cleanEmail && parsed.code === cleanCode && Date.now() < parsed.expiresAt) {
-              sessionStorage.removeItem('arudhra_email_otp_fallback');
-              const localUser: User = {
-                id: `USR-${Date.now().toString().slice(-6)}`,
-                mobile: cleanMobile || parsed.mobile || '+91 7418845083',
-                name: cleanName || parsed.name || 'Candidate',
-                email: cleanEmail,
-                role: 'customer',
-                createdAt: new Date().toISOString()
-              };
-              setUser(localUser);
-              setToken(`cust-token-${Date.now()}`);
-              setIsAuthModalOpen(false);
-              if (authSuccessCallback) {
-                authSuccessCallback();
-                setAuthSuccessCallback(null);
-              }
-              return { success: true, message: 'Candidate logged in successfully' };
-            }
-          } catch {}
-        }
+      if (data && !data.success && data.message) {
         return { success: false, message: data.message };
       }
     } catch (err: any) {
       console.warn('Backend verify email OTP request failed:', err);
+      return { success: false, message: 'Network error verifying OTP. Please try again.' };
     }
 
-    // Client-side fallback if backend is temporarily unreachable or using fallback code
-    const stored = sessionStorage.getItem('arudhra_email_otp_fallback');
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        if (parsed.email === cleanEmail && parsed.code === cleanCode && Date.now() < parsed.expiresAt) {
-          sessionStorage.removeItem('arudhra_email_otp_fallback');
-          const localUser: User = {
-            id: `USR-${Date.now().toString().slice(-6)}`,
-            mobile: cleanMobile || parsed.mobile || '+91 7418845083',
-            name: cleanName || parsed.name || 'Candidate',
-            email: cleanEmail,
-            role: 'customer',
-            createdAt: new Date().toISOString()
-          };
-          setUser(localUser);
-          setToken(`cust-token-${Date.now()}`);
-          setIsAuthModalOpen(false);
-          if (authSuccessCallback) {
-            authSuccessCallback();
-            setAuthSuccessCallback(null);
-          }
-          return { success: true, message: 'Candidate logged in successfully' };
-        }
-      } catch {}
-    }
-
-    // If 6 digits was entered, gracefully log the candidate in
-    if (/^\d{6}$/.test(cleanCode)) {
-      const localUser: User = {
-        id: `USR-${Date.now().toString().slice(-6)}`,
-        mobile: cleanMobile || `+91 7418845083`,
-        name: cleanName,
-        email: cleanEmail,
-        role: 'customer',
-        createdAt: new Date().toISOString()
-      };
-      setUser(localUser);
-      setToken(`cust-token-${Date.now()}`);
-      setIsAuthModalOpen(false);
-      if (authSuccessCallback) {
-        authSuccessCallback();
-        setAuthSuccessCallback(null);
-      }
-      return { success: true, message: 'Candidate logged in successfully' };
-    }
-
-    return { success: false, message: 'Invalid 6-digit verification code' };
+    return { success: false, message: 'Invalid 6-digit verification code. Please check and try again.' };
   };
 
   const checkEmailOtpDeliveryStatus = async (email: string, messageId?: string): Promise<OtpDeliveryStatusResult> => {
@@ -474,27 +345,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     } catch (err) {
       console.warn('Network error checking email OTP delivery status:', err);
-    }
-
-    // Resilient fallback for static demo environments or offline sessions
-    const fallbackStr = sessionStorage.getItem('arudhra_email_otp_fallback');
-    if (fallbackStr) {
-      try {
-        const fallback = JSON.parse(fallbackStr);
-        if (fallback.email === cleanEmail) {
-          return {
-            success: true,
-            status: 'direct',
-            statusTitle: 'Direct Instant Mode',
-            statusDescription: 'Offline relay mode active. Use the instant on-screen code below.',
-            recipientEmail: cleanEmail,
-            canRetry: false,
-            isBrevoConfigured: false
-          };
-        }
-      } catch {
-        // Ignore JSON error
-      }
     }
 
     return {
