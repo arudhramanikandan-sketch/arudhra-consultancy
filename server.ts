@@ -160,12 +160,30 @@ async function startServer() {
     }
   };
 
+  const handleEmailOtpStatus: express.RequestHandler = async (req, res) => {
+    try {
+      const email = ((req.query.email as string) || (req.body?.email as string) || '').trim();
+      const messageId = ((req.query.messageId as string) || (req.body?.messageId as string) || '').trim();
+      if (!email) {
+        return res.status(400).json({ success: false, message: 'Candidate email address is required' });
+      }
+      const result = await storage.checkEmailOtpDelivery(email, messageId);
+      res.json(result);
+    } catch (error: any) {
+      res.status(500).json({ success: false, message: error.message || 'Error querying delivery status' });
+    }
+  };
+
   app.post('/api/auth/email-otp/send', handleEmailOtpSend);
   app.post('/api/email-otp/send', handleEmailOtpSend);
   app.post('/api/candidate/email-otp/send', handleEmailOtpSend);
   app.post('/api/auth/email-otp/verify', handleEmailOtpVerify);
   app.post('/api/email-otp/verify', handleEmailOtpVerify);
   app.post('/api/candidate/email-otp/verify', handleEmailOtpVerify);
+  app.get('/api/auth/email-otp/status', handleEmailOtpStatus);
+  app.post('/api/auth/email-otp/status', handleEmailOtpStatus);
+  app.get('/api/email-otp/status', handleEmailOtpStatus);
+  app.get('/api/candidate/email-otp/status', handleEmailOtpStatus);
 
   // Authentication - Customer Mobile OTP via Real WhatsApp
   app.post('/api/auth/otp/send', async (req, res) => {

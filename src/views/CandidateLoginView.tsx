@@ -10,9 +10,11 @@ import {
   CheckCircle2,
   AlertCircle,
   RefreshCw,
-  Info
+  Info,
+  KeyRound
 } from 'lucide-react';
 import { SubpageBackButton } from '../components/SubpageBackButton';
+import { OtpDeliveryStatusIndicator } from '../components/OtpDeliveryStatusIndicator';
 
 export const CandidateLoginView: React.FC = () => {
   const { user, sendEmailOtp, verifyEmailOtp } = useAuth();
@@ -23,6 +25,7 @@ export const CandidateLoginView: React.FC = () => {
   const [fullName, setFullName] = useState('');
   const [mobile, setMobile] = useState('');
   const [otpCode, setOtpCode] = useState('');
+  const [messageId, setMessageId] = useState<string | undefined>(undefined);
 
   // Status & OTP states
   const [step, setStep] = useState<'input' | 'verify'>('input');
@@ -31,6 +34,9 @@ export const CandidateLoginView: React.FC = () => {
   const [errorMsg, setErrorMsg] = useState('');
   const [cooldown, setCooldown] = useState(0);
   const [serverNotice, setServerNotice] = useState('');
+  const [previewOtp, setPreviewOtp] = useState<string | undefined>(undefined);
+  const [isBrevoActive, setIsBrevoActive] = useState<boolean>(true);
+  const [showDirectCode, setShowDirectCode] = useState<boolean>(false);
 
   // Active 60s countdown timer
   useEffect(() => {
@@ -113,10 +119,21 @@ export const CandidateLoginView: React.FC = () => {
     if (res.success) {
       setStep('verify');
       setCooldown(res.cooldownSeconds || 60);
+      if (res.previewOtp) {
+        setPreviewOtp(res.previewOtp);
+      }
+      if (res.messageId) {
+        setMessageId(res.messageId);
+      }
+      setIsBrevoActive(res.isBrevoConfigured ?? true);
       if (res.message) {
         setServerNotice(res.message);
       }
-      showToast('Verification code dispatched! Check your email inbox or spam folder.', 'success');
+      if (res.isBrevoConfigured) {
+        showToast('Verification code dispatched! Please check your Inbox and Spam folder.', 'success');
+      } else {
+        showToast(`Verification code generated: ${res.previewOtp || 'Ready'}`, 'info');
+      }
     } else {
       setErrorMsg(res.message || 'Unable to send email verification code.');
     }
@@ -135,10 +152,21 @@ export const CandidateLoginView: React.FC = () => {
 
     if (res.success) {
       setCooldown(res.cooldownSeconds || 60);
+      if (res.previewOtp) {
+        setPreviewOtp(res.previewOtp);
+      }
+      if (res.messageId) {
+        setMessageId(res.messageId);
+      }
+      setIsBrevoActive(res.isBrevoConfigured ?? true);
       if (res.message) {
         setServerNotice(res.message);
       }
-      showToast('New verification code sent! Check your inbox and spam folder.', 'success');
+      if (res.isBrevoConfigured) {
+        showToast('New verification code sent! Check your inbox and spam folder.', 'success');
+      } else {
+        showToast(`New verification code: ${res.previewOtp}`, 'info');
+      }
     } else {
       setErrorMsg(res.message || 'Unable to resend verification code.');
       showToast(res.message, 'error');
@@ -150,7 +178,7 @@ export const CandidateLoginView: React.FC = () => {
     e.preventDefault();
     setErrorMsg('');
     if (!otpCode.trim()) {
-      setErrorMsg('Please enter the 6-digit email OTP');
+      setErrorMsg('Please enter the 6-digit verification code');
       return;
     }
 
@@ -159,11 +187,11 @@ export const CandidateLoginView: React.FC = () => {
     setLoading(false);
 
     if (res.success) {
-      showToast('Email verified successfully! Welcome to Candidate Portal.', 'success');
+      showToast('Verified successfully! Welcome to Candidate Portal.', 'success');
       setCurrentTab('portal');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
-      setErrorMsg(res.message || 'Invalid email OTP code.');
+      setErrorMsg(res.message || 'Invalid verification code. Please check and try again.');
     }
   };
 
@@ -187,7 +215,7 @@ export const CandidateLoginView: React.FC = () => {
               <span>Candidate Portal Login</span>
             </h1>
             <p className="text-sm text-slate-300 mt-2">
-              Sign in with your email address to track work permit status, access applied jobs, and manage your Singapore candidate profile.
+              Sign in to track Singapore work pass applications, access applied jobs, and manage candidate documents.
             </p>
           </div>
 
@@ -207,15 +235,28 @@ export const CandidateLoginView: React.FC = () => {
                 onSubmit={handleVerifyEmailOtp}
                 className="space-y-5"
               >
-                <div className="text-center pb-2">
+                <div className="text-center pb-1">
                   <div className="w-12 h-12 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center mx-auto mb-2">
                     <ShieldCheck className="w-6 h-6 text-red-900" />
                   </div>
                   <h3 className="text-lg font-bold text-slate-900">Enter Verification Code</h3>
                   <p className="text-xs text-slate-500 mt-1">
-                    We sent a 6-digit verification code to your email <span className="font-semibold text-slate-800">{email}</span>
+                    Enter the 6-digit code sent to <span className="font-semibold text-slate-800">{email}</span>
                   </p>
                 </div>
+
+                {/* Real-Time Live Brevo OTP Delivery Status Indicator */}
+                <OtpDeliveryStatusIndicator
+                  email={email}
+                  messageId={messageId}
+                  cooldown={cooldown}
+                  previewOtp={previewOtp}
+                  onUseCode={(code) => setOtpCode(code)}
+                  onRetry={() => {
+                    setStep('input');
+                    setErrorMsg('');
+                  }}
+                />
 
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
@@ -240,6 +281,7 @@ export const CandidateLoginView: React.FC = () => {
                     onClick={() => {
                       setStep('input');
                       setOtpCode('');
+                      setShowDirectCode(false);
                     }}
                     className="text-slate-600 hover:text-slate-900 font-medium underline cursor-pointer"
                   >
@@ -268,21 +310,6 @@ export const CandidateLoginView: React.FC = () => {
                   )}
                 </div>
 
-                {/* Email Delivery & Spam Advisory */}
-                <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-600 space-y-1.5">
-                  <div className="flex items-start gap-2">
-                    <Info className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" />
-                    <div>
-                      <p className="font-semibold text-slate-800">
-                        Check your Inbox & Spam / Junk Folder
-                      </p>
-                      <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
-                        Emails are dispatched from <strong>info@arudhraconsultancy.com</strong>. Depending on your email provider (Gmail, Yahoo, Outlook), it may take 30–60 seconds or land in your Spam/Promotions tab. Search <code className="bg-slate-200 px-1 py-0.5 rounded text-slate-800">Arudhra</code> in your email search bar.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
                 <button
                   id="candidate-verify-otp-btn"
                   type="submit"
@@ -300,7 +327,7 @@ export const CandidateLoginView: React.FC = () => {
                 </button>
               </form>
             ) : (
-              /* Email OTP Form */
+              /* Email Verification Request Form */
               <form id="candidate-email-otp-form" onSubmit={handleSendEmailOtp} className="space-y-4">
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
@@ -359,7 +386,7 @@ export const CandidateLoginView: React.FC = () => {
                     />
                   </div>
                   <p className="text-[11px] text-slate-500 mt-1">
-                    We will send a 6-digit secure login verification code to your email.
+                    We will send a 6-digit secure login verification code to your email from <strong>info@arudhraconsultancy.com</strong>.
                   </p>
                 </div>
 

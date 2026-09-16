@@ -1,5 +1,43 @@
 [
   {
+    "title": "Supervisor",
+    "category": "Manufacturing & Production",
+    "employer": "",
+    "location": "Jurong / Tuas, Singapore",
+    "salary": "SGD 1,800 - 2,500 + OT",
+    "jobType": "Work Permit",
+    "experience": "1-2 Years",
+    "qualification": "ITI / Diploma / High School",
+    "vacancyCount": 5,
+    "description": "",
+    "responsibilities": [
+      "Execute daily assigned tasks in Singapore facility.",
+      "Ensure safety and quality compliance."
+    ],
+    "requirements": [
+      "Valid Indian passport with at least 18 months validity.",
+      "Relevant trade training or experience."
+    ],
+    "benefits": [
+      "Overtime (1.5x / 2.0x)",
+      "Accommodation provided or subsidized allowance",
+      "Medical insurance coverage as per MOM"
+    ],
+    "requiredDocuments": [
+      "Valid Passport (Color Scan)",
+      "Updated Bio-data / Resume",
+      "Educational & Trade Certificates",
+      "Passport Size Photo (White Background)"
+    ],
+    "featured": true,
+    "latest": true,
+    "status": "published",
+    "postedDate": "2026-09-16",
+    "id": "SG-JOB-455452",
+    "createdAt": "2026-09-16T10:08:24.554Z",
+    "updatedAt": "2026-09-16T10:08:24.554Z"
+  },
+  {
     "title": "Manager",
     "category": "Manufacturing & Production",
     "employer": "",
@@ -32,221 +70,9 @@
     "featured": true,
     "latest": true,
     "status": "published",
-    "postedDate": "2026-09-15",
-    "id": "SG-JOB-143254",
-    "createdAt": "2026-09-15T12:35:21.432Z",
-    "updatedAt": "2026-09-15T12:35:21.432Z"
-  },
-  {
-    "id": "SG-JOB-101",
-    "title": "CNC Milling & Turning Machinist",
-    "category": "Manufacturing & Production",
-    "employer": "Precision Engineering Pte Ltd",
-    "location": "Jurong Industrial Estate, Singapore",
-    "salary": "SGD 2,400 - 3,200 / month",
-    "jobType": "Work Permit",
-    "experience": "3+ Years",
-    "qualification": "ITI Machinist / Diploma Mechanical",
-    "vacancyCount": 8,
-    "description": "Seeking skilled CNC Milling and Turning Machinists for precision engineering components manufacturing in Jurong, Singapore.",
-    "responsibilities": [
-      "Operate and program 3-axis / 5-axis CNC Milling & Turning centers (Fanuc / Heidenhain / Siemens).",
-      "Read technical drawings and blueprints to produce high-precision aerospace, oil & gas, and semiconductor components.",
-      "Perform dimensional checks using vernier calipers, micrometers, and height gauges.",
-      "Maintain tooling, work holding, and ensure workplace safety under Singapore MOM standards."
-    ],
-    "requirements": [
-      "Minimum 3 years CNC operating or programming experience.",
-      "Valid Indian passport with at least 18 months validity.",
-      "Ability to understand basic technical English."
-    ],
-    "benefits": [
-      "Overtime pay (1.5x / 2.0x standard rate)",
-      "Company subsidized hostel accommodation or housing allowance",
-      "Comprehensive medical and hospitalization insurance covered by employer",
-      "Annual leave and public holiday benefits as per Singapore Employment Act"
-    ],
-    "requiredDocuments": [
-      "Valid Passport (Front & Back scanned copies)",
-      "Updated Resume / Bio-data with detailed work experience",
-      "ITI / Diploma certificates and mark sheets",
-      "Passport-sized photograph with white background",
-      "Short 1-2 minute practical CNC work video"
-    ],
-    "featured": true,
-    "latest": true,
-    "status": "published",
-    "postedDate": "2026-09-14",
-    "createdAt": "2026-09-14T08:00:00.000Z",
-    "updatedAt": "2026-09-15T12:00:00.000Z"
-  },
-  {
-    "id": "SG-JOB-102",
-    "title": "6G Pipe Welder (TIG & ARC)",
-    "category": "Marine & Shipyard",
-    "employer": "Marine Offshore Engineering Pte Ltd",
-    "location": "Tuas Shipyard Basin, Singapore",
-    "salary": "SGD 2,600 - 3,500 / month",
-    "jobType": "Marine Permit",
-    "experience": "3+ Years",
-    "qualification": "Welder Certification / High School",
-    "vacancyCount": 12,
-    "description": "Urgent opening for certified 6G TIG and Shielded Metal Arc Welders (SMAW) for marine shipyard construction and offshore fabrication in Tuas, Singapore.",
-    "responsibilities": [
-      "Perform high-quality 6G position TIG root and ARC fill welding on carbon steel, stainless steel, and alloy pipes.",
-      "Ensure all welds pass 100% radiographic (X-ray) and ultrasonic testing inspections.",
-      "Carry out joint beveling, fit-up alignment, pre-heating, and post-weld interpass temperature control.",
-      "Strictly adhere to shipyard safety protocols, confined space entry, and hot-work permits."
-    ],
-    "requirements": [
-      "Proven 6G welding qualification with previous shipyard or plant experience.",
-      "Valid passport with at least 18 months validity.",
-      "Good physical stamina and ability to work in marine shipyard conditions."
-    ],
-    "benefits": [
-      "High overtime availability with enhanced overtime allowances",
-      "Shipyard dormitory accommodation provided with transport to worksite",
-      "MOM compliant medical insurance and work injury compensation",
-      "Safety gear, welding PPE, and protective equipment provided"
-    ],
-    "requiredDocuments": [
-      "Valid Passport copy (full booklet scan)",
-      "6G Welder Qualification Test Record (WQTR)",
-      "Work experience certificates from previous employers",
-      "Recent passport-size photographs (white background)",
-      "Horizontal and vertical welding demonstration video"
-    ],
-    "featured": true,
-    "latest": true,
-    "status": "published",
-    "postedDate": "2026-09-14",
-    "createdAt": "2026-09-14T08:30:00.000Z",
-    "updatedAt": "2026-09-15T12:00:00.000Z"
-  },
-  {
-    "id": "SG-JOB-103",
-    "title": "F&B Service Captain & Captain Trainee",
-    "category": "F&B & Hospitality",
-    "employer": "Premier Dining & Hospitality Group",
-    "location": "Marina Bay / Orchard Road, Singapore",
-    "salary": "SGD 2,300 - 2,900 / month",
-    "jobType": "S Pass",
-    "experience": "1-2 Years",
-    "qualification": "Diploma / Degree in Hotel Management",
-    "vacancyCount": 6,
-    "description": "Prestigious restaurant and hotel chain in Marina Bay & Orchard Road looking for energetic F&B Service Captains to lead dining floor operations.",
-    "responsibilities": [
-      "Manage dining floor seating, take guest orders, and provide stellar banquet and fine-dining service.",
-      "Coordinate with kitchen staff to ensure prompt order preparation and presentation standards.",
-      "Handle guest queries, special dietary requests, and ensure high customer satisfaction.",
-      "Maintain POS billing accuracy, cash handling, and daily opening/closing checklists."
-    ],
-    "requirements": [
-      "Hospitality or catering qualification with minimum 1-2 years restaurant or hotel service experience.",
-      "Pleasant personality with fluent conversational English communication skills.",
-      "Valid passport and readiness for overseas hospitality career in Singapore."
-    ],
-    "benefits": [
-      "Duty meals provided on shift",
-      "Performance incentives and service charge sharing",
-      "Medical consultation and hospital insurance benefits",
-      "Clear career progression to Assistant Restaurant Manager"
-    ],
-    "requiredDocuments": [
-      "Color copy of Passport (all pages)",
-      "Updated CV with full-length formal photograph",
-      "Hotel Management diploma / degree certificate",
-      "Previous employment service letters",
-      "Brief self-introduction video in English"
-    ],
-    "featured": false,
-    "latest": true,
-    "status": "published",
-    "postedDate": "2026-09-15",
-    "createdAt": "2026-09-15T09:00:00.000Z",
-    "updatedAt": "2026-09-15T12:00:00.000Z"
-  },
-  {
-    "id": "SG-JOB-104",
-    "title": "Electrical & Maintenance Technician",
-    "category": "Electrical & Maintenance",
-    "employer": "Apex Facilities Management Pte Ltd",
-    "location": "Woodlands / Pioneer, Singapore",
-    "salary": "SGD 2,100 - 2,800 + OT",
-    "jobType": "Work Permit",
-    "experience": "1-2 Years",
-    "qualification": "ITI Electrician / Diploma EEE",
-    "vacancyCount": 10,
-    "description": "Immediate opening for industrial and facility Electrical Technicians for preventive maintenance, wiring, distribution board servicing, and troubleshooting in industrial plants.",
-    "responsibilities": [
-      "Carry out routine inspection and preventive maintenance of electrical distribution panels, switchboards, and lighting systems.",
-      "Troubleshoot motor control circuits, relays, VFDs, and sensors.",
-      "Perform electrical cable pulling, conduit installation, and termination.",
-      "Adhere to Singapore Electrical Safety Standards and lockout/tagout procedures."
-    ],
-    "requirements": [
-      "ITI Electrician or Diploma in Electrical & Electronics Engineering.",
-      "1+ years experience in electrical wiring or industrial maintenance.",
-      "Passport valid for at least 18 months."
-    ],
-    "benefits": [
-      "Regular overtime opportunities",
-      "Accommodation allowance provided",
-      "Full MOM medical and accident insurance",
-      "Annual flight ticket allowance upon contract renewal"
-    ],
-    "requiredDocuments": [
-      "Passport color scan",
-      "Updated Bio-data",
-      "ITI / Diploma certificates",
-      "Passport size photos"
-    ],
-    "featured": false,
-    "latest": false,
-    "status": "published",
-    "postedDate": "2026-09-15",
-    "createdAt": "2026-09-15T09:30:00.000Z",
-    "updatedAt": "2026-09-15T12:00:00.000Z"
-  },
-  {
-    "id": "SG-JOB-105",
-    "title": "Logistics & Warehouse Operations Specialist",
-    "category": "Logistics & Warehouse",
-    "employer": "Global Freight Solutions Pte Ltd",
-    "location": "Changi South / Jurong West, Singapore",
-    "salary": "SGD 1,900 - 2,500 + OT",
-    "jobType": "Work Permit",
-    "experience": "1-2 Years",
-    "qualification": "High School / Diploma",
-    "vacancyCount": 15,
-    "description": "Reputable logistics hub in Changi South hiring Warehouse Specialists for cargo receiving, inventory scanning, pick and pack, and container loading.",
-    "responsibilities": [
-      "Receive incoming freight shipments and verify physical quantities against air waybills / manifests.",
-      "Operate barcode scanners, update warehouse management system (WMS) inventory records.",
-      "Pick, pack, label, and shrink-wrap cargo for outbound local distribution or air/sea export.",
-      "Maintain clean and organized warehouse floor adhering to 5S practices."
-    ],
-    "requirements": [
-      "Physical fitness and basic English reading/writing skills.",
-      "Previous warehouse, logistics, or dispatch experience preferred.",
-      "Valid passport."
-    ],
-    "benefits": [
-      "Overtime pay with shift allowances (day/night shifts)",
-      "Subsidized lodging and company shuttle bus from selected MRT stations",
-      "Complete medical insurance coverage under Singapore MOM regulations"
-    ],
-    "requiredDocuments": [
-      "Valid Passport copy",
-      "Updated Resume",
-      "Education certificates",
-      "Passport photograph"
-    ],
-    "featured": true,
-    "latest": false,
-    "status": "published",
-    "postedDate": "2026-09-15",
-    "createdAt": "2026-09-15T10:00:00.000Z",
-    "updatedAt": "2026-09-15T12:00:00.000Z"
+    "postedDate": "2026-09-16",
+    "id": "SG-JOB-697349",
+    "createdAt": "2026-09-16T10:08:06.973Z",
+    "updatedAt": "2026-09-16T10:08:06.973Z"
   }
 ]

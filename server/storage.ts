@@ -30,6 +30,7 @@ import {
   getBrevoConfig,
   sendBrevoTestEmail,
   sendBrevoApplicationEmail,
+  getBrevoDeliveryStatus,
   BrevoStatus,
   DEFAULT_BREVO_SENDER_EMAIL,
   DEFAULT_BREVO_SENDER_NAME
@@ -51,6 +52,9 @@ interface EmailOtpRecord {
   attempts: number;
   name?: string;
   mobile?: string;
+  messageId?: string;
+  dispatchStatus?: 'dispatched' | 'failed' | 'direct';
+  dispatchError?: string;
 }
 
 interface RateLimitRecord {
@@ -1604,6 +1608,7 @@ class StorageService {
     cooldownSeconds?: number;
     isBrevoConfigured: boolean;
     previewOtp?: string;
+    messageId?: string;
   }> {
     const cleanEmail = rawEmail.trim().toLowerCase();
     const effectiveApiKey = process.env.BREVO_API_KEY?.trim() || this.settings.brevoApiKey?.trim() || '';
@@ -1638,6 +1643,7 @@ class StorageService {
         success: true,
         cooldownSeconds: waitSec,
         previewOtp: existing.code,
+        messageId: existing.messageId,
         message: `An active verification code (${existing.code}) was sent to ${cleanEmail}. You may enter it below or wait ${waitSec}s to resend.`,
         isBrevoConfigured: configured
       };
@@ -1647,6 +1653,7 @@ class StorageService {
       return {
         success: true,
         previewOtp: existing.code,
+        messageId: existing.messageId,
         message: `For your security, enter your active verification code: ${existing.code}`,
         isBrevoConfigured: configured
       };
@@ -1657,6 +1664,7 @@ class StorageService {
     const expiresAt = now + 5 * 60 * 1000; // 5 minutes validity
 
     let dispatchError: string | undefined;
+    let dispatchedMessageId: string | undefined;
 
     if (configured) {
       const brevoResult = await sendBrevoEmailOtp(
@@ -1669,7 +1677,9 @@ class StorageService {
           name: this.settings.brevoSenderName || DEFAULT_BREVO_SENDER_NAME
         }
       );
-      if (!brevoResult.success) {
+      if (brevoResult.success) {
+        dispatchedMessageId = brevoResult.messageId;
+      } else {
         dispatchError = brevoResult.error;
       }
     }
@@ -1682,7 +1692,10 @@ class StorageService {
       lastSentAt: now,
       attempts: 0,
       name: name?.trim(),
-      mobile: mobile?.trim()
+      mobile: mobile?.trim(),
+      messageId: dispatchedMessageId,
+      dispatchStatus: configured ? (dispatchError ? 'failed' : 'dispatched') : 'direct',
+      dispatchError
     });
 
     validTimestamps.push(now);
@@ -1694,7 +1707,8 @@ class StorageService {
         message: `A 6-digit login OTP code was dispatched via Brevo to ${cleanEmail}. Please check your inbox or spam folder.`,
         cooldownSeconds: 60,
         isBrevoConfigured: true,
-        previewOtp: code
+        previewOtp: code,
+        messageId: dispatchedMessageId
       };
     } else if (configured && dispatchError) {
       return {
@@ -1702,7 +1716,8 @@ class StorageService {
         message: `Brevo dispatch note: ${dispatchError}. Your 6-digit login verification code is ${code}.`,
         cooldownSeconds: 60,
         isBrevoConfigured: true,
-        previewOtp: code
+        previewOtp: code,
+        messageId: dispatchedMessageId
       };
     } else {
       return {
@@ -1849,6 +1864,168 @@ class StorageService {
       candidate,
       token,
       message: 'Email OTP verified successfully! Welcome to Candidate Portal.'
+    };
+  }
+
+  public async checkEmailOtpDelivery(
+    rawEmail: string,
+    messageId?: string
+  ): Promise<{
+    success: boolean;
+    status: 'delivered' | 'in_transit' | 'opened' | 'bounced' | 'deferred' | 'direct' | 'unknown';
+    statusTitle: string;
+    statusDescription: string;
+    event?: string;
+    timestamp?: string;
+    messageId?: string;
+    senderEmail?: string;
+    recipientEmail?: string;
+    reason?: string;
+    canRetry?: boolean;
+    isBrevoConfigured: boolean;
+  }> {
+    const cleanEmail = rawEmail.trim().toLowerCase();
+    const effectiveApiKey = process.env.BREVO_API_KEY?.trim() || this.settings.brevoApiKey?.trim() || '';
+    const configured = isBrevoConfigured(effectiveApiKey);
+    const existing = this.emailOtpStore.get(cleanEmail);
+
+    if (!configured) {
+      return {
+        success: true,
+        status: 'direct',
+        statusTitle: 'Direct Instant Mode',
+        statusDescription: 'Brevo email relay is offline or not configured. Use the instant on-screen verification code.',
+        recipientEmail: cleanEmail,
+        canRetry: false,
+        isBrevoConfigured: false
+      };
+    }
+
+    const effectiveMsgId = messageId?.trim() || existing?.messageId;
+    const delivery = await getBrevoDeliveryStatus(cleanEmail, effectiveMsgId, effectiveApiKey);
+    const senderEmail = this.settings.brevoSenderEmail || DEFAULT_BREVO_SENDER_EMAIL;
+
+    if (delivery.found) {
+      const event = delivery.event;
+      if (event === 'opened') {
+        return {
+          success: true,
+          status: 'opened',
+          statusTitle: 'Verification Email Opened',
+          statusDescription: 'The verification email was opened. Enter the 6-digit code below.',
+          event: 'opened',
+          timestamp: delivery.date,
+          messageId: delivery.messageId || effectiveMsgId,
+          senderEmail: delivery.from || senderEmail,
+          recipientEmail: cleanEmail,
+          canRetry: false,
+          isBrevoConfigured: true
+        };
+      }
+
+      if (event === 'delivered') {
+        return {
+          success: true,
+          status: 'delivered',
+          statusTitle: 'Delivered to Mailbox Server',
+          statusDescription: 'Accepted by your mail server. If it is not in your Primary Inbox, please check your Spam/Junk folder or Promotions tab.',
+          event: 'delivered',
+          timestamp: delivery.date,
+          messageId: delivery.messageId || effectiveMsgId,
+          senderEmail: delivery.from || senderEmail,
+          recipientEmail: cleanEmail,
+          canRetry: false,
+          isBrevoConfigured: true
+        };
+      }
+
+      if (['hardBounces', 'softBounces', 'blocked', 'complaints'].includes(event || '')) {
+        const bounceReason = delivery.reason || (event === 'hardBounces' ? 'Mailbox does not exist or domain rejected' : 'Recipient mailbox unavailable');
+        return {
+          success: true,
+          status: 'bounced',
+          statusTitle: 'Delivery Bounced / Undeliverable',
+          statusDescription: `Email delivery was rejected: ${bounceReason}. Please check your email spelling or retry with a different address.`,
+          event,
+          timestamp: delivery.date,
+          messageId: delivery.messageId || effectiveMsgId,
+          senderEmail: delivery.from || senderEmail,
+          recipientEmail: cleanEmail,
+          reason: bounceReason,
+          canRetry: true,
+          isBrevoConfigured: true
+        };
+      }
+
+      if (event === 'deferred') {
+        return {
+          success: true,
+          status: 'deferred',
+          statusTitle: 'Delivery Deferred by Server',
+          statusDescription: 'Your mail server temporarily delayed receipt (greylisting/throttling). Delivery will be retried automatically.',
+          event: 'deferred',
+          timestamp: delivery.date,
+          messageId: delivery.messageId || effectiveMsgId,
+          senderEmail: delivery.from || senderEmail,
+          recipientEmail: cleanEmail,
+          canRetry: true,
+          isBrevoConfigured: true
+        };
+      }
+
+      if (event === 'requests') {
+        return {
+          success: true,
+          status: 'in_transit',
+          statusTitle: 'Dispatched • In Transit',
+          statusDescription: 'Dispatched via Brevo SMTP relay and currently in transit to your mail server. Usually delivers within 15–30 seconds.',
+          event: 'requests',
+          timestamp: delivery.date,
+          messageId: delivery.messageId || effectiveMsgId,
+          senderEmail: delivery.from || senderEmail,
+          recipientEmail: cleanEmail,
+          canRetry: false,
+          isBrevoConfigured: true
+        };
+      }
+    }
+
+    // If existing record was sent
+    if (existing) {
+      const elapsedSeconds = Math.floor((Date.now() - existing.lastSentAt) / 1000);
+      if (existing.dispatchStatus === 'failed') {
+        return {
+          success: true,
+          status: 'bounced',
+          statusTitle: 'Dispatch Error',
+          statusDescription: existing.dispatchError || 'Could not connect to email relay service. Please retry.',
+          recipientEmail: cleanEmail,
+          canRetry: true,
+          isBrevoConfigured: true
+        };
+      }
+
+      return {
+        success: true,
+        status: 'in_transit',
+        statusTitle: 'Dispatched to Relay',
+        statusDescription: `Dispatched ${elapsedSeconds}s ago via Brevo relay. Waiting for recipient mail server handshake.`,
+        messageId: effectiveMsgId,
+        senderEmail,
+        recipientEmail: cleanEmail,
+        canRetry: elapsedSeconds > 45,
+        isBrevoConfigured: true
+      };
+    }
+
+    return {
+      success: true,
+      status: 'unknown',
+      statusTitle: 'No Active Dispatch Found',
+      statusDescription: 'No active OTP request was found for this email address. You may send a new verification code.',
+      recipientEmail: cleanEmail,
+      canRetry: true,
+      isBrevoConfigured: configured
     };
   }
 

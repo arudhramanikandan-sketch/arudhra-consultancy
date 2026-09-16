@@ -541,3 +541,132 @@ export async function sendBrevoTestEmail(
     };
   }
 }
+
+export interface BrevoDeliveryEventInfo {
+  found: boolean;
+  event?: 'delivered' | 'requests' | 'opened' | 'clicks' | 'hardBounces' | 'softBounces' | 'blocked' | 'deferred' | string;
+  date?: string;
+  messageId?: string;
+  subject?: string;
+  reason?: string;
+  from?: string;
+  ip?: string;
+}
+
+/**
+ * Query Brevo SMTP statistics events to verify real-time email delivery status
+ */
+export async function getBrevoDeliveryStatus(
+  email: string,
+  messageId?: string,
+  apiKeyOverride?: string
+): Promise<BrevoDeliveryEventInfo> {
+  const apiKey = apiKeyOverride?.trim() || process.env.BREVO_API_KEY?.trim() || '';
+  if (!apiKey) {
+    return { found: false };
+  }
+
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 6000);
+
+    let url = 'https://api.brevo.com/v3/smtp/statistics/events?limit=8&sort=desc';
+    if (messageId && messageId.trim()) {
+      url += `&messageId=${encodeURIComponent(messageId.trim())}`;
+    } else if (email && email.trim()) {
+      url += `&email=${encodeURIComponent(email.trim().toLowerCase())}`;
+    }
+
+    const response = await fetch(url, {
+      headers: {
+        'accept': 'application/json',
+        'api-key': apiKey
+      },
+      signal: controller.signal
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      return { found: false };
+    }
+
+    const data: any = await response.json().catch(() => null);
+    const events: any[] = Array.isArray(data?.events) ? data.events : [];
+    if (events.length === 0) {
+      // If queried by messageId and none returned, try fallback query by email
+      if (messageId && email) {
+        try {
+          const fallbackRes = await fetch(
+            `https://api.brevo.com/v3/smtp/statistics/events?limit=5&sort=desc&email=${encodeURIComponent(email.trim().toLowerCase())}`,
+            {
+              headers: { 'accept': 'application/json', 'api-key': apiKey }
+            }
+          );
+          if (fallbackRes.ok) {
+            const fallbackData: any = await fallbackRes.json().catch(() => null);
+            const fallbackEvents: any[] = Array.isArray(fallbackData?.events) ? fallbackData.events : [];
+            if (fallbackEvents.length > 0) {
+              const target = selectBestEvent(fallbackEvents);
+              if (target) {
+                return {
+                  found: true,
+                  event: target.event,
+                  date: target.date,
+                  messageId: target.messageId,
+                  subject: target.subject,
+                  reason: target.reason,
+                  from: target.from,
+                  ip: target.ip
+                };
+              }
+            }
+          }
+        } catch {
+          // Ignore fallback error
+        }
+      }
+      return { found: false };
+    }
+
+    const target = selectBestEvent(events);
+    if (!target) {
+      return { found: false };
+    }
+
+    return {
+      found: true,
+      event: target.event,
+      date: target.date,
+      messageId: target.messageId,
+      subject: target.subject,
+      reason: target.reason,
+      from: target.from,
+      ip: target.ip
+    };
+  } catch (err) {
+    console.warn('[Brevo] Failed to query delivery status:', err);
+    return { found: false };
+  }
+}
+
+function selectBestEvent(events: any[]): any {
+  if (!events || events.length === 0) return null;
+  // Priority: opened > delivered > bounce/blocked > deferred > requests > first
+  const opened = events.find(e => e.event === 'opened');
+  if (opened) return opened;
+
+  const delivered = events.find(e => e.event === 'delivered');
+  if (delivered) return delivered;
+
+  const bounced = events.find(e => ['hardBounces', 'softBounces', 'blocked', 'complaints'].includes(e.event));
+  if (bounced) return bounced;
+
+  const deferred = events.find(e => e.event === 'deferred');
+  if (deferred) return deferred;
+
+  const requested = events.find(e => e.event === 'requests');
+  if (requested) return requested;
+
+  return events[0];
+}
