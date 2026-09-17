@@ -1,7 +1,9 @@
 import 'dotenv/config';
 import express from 'express';
+import http from 'http';
 import path from 'path';
 import fs from 'fs';
+import { WebSocketServer, WebSocket } from 'ws';
 import { GoogleGenAI, Type } from '@google/genai';
 import { storage } from './server/storage';
 
@@ -325,6 +327,49 @@ app.use(express.static(path.join(process.cwd(), 'public')));
     } catch (error: any) {
       res.status(500).json({ success: false, error: error.message });
     }
+  });
+
+  // --- REAL-TIME DATA SYNCHRONIZATION STREAM (SSE) ---
+  // Connects public home page listings and admin interfaces for zero-delay live updates
+  app.get('/api/jobs/stream', (req, res) => {
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache, no-transform',
+      'Connection': 'keep-alive',
+      'X-Accel-Buffering': 'no',
+      'Access-Control-Allow-Origin': '*'
+    });
+
+    // Send immediate handshake with current live job count
+    const initialJobs = storage.getJobs();
+    const handshake = JSON.stringify({
+      action: 'connected',
+      count: initialJobs.length,
+      timestamp: new Date().toISOString()
+    });
+    res.write(`data: ${handshake}\n\n`);
+
+    const onJobEvent = (eventData: any) => {
+      try {
+        res.write(`data: ${JSON.stringify(eventData)}\n\n`);
+      } catch (e) {}
+    };
+
+    storage.events.on('job_event', onJobEvent);
+
+    // Keep-alive heartbeat every 15s to keep connections alive through proxies and cloud run
+    const heartbeat = setInterval(() => {
+      try {
+        res.write(`:ping\n\n`);
+      } catch (e) {
+        clearInterval(heartbeat);
+      }
+    }, 15000);
+
+    req.on('close', () => {
+      clearInterval(heartbeat);
+      storage.events.off('job_event', onJobEvent);
+    });
   });
 
   // Jobs Endpoints
@@ -1568,7 +1613,65 @@ async function startServer() {
     app.use(vite.middlewares);
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
+  const server = http.createServer(app);
+  const wss = new WebSocketServer({ noServer: true });
+
+  server.on('upgrade', (request, socket, head) => {
+    try {
+      const url = new URL(request.url || '', `http://${request.headers.host}`);
+      if (url.pathname === '/api/jobs/ws' || url.pathname === '/ws/jobs' || url.pathname === '/ws') {
+        wss.handleUpgrade(request, socket, head, (ws) => {
+          wss.emit('connection', ws, request);
+        });
+      }
+    } catch (e) {}
+  });
+
+  wss.on('connection', (ws: WebSocket) => {
+    // Send connected handshake
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({
+        action: 'connected',
+        count: storage.getJobs().length,
+        timestamp: new Date().toISOString()
+      }));
+    }
+
+    const onJobEvent = (eventData: any) => {
+      if (ws.readyState === WebSocket.OPEN) {
+        try {
+          ws.send(JSON.stringify(eventData));
+        } catch (e) {}
+      }
+    };
+
+    storage.events.on('job_event', onJobEvent);
+
+    ws.on('message', (data) => {
+      try {
+        const msg = JSON.parse(data.toString());
+        if (msg.action === 'ping' || msg.type === 'ping') {
+          ws.send(JSON.stringify({ action: 'pong', timestamp: new Date().toISOString() }));
+        } else if (msg.action === 'sync') {
+          ws.send(JSON.stringify({
+            action: 'sync',
+            jobs: storage.getJobs(),
+            timestamp: new Date().toISOString()
+          }));
+        }
+      } catch (e) {}
+    });
+
+    ws.on('close', () => {
+      storage.events.off('job_event', onJobEvent);
+    });
+
+    ws.on('error', () => {
+      storage.events.off('job_event', onJobEvent);
+    });
+  });
+
+  server.listen(PORT, '0.0.0.0', () => {
     console.log(`Arudhra Singapore Recruitment Server running at http://localhost:${PORT}`);
   });
 }

@@ -14,6 +14,7 @@ import {
 import { initialSiteSettings, initialJobs } from '../../server/data';
 import { defaultJobs } from '../data/defaultJobs';
 import { useAuth } from './AuthContext';
+import { realtimeSync } from '../services/realtimeSync';
 
 interface Toast {
   id: string;
@@ -23,6 +24,8 @@ interface Toast {
 
 interface AppContextType {
   jobs: Job[];
+  realtimeConnected: boolean;
+  recentlyAddedJobId: string | null;
   settings: SiteSettings;
   videos: VideoItem[];
   ads: Advertisement[];
@@ -142,10 +145,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const { user, isAdmin, token, updateUserProfile } = useAuth();
   const [jobs, setJobs] = useState<Job[]>(() => {
     try {
-      // Clear legacy cache containing obsolete deleted jobs
+      // Clear legacy caches containing obsolete or empty jobs
       localStorage.removeItem('arudhra_jobs_cache');
       localStorage.removeItem('arudhra_jobs_cache_v3');
-      const cached = localStorage.getItem('arudhra_jobs_cache_v4');
+      localStorage.removeItem('arudhra_jobs_cache_v4');
+      const cached = localStorage.getItem('arudhra_jobs_cache_v5');
       if (cached !== null) {
         const parsed = JSON.parse(cached);
         if (Array.isArray(parsed) && parsed.length > 0) {
@@ -165,6 +169,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [applyModalJob, setApplyModalJob] = useState<Job | null>(null);
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const [realtimeConnected, setRealtimeConnected] = useState<boolean>(realtimeSync.getConnected());
+  const [recentlyAddedJobId, setRecentlyAddedJobId] = useState<string | null>(null);
 
   // Candidate State
   const [candidate, setCandidate] = useState<CandidateRecord | null>(null);
@@ -432,7 +438,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setJobs(data.jobs);
         try {
           if (!filters || Object.keys(filters).length === 0) {
-            localStorage.setItem('arudhra_jobs_cache_v4', JSON.stringify(data.jobs));
+            localStorage.setItem('arudhra_jobs_cache_v5', JSON.stringify(data.jobs));
           }
         } catch (e) {}
       }
@@ -565,7 +571,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               updatedList = [data.job, ...prev.filter(j => j.id !== data.job.id)];
             }
             try {
-              localStorage.setItem('arudhra_jobs_cache_v4', JSON.stringify(updatedList));
+              localStorage.setItem('arudhra_jobs_cache_v5', JSON.stringify(updatedList));
             } catch (e) {}
             return updatedList;
           });
@@ -1561,6 +1567,58 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     refreshJobs();
 
+    // Subscribe to real-time data sync listener (WebSocket with automatic SSE fallback)
+    const unsubscribeEvents = realtimeSync.subscribe((event) => {
+      if (event.action === 'created' && event.job) {
+        const newJob = event.job;
+        removeLocalDeletedJobId(newJob.id);
+        setRecentlyAddedJobId(newJob.id);
+        setTimeout(() => setRecentlyAddedJobId(prev => (prev === newJob.id ? null : prev)), 10000);
+
+        setJobs(prev => {
+          // Idempotency: avoid duplicates if already present
+          const exists = prev.some(j => j.id === newJob.id);
+          let updated: Job[];
+          if (exists) {
+            updated = prev.map(j => (j.id === newJob.id ? { ...j, ...newJob } : j));
+          } else {
+            updated = [newJob, ...prev];
+          }
+          try {
+            localStorage.setItem('arudhra_jobs_cache_v5', JSON.stringify(updated));
+          } catch (e) {}
+          return updated;
+        });
+      } else if (event.action === 'updated' && event.job) {
+        const updatedJob = event.job;
+        setJobs(prev => {
+          const updated = prev.map(j => (j.id === updatedJob.id ? { ...j, ...updatedJob } : j));
+          try {
+            localStorage.setItem('arudhra_jobs_cache_v5', JSON.stringify(updated));
+          } catch (e) {}
+          return updated;
+        });
+      } else if (event.action === 'deleted' && event.id) {
+        const deletedId = event.id;
+        setJobs(prev => {
+          const updated = prev.filter(j => j.id !== deletedId);
+          try {
+            localStorage.setItem('arudhra_jobs_cache_v5', JSON.stringify(updated));
+          } catch (e) {}
+          return updated;
+        });
+      } else if (event.action === 'sync' && Array.isArray(event.jobs)) {
+        setJobs(event.jobs);
+        try {
+          localStorage.setItem('arudhra_jobs_cache_v5', JSON.stringify(event.jobs));
+        } catch (e) {}
+      }
+    });
+
+    const unsubscribeConn = realtimeSync.subscribeConnection((connected) => {
+      setRealtimeConnected(connected);
+    });
+
     // Auto-refresh jobs when user tabs back or periodically to ensure admin updates propagate live immediately
     const handleWindowFocus = () => {
       refreshJobs();
@@ -1569,9 +1627,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const jobsInterval = setInterval(() => {
       refreshJobs();
-    }, 15000);
+    }, 20000);
 
     return () => {
+      unsubscribeEvents();
+      unsubscribeConn();
       window.removeEventListener('focus', handleWindowFocus);
       clearInterval(jobsInterval);
     };
@@ -1611,6 +1671,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     <AppContext.Provider
       value={{
         jobs,
+        realtimeConnected,
+        recentlyAddedJobId,
         settings,
         videos,
         ads,

@@ -9,24 +9,36 @@ interface JobCardProps {
 }
 
 export const JobCard: React.FC<JobCardProps> = ({ job }) => {
-  const { setSelectedJob, setApplyModalJob } = useApp();
+  const { setSelectedJob, setApplyModalJob, recentlyAddedJobId } = useApp();
   const [isQuickApplyOpen, setIsQuickApplyOpen] = useState(false);
+  const isRecentlyAdded = recentlyAddedJobId === job.id;
 
   return (
     <>
       <div
         id={`job-card-${job.id}`}
-        className="group relative bg-white rounded-2xl border border-slate-200 shadow-xs hover:shadow-xl hover:border-red-800/40 transition-all duration-300 flex flex-col justify-between overflow-hidden h-full"
+        className={`group relative bg-white rounded-2xl border shadow-xs hover:shadow-xl hover:border-red-800/40 transition-all duration-300 flex flex-col justify-between overflow-hidden h-full ${
+          isRecentlyAdded
+            ? 'border-emerald-500 ring-2 ring-emerald-400/80 shadow-lg'
+            : 'border-slate-200'
+        }`}
       >
         {/* Top Banner & Badges */}
         <div>
           <div className="relative p-4 sm:p-5 pb-3">
             {/* Top Info Bar: Status & Reference */}
             <div className="flex items-center justify-between gap-2 mb-2">
-              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center gap-1.5 shadow-2xs">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                <span>Live Opening</span>
-              </span>
+              <div className="flex items-center gap-1.5">
+                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center gap-1.5 shadow-2xs">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>Live Opening</span>
+                </span>
+                {isRecentlyAdded && (
+                  <span className="px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-emerald-600 text-white animate-pulse">
+                    ⚡ Just Added
+                  </span>
+                )}
+              </div>
               <span className="text-[11px] text-slate-400 font-mono shrink-0">
                 Ref: {job.id}
               </span>

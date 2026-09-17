@@ -176,18 +176,29 @@ const MainAppContent: React.FC = () => {
       {/* Floating WhatsApp Action Button */}
       <aside
         aria-label="Contact Arudhra Consultancy on WhatsApp"
-        className="fixed bottom-6 right-6 z-40 flex items-center gap-2"
+        className="fixed bottom-6 right-6 z-40 flex items-center gap-2 group"
       >
+        {/* Descriptive Tooltip / Small Label */}
+        <div
+          id="floating-whatsapp-tooltip"
+          role="tooltip"
+          className="pointer-events-none opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0 bg-slate-900 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow-lg border border-slate-700/60 flex items-center gap-1.5 whitespace-nowrap"
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          <span>Support</span>
+        </div>
+
         <a
           id="floating-whatsapp-btn"
           href={getWhatsAppFloatingUrl()}
           target="_blank"
           rel="noopener noreferrer"
-          className="group relative flex items-center justify-center w-14 h-14 bg-red-900 hover:bg-red-800 text-white rounded-full shadow-2xl hover:scale-105 transition-all duration-300 border-2 border-white focus:outline-hidden"
-          title="Chat with Arudhra Consultancy on WhatsApp"
+          className="relative flex items-center justify-center w-14 h-14 bg-red-900 hover:bg-red-800 text-white rounded-full shadow-2xl hover:scale-105 transition-all duration-300 border-2 border-white focus:outline-hidden focus:ring-2 focus:ring-red-600 focus:ring-offset-2"
+          aria-label="Chat with Support on WhatsApp"
+          title="Chat with Support on WhatsApp"
         >
           <MessageSquare className="w-7 h-7" />
-          <span className="sr-only">Chat on WhatsApp</span>
+          <span className="sr-only">Chat with Support on WhatsApp</span>
         </a>
       </aside>
 

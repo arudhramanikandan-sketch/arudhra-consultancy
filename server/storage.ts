@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
+import { EventEmitter } from 'events';
 import {
   initialJobs,
   initialEnquiries,
@@ -119,6 +120,7 @@ function generateBase32Secret(length: number = 16): string {
 }
 
 class StorageService {
+  public events: EventEmitter = new EventEmitter();
   private filePath = path.join(process.cwd(), 'storage_data.json');
   private deletedIds: Set<string> = new Set();
   private jobs: Job[] = [...initialJobs];
@@ -138,6 +140,7 @@ class StorageService {
   private customerSessions: Map<string, { userId: string; mobile?: string; email?: string; expiresAt: number }> = new Map();
 
   constructor() {
+    this.events.setMaxListeners(500);
     this.loadFromDisk();
   }
 
@@ -245,6 +248,13 @@ class StorageService {
           fs.mkdirSync(publicDir, { recursive: true });
         }
         fs.writeFileSync(path.join(publicDir, 'jobs.json'), JSON.stringify(this.jobs, null, 2), 'utf-8');
+
+        // Also keep src/data/defaultJobs.ts in sync so initial load and static SSR always have current live jobs
+        const defaultJobsPath = path.join(process.cwd(), 'src', 'data', 'defaultJobs.ts');
+        if (fs.existsSync(defaultJobsPath)) {
+          const content = `import { Job } from '../types';\n\n/**\n * Default fallback job array populated with active Singapore vacancies.\n * Synchronized with server storage and updated whenever jobs are created/modified in Admin.\n */\nexport const defaultJobs: Job[] = ${JSON.stringify(this.jobs, null, 2)};\n`;
+          fs.writeFileSync(defaultJobsPath, content, 'utf-8');
+        }
       } catch (e) {
         // Ignore static file write error
       }
@@ -913,6 +923,16 @@ class StorageService {
     };
     this.jobs.unshift(newJob);
     this.saveToDisk();
+
+    // Broadcast real-time job creation event to all connected listeners
+    try {
+      this.events.emit('job_event', {
+        action: 'created',
+        job: newJob,
+        timestamp: now
+      });
+    } catch (e) {}
+
     return { job: newJob, deletedJobsCount: 0, deletedLeadsCount: 0 };
   }
 
@@ -921,12 +941,23 @@ class StorageService {
     const index = this.jobs.findIndex(j => j.id === id);
     if (index === -1) return undefined;
 
+    const now = new Date().toISOString();
     this.jobs[index] = {
       ...this.jobs[index],
       ...updates,
-      updatedAt: new Date().toISOString()
+      updatedAt: now
     };
     this.saveToDisk();
+
+    // Broadcast real-time job update event to all connected listeners
+    try {
+      this.events.emit('job_event', {
+        action: 'updated',
+        job: this.jobs[index],
+        timestamp: now
+      });
+    } catch (e) {}
+
     return this.jobs[index];
   }
 
@@ -940,6 +971,16 @@ class StorageService {
       }
     });
     this.saveToDisk();
+
+    // Broadcast real-time job deletion event to all connected listeners
+    try {
+      this.events.emit('job_event', {
+        action: 'deleted',
+        id,
+        timestamp: new Date().toISOString()
+      });
+    } catch (e) {}
+
     return true;
   }
 
@@ -959,7 +1000,27 @@ class StorageService {
     };
     this.jobs.unshift(duplicated);
     this.saveToDisk();
+
+    // Broadcast real-time job creation for duplicate
+    try {
+      this.events.emit('job_event', {
+        action: 'created',
+        job: duplicated,
+        timestamp: now
+      });
+    } catch (e) {}
+
     return duplicated;
+  }
+
+  public broadcastJobsSync(): void {
+    try {
+      this.events.emit('job_event', {
+        action: 'sync',
+        jobs: this.getJobs(),
+        timestamp: new Date().toISOString()
+      });
+    } catch (e) {}
   }
 
   // Enquiries & Applications

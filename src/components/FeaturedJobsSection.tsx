@@ -5,13 +5,18 @@ import { ArrowRight, Sparkles, Briefcase, Search, CheckCircle2, ShieldCheck } fr
 import { JobCategory } from '../types';
 
 export const AllLiveJobsSection: React.FC = () => {
-  const { jobs, loading, setCurrentTab } = useApp();
+  const { jobs, loading, setCurrentTab, realtimeConnected, recentlyAddedJobId } = useApp();
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   const publishedJobs = useMemo(() => {
     return jobs.filter(j => !j.status || j.status.toLowerCase() === 'published' || j.status.toLowerCase() === 'active');
   }, [jobs]);
+
+  const recentlyAddedJob = useMemo(() => {
+    if (!recentlyAddedJobId) return null;
+    return publishedJobs.find(j => j.id === recentlyAddedJobId) || null;
+  }, [recentlyAddedJobId, publishedJobs]);
 
   const categories: { label: string; count: number }[] = useMemo(() => {
     const counts: Record<string, number> = { All: publishedJobs.length };
@@ -54,9 +59,15 @@ export const AllLiveJobsSection: React.FC = () => {
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-3 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-red-100 text-red-900 border border-red-200 text-xs font-extrabold tracking-wide">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>{publishedJobs.length} Live Openings Active in Singapore</span>
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-red-100 text-red-900 border border-red-200 text-xs font-extrabold tracking-wide">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span>{publishedJobs.length} Live Openings Active in Singapore</span>
+              </div>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold tracking-wide">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                <span>Real-Time Sync Active</span>
+              </div>
             </div>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
               All Live Singapore Jobs
@@ -139,6 +150,24 @@ export const AllLiveJobsSection: React.FC = () => {
             })}
           </div>
         </div>
+
+        {/* Real-time sync newly added vacancy alert */}
+        {recentlyAddedJob && (
+          <div className="p-4 bg-emerald-50 border border-emerald-300 rounded-2xl flex items-center justify-between gap-3 text-emerald-950 text-xs sm:text-sm font-semibold shadow-xs">
+            <div className="flex items-center gap-2.5">
+              <span className="flex h-3 w-3 relative shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-600"></span>
+              </span>
+              <span>
+                <strong>Live Update:</strong> New Singapore vacancy <em>"{recentlyAddedJob.title}"</em> was just published!
+              </span>
+            </div>
+            <span className="text-[11px] text-emerald-800 bg-emerald-100/90 border border-emerald-200 px-2.5 py-1 rounded-full font-bold uppercase tracking-wider shrink-0">
+              Live Now
+            </span>
+          </div>
+        )}
 
         {/* Jobs Grid */}
         {filteredJobs.length > 0 ? (
