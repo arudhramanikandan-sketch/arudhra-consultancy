@@ -54,6 +54,9 @@ import {
 } from 'lucide-react';
 import { LogoEditModal } from '../components/LogoEditModal';
 import { Admin2faQRCode } from '../components/Admin2faQRCode';
+import { WhatsAppJobImportModal } from '../components/WhatsAppJobImportModal';
+import { ImportFromWhatsAppButton } from '../components/ImportFromWhatsAppButton';
+import { WhatsAppVacancyExtractionResult } from '../utils/whatsappJobParser';
 
 export const AdminDashboardView: React.FC = () => {
   const { user, isAdmin, token, logout, resetAdmin2faEnrollment, getBrevoStatus, testBrevoEmail } = useAuth();
@@ -105,6 +108,8 @@ export const AdminDashboardView: React.FC = () => {
   const [editingJob, setEditingJob] = useState<Partial<Job> | null>(null);
   const [jobExclusiveLive, setJobExclusiveLive] = useState(false);
   const [jobClearOldLeads, setJobClearOldLeads] = useState(false);
+  const [whatsAppImportModalOpen, setWhatsAppImportModalOpen] = useState(false);
+  const [importExtractionBanner, setImportExtractionBanner] = useState<WhatsAppVacancyExtractionResult | null>(null);
 
   // Job Selection & Multiple Deletion State
   const [selectedJobIds, setSelectedJobIds] = useState<string[]>([]);
@@ -410,6 +415,7 @@ export const AdminDashboardView: React.FC = () => {
       status: 'published'
     });
     setJobModalOpen(true);
+    setImportExtractionBanner(null);
     setTimeout(() => {
       const el = document.getElementById('job-management-editor-form');
       if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -420,9 +426,51 @@ export const AdminDashboardView: React.FC = () => {
     setActiveTab('jobs');
     setEditingJob({ ...job });
     setJobModalOpen(true);
+    setImportExtractionBanner(null);
     setTimeout(() => {
       const el = document.getElementById('job-management-editor-form');
       if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 50);
+  };
+
+  const handleWhatsAppExtractResult = (result: WhatsAppVacancyExtractionResult) => {
+    setEditingJob(prev => {
+      const current = prev || {
+        employer: '',
+        featured: true,
+        latest: true,
+        status: 'published',
+        responsibilities: ['Execute daily assigned tasks in Singapore facility.', 'Ensure safety and quality compliance.'],
+        requirements: ['Valid Indian passport with at least 18 months validity.', 'Relevant trade training or experience.'],
+        benefits: ['Overtime (1.5x / 2.0x)', 'Accommodation provided or subsidized allowance', 'Medical insurance coverage as per MOM'],
+        requiredDocuments: ['Valid Passport (Color Scan)', 'Updated Bio-data / Resume', 'Educational & Trade Certificates', 'Passport Size Photo (White Background)'],
+      };
+
+      return {
+        ...current,
+        title: result.title !== undefined ? result.title : current.title || '',
+        category: result.category !== undefined ? result.category : (current.category || 'Manufacturing & Production'),
+        salary: result.salary !== undefined ? result.salary : (current.salary || ''),
+        jobType: result.jobType !== undefined ? result.jobType : (current.jobType || 'Work Permit'),
+        location: result.location !== undefined ? result.location : (current.location || 'Singapore'),
+        experience: result.experience !== undefined ? result.experience : (current.experience || ''),
+        qualification: result.qualification !== undefined ? result.qualification : (current.qualification || ''),
+        vacancyCount: result.vacancyCount !== undefined ? result.vacancyCount : (current.vacancyCount || 5),
+        description: result.description !== undefined ? result.description : (current.description || ''),
+        responsibilities: result.responsibilities && result.responsibilities.length > 0 ? result.responsibilities : current.responsibilities,
+        requirements: result.requirements && result.requirements.length > 0 ? result.requirements : current.requirements,
+        benefits: result.benefits && result.benefits.length > 0 ? result.benefits : current.benefits,
+        requiredDocuments: result.requiredDocuments && result.requiredDocuments.length > 0 ? result.requiredDocuments : current.requiredDocuments,
+      };
+    });
+
+    setImportExtractionBanner(result);
+    const sourceLabel = result.source === 'gemini' ? 'via Gemini AI' : 'via Smart Parser';
+    showToast(`Vacancy details extracted ${sourceLabel} (${result.extractedFields.length} fields filled)`, 'success');
+
+    setTimeout(() => {
+      const el = document.getElementById('job-management-editor-form');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 50);
   };
 
@@ -1341,25 +1389,44 @@ export const AdminDashboardView: React.FC = () => {
                   </div>
                 )}
 
-                <button
-                  id="admin-add-vacancy-btn"
-                  onClick={() => {
-                    if (editingJob && !editingJob.id) {
-                      setEditingJob(null);
-                      setJobModalOpen(false);
-                    } else {
-                      handleOpenNewJob();
-                    }
-                  }}
-                  className={`px-4 py-2.5 rounded-xl text-xs font-bold shadow-md flex items-center gap-1.5 cursor-pointer transition-all ${
-                    editingJob && !editingJob.id
-                      ? 'bg-slate-700 hover:bg-slate-800 text-white'
-                      : 'bg-red-900 hover:bg-red-800 text-white'
-                  }`}
-                >
-                  {editingJob && !editingJob.id ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-                  <span>{editingJob && !editingJob.id ? 'Close Form' : 'Add Singapore Vacancy'}</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    id="admin-quick-whatsapp-import-btn"
+                    onClick={() => {
+                      if (!editingJob) {
+                        handleOpenNewJob();
+                      }
+                      setWhatsAppImportModalOpen(true);
+                    }}
+                    className="px-3.5 py-2.5 rounded-xl text-xs font-bold shadow-sm flex items-center gap-2 cursor-pointer transition-all bg-emerald-700 hover:bg-emerald-800 text-white border border-emerald-600"
+                    title="Import new Singapore vacancy from WhatsApp text"
+                  >
+                    <MessageSquare className="w-4 h-4 text-emerald-200" />
+                    <span>Import from WhatsApp</span>
+                    <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                  </button>
+
+                  <button
+                    id="admin-add-vacancy-btn"
+                    onClick={() => {
+                      if (editingJob && !editingJob.id) {
+                        setEditingJob(null);
+                        setJobModalOpen(false);
+                      } else {
+                        handleOpenNewJob();
+                      }
+                    }}
+                    className={`px-4 py-2.5 rounded-xl text-xs font-bold shadow-md flex items-center gap-1.5 cursor-pointer transition-all ${
+                      editingJob && !editingJob.id
+                        ? 'bg-slate-700 hover:bg-slate-800 text-white'
+                        : 'bg-red-900 hover:bg-red-800 text-white'
+                    }`}
+                  >
+                    {editingJob && !editingJob.id ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                    <span>{editingJob && !editingJob.id ? 'Close Form' : 'Add Singapore Vacancy'}</span>
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -1390,22 +1457,86 @@ export const AdminDashboardView: React.FC = () => {
                       </p>
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    id="close-inline-job-editor-btn"
-                    onClick={() => {
-                      setEditingJob(null);
-                      setJobModalOpen(false);
-                    }}
-                    className="px-3 py-1.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-white text-xs font-bold transition-all border border-stone-700 flex items-center gap-1.5 cursor-pointer"
-                    title="Cancel and close editor"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                    <span>Cancel</span>
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <ImportFromWhatsAppButton
+                      variant="header"
+                      onClick={() => setWhatsAppImportModalOpen(true)}
+                    />
+                    <button
+                      type="button"
+                      id="close-inline-job-editor-btn"
+                      onClick={() => {
+                        setEditingJob(null);
+                        setJobModalOpen(false);
+                      }}
+                      className="px-3 py-1.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-white text-xs font-bold transition-all border border-stone-700 flex items-center gap-1.5 cursor-pointer"
+                      title="Cancel and close editor"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                      <span>Cancel</span>
+                    </button>
+                  </div>
                 </div>
 
                 <form onSubmit={handleSaveJobSubmit} className="p-5 sm:p-6 space-y-4 text-xs bg-stone-50/40">
+                  {/* FEATURE: Import Vacancy from WhatsApp Button */}
+                  <ImportFromWhatsAppButton
+                    variant="banner"
+                    onClick={() => setWhatsAppImportModalOpen(true)}
+                  />
+
+                  {/* Extraction Feedback Banner (shown after import) */}
+                  {importExtractionBanner && (
+                    <div
+                      id="whatsapp-extraction-feedback-banner"
+                      className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl space-y-2 animate-in fade-in"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2 text-emerald-900 font-bold text-xs">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                          <span>
+                            Imported from WhatsApp {importExtractionBanner.source === 'gemini' ? 'via Gemini AI' : 'via Smart Parser'} ({importExtractionBanner.extractedFields.length} details filled)
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setImportExtractionBanner(null)}
+                          className="text-slate-400 hover:text-slate-600 cursor-pointer p-0.5"
+                          title="Dismiss notice"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
+                        <span className="text-slate-500">Filled:</span>
+                        {importExtractionBanner.extractedFields.map(field => (
+                          <span
+                            key={field}
+                            className="px-2 py-0.5 bg-emerald-100/90 text-emerald-800 font-semibold rounded-md text-[10.5px]"
+                          >
+                            ✓ {field}
+                          </span>
+                        ))}
+                      </div>
+                      {importExtractionBanner.missingFields.length > 0 && (
+                        <div className="flex flex-wrap items-center gap-1.5 text-[11px] pt-0.5">
+                          <span className="text-amber-700 font-medium">Please verify:</span>
+                          {importExtractionBanner.missingFields.map(field => (
+                            <span
+                              key={field}
+                              className="px-2 py-0.5 bg-amber-100 text-amber-900 font-medium rounded-md text-[10.5px]"
+                            >
+                              • {field}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      <p className="text-[10.5px] text-slate-500 italic pt-0.5">
+                        Please review the form fields below before saving. Nothing will be published until you click Save.
+                      </p>
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="font-bold text-slate-700 block mb-1">Job Title *</label>
@@ -1433,6 +1564,9 @@ export const AdminDashboardView: React.FC = () => {
                         <option value="Construction & Civil">Construction & Civil</option>
                         <option value="Electrical & Maintenance">Electrical & Maintenance</option>
                         <option value="Automotive & Mechanical">Automotive & Mechanical</option>
+                        <option value="Retail & Customer Service">Retail & Customer Service</option>
+                        <option value="Healthcare & Nursing">Healthcare & Nursing</option>
+                        <option value="IT & Admin Support">IT & Admin Support</option>
                       </select>
                     </div>
                   </div>
@@ -3882,6 +4016,14 @@ export const AdminDashboardView: React.FC = () => {
             </div>
           </div>
         )}
+
+        {/* WhatsApp Vacancy Import Modal */}
+        <WhatsAppJobImportModal
+          isOpen={whatsAppImportModalOpen}
+          onClose={() => setWhatsAppImportModalOpen(false)}
+          onExtract={handleWhatsAppExtractResult}
+          adminToken={token}
+        />
       </div>
     </div>
   );

@@ -2,6 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import path from 'path';
 import fs from 'fs';
+import { GoogleGenAI, Type } from '@google/genai';
 import { storage } from './server/storage';
 
 export const app = express();
@@ -449,6 +450,212 @@ app.use(express.static(path.join(process.cwd(), 'public')));
       res.json({ success: true, job: duplicated, message: 'Job duplicated successfully as draft' });
     } catch (error: any) {
       res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  // Extract Singapore Vacancy details from WhatsApp message using Gemini API
+  app.post('/api/jobs/extract-from-whatsapp', requireAdminAuth, async (req, res) => {
+    try {
+      const { text } = req.body;
+      if (!text || typeof text !== 'string' || !text.trim()) {
+        return res.status(400).json({ success: false, message: 'Pasted WhatsApp vacancy text is required' });
+      }
+
+      const trimmedText = text.trim();
+      const apiKey = process.env.GEMINI_API_KEY;
+
+      if (!apiKey) {
+        return res.status(503).json({
+          success: false,
+          fallbackAvailable: true,
+          message: 'Gemini API key is not configured in the environment.'
+        });
+      }
+
+      const ai = new GoogleGenAI({ apiKey });
+
+      const prompt = `You are an expert recruitment assistant for "Arudhra Consultancy", an overseas recruitment agency specializing strictly in Singapore employment visas and jobs for Indian candidates.
+
+Analyze the following raw WhatsApp vacancy message and extract structured Singapore vacancy details.
+
+Raw WhatsApp Message:
+"""
+${trimmedText}
+"""
+
+Strict rules:
+1. "category" MUST be one of these exact values:
+   - "Construction & Civil"
+   - "Marine & Shipyard"
+   - "Manufacturing & Production"
+   - "F&B & Hospitality"
+   - "Logistics & Warehouse"
+   - "Retail & Customer Service"
+   - "Automotive & Mechanical"
+   - "Electrical & Maintenance"
+   - "Healthcare & Nursing"
+   - "IT & Admin Support"
+2. "jobType" (Visa/Pass Type) MUST be one of:
+   - "Work Permit"
+   - "NTS Work Permit"
+   - "PCM"
+   - "Construction Permit"
+   - "Marine Permit"
+   - "S Pass"
+   - "E Pass"
+3. "salary": Format as standard Singapore Dollar representation (e.g. "SGD 1,800 - 2,500 + OT" or "SGD 2,200 - 2,800"). Do not fabricate figures.
+4. "location": Standardize to Singapore location (e.g. "Jurong, Singapore" or "Tuas, Singapore" or "Singapore").
+5. "vacancyCount": Integer of openings if mentioned (default to 1 if unspecified).
+6. "experience": Experience required if mentioned (e.g. "1-2 Years" or "3 Years SG/Gulf Exp").
+7. "qualification": Minimum educational or trade certificate requirement (e.g. "ITI / Diploma" or "10th / 12th").
+8. "description": A concise professional 2-3 sentence overview of the role and scope.
+9. "responsibilities": Array of 2 to 4 bullet points of job responsibilities.
+10. "requirements": Array of 2 to 4 bullet points of candidate requirements.
+11. "benefits": Array of standard benefits mentioned or applicable (e.g. "Overtime (1.5x / 2.0x)", "Accommodation provided or allowance", "Medical insurance as per MOM guidelines").
+12. "requiredDocuments": Array of 3 to 4 required documents (e.g. "Valid Passport (min 18 months)", "Updated Resume / Bio-data", "Trade / Educational Certificates", "Passport Size Photo (White Background)").
+13. Only extract information that is present or reasonably inferred. Do NOT make up unrealistic salaries or false companies.`;
+
+      const response = await ai.models.generateContent({
+        model: 'gemini-3.8-flash',
+        contents: prompt,
+        config: {
+          responseMimeType: 'application/json',
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              title: { type: Type.STRING, description: 'Job Title or Role designation' },
+              category: {
+                type: Type.STRING,
+                description: 'One of the authorized JobCategory values',
+              },
+              salary: { type: Type.STRING, description: 'Salary formatted with SGD prefix' },
+              jobType: { type: Type.STRING, description: 'Pass or Visa type (e.g. Work Permit, S Pass, etc.)' },
+              location: { type: Type.STRING, description: 'Location in Singapore' },
+              experience: { type: Type.STRING, description: 'Experience requirement' },
+              qualification: { type: Type.STRING, description: 'Education or Trade qualification' },
+              vacancyCount: { type: Type.INTEGER, description: 'Number of open slots' },
+              description: { type: Type.STRING, description: 'Short job description' },
+              responsibilities: {
+                type: Type.ARRAY,
+                items: { type: Type.STRING },
+                description: 'List of responsibilities',
+              },
+              requirements: {
+                type: Type.ARRAY,
+                items: { type: Type.STRING },
+                description: 'List of candidate requirements',
+              },
+              benefits: {
+                type: Type.ARRAY,
+                items: { type: Type.STRING },
+                description: 'List of employee benefits',
+              },
+              requiredDocuments: {
+                type: Type.ARRAY,
+                items: { type: Type.STRING },
+                description: 'List of required candidate documents',
+              },
+            },
+            required: ['title', 'category', 'salary', 'jobType', 'location'],
+          },
+        },
+      });
+
+      const rawJson = response.text;
+      if (!rawJson) {
+        throw new Error('No text returned from Gemini API');
+      }
+
+      const parsedData = JSON.parse(rawJson);
+
+      // Validate and clean category
+      const validCategories = [
+        'Construction & Civil',
+        'Marine & Shipyard',
+        'Manufacturing & Production',
+        'F&B & Hospitality',
+        'Logistics & Warehouse',
+        'Retail & Customer Service',
+        'Automotive & Mechanical',
+        'Electrical & Maintenance',
+        'Healthcare & Nursing',
+        'IT & Admin Support',
+      ];
+
+      let category = parsedData.category;
+      if (!validCategories.includes(category)) {
+        category = 'Manufacturing & Production';
+      }
+
+      // Compile extracted and missing fields
+      const extractedFields: string[] = [];
+      const missingFields: string[] = [];
+
+      if (parsedData.title) extractedFields.push('Job Title');
+      else missingFields.push('Job Title');
+
+      if (parsedData.category) extractedFields.push('Sector / Category');
+      else missingFields.push('Sector / Category');
+
+      if (parsedData.salary) extractedFields.push('Salary (in SGD)');
+      else missingFields.push('Salary (in SGD)');
+
+      if (parsedData.jobType) extractedFields.push('Job / Pass Type');
+      else missingFields.push('Job / Pass Type');
+
+      if (parsedData.location) extractedFields.push('Singapore Location');
+      else missingFields.push('Singapore Location');
+
+      if (parsedData.experience) extractedFields.push('Experience Required');
+      else missingFields.push('Experience Required');
+
+      if (parsedData.qualification) extractedFields.push('Qualification');
+      else missingFields.push('Qualification');
+
+      if (parsedData.vacancyCount) extractedFields.push('Vacancy Openings');
+      else missingFields.push('Vacancy Openings');
+
+      if (parsedData.description) extractedFields.push('Job Description');
+      else missingFields.push('Job Description');
+
+      res.json({
+        success: true,
+        source: 'gemini',
+        data: {
+          title: parsedData.title,
+          category,
+          categoryConfident: true,
+          salary: parsedData.salary,
+          jobType: parsedData.jobType,
+          location: parsedData.location,
+          experience: parsedData.experience,
+          qualification: parsedData.qualification,
+          vacancyCount: parsedData.vacancyCount || 1,
+          description: parsedData.description,
+          responsibilities: Array.isArray(parsedData.responsibilities) && parsedData.responsibilities.length > 0
+            ? parsedData.responsibilities
+            : undefined,
+          requirements: Array.isArray(parsedData.requirements) && parsedData.requirements.length > 0
+            ? parsedData.requirements
+            : undefined,
+          benefits: Array.isArray(parsedData.benefits) && parsedData.benefits.length > 0
+            ? parsedData.benefits
+            : undefined,
+          requiredDocuments: Array.isArray(parsedData.requiredDocuments) && parsedData.requiredDocuments.length > 0
+            ? parsedData.requiredDocuments
+            : undefined,
+          rawPastedText: trimmedText,
+          extractedFields,
+          missingFields,
+        },
+      });
+    } catch (error: any) {
+      console.error('Gemini WhatsApp Vacancy extraction error:', error);
+      res.status(500).json({
+        success: false,
+        message: error.message || 'Gemini extraction failed',
+        fallbackAvailable: true,
+      });
     }
   });
 
