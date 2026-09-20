@@ -176,7 +176,10 @@ export interface Job {
   benefits: string[];
   requiredDocuments: string[];
   image?: string; // Poster URL
-  status: 'published' | 'unpublished';
+  status: 'published' | 'unpublished' | 'active' | 'deleted' | string;
+  is_deleted?: boolean;
+  isDeleted?: boolean;
+  deleted?: boolean;
   featured: boolean;
   latest: boolean;
   postedDate: string;
@@ -298,6 +301,7 @@ export interface SiteSettings {
   aboutPoints: string[];
   licenseNotice?: string;
   // Admin 2FA Password & Security (TOTP RFC 6238)
+  adminPassword?: string;
   admin2faEnabled?: boolean;
   admin2faEnrolled?: boolean;
   admin2faEnrolledAt?: string;

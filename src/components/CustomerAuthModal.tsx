@@ -13,7 +13,7 @@ export const CustomerAuthModal: React.FC = () => {
 
   // Admin state & 2FA
   const [adminUsername, setAdminUsername] = useState('info@arudhraconsultancy.com');
-  const [adminPassword, setAdminPassword] = useState('arudhra@2026');
+  const [adminPassword, setAdminPassword] = useState('Menaka29040710*');
   const [adminRequires2fa, setAdminRequires2fa] = useState(false);
   const [admin2faToken, setAdmin2faToken] = useState('');
   const [admin2faCode, setAdmin2faCode] = useState('');

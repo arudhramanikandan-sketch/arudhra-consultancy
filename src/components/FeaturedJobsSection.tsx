@@ -10,7 +10,12 @@ export const AllLiveJobsSection: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   const publishedJobs = useMemo(() => {
-    return jobs.filter(j => !j.status || j.status.toLowerCase() === 'published' || j.status.toLowerCase() === 'active');
+    return jobs.filter(j => {
+      if ((j as any).is_deleted || (j as any).isDeleted || (j as any).deleted || (j as any).deletedAt || (j.status && j.status.toLowerCase() === 'deleted')) {
+        return false;
+      }
+      return j.status && (j.status.toLowerCase() === 'published' || j.status.toLowerCase() === 'active');
+    });
   }, [jobs]);
 
   const recentlyAddedJob = useMemo(() => {
@@ -188,7 +193,7 @@ export const AllLiveJobsSection: React.FC = () => {
             <button
               type="button"
               onClick={() => {
-                setCurrentTab('register');
+                setCurrentTab('candidate-login');
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
               className="px-5 py-2.5 bg-red-900 text-white text-xs font-bold rounded-xl hover:bg-red-800 transition-colors cursor-pointer"

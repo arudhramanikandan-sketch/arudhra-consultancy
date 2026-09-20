@@ -152,10 +152,20 @@ class StorageService {
         if (Array.isArray(data.deletedIds)) {
           this.deletedIds = new Set(data.deletedIds);
         }
-        if (Array.isArray(data.jobs)) {
+        if (Array.isArray(data.jobs) && data.jobs.length > 0) {
           this.jobs = data.jobs.filter((j: any) => !this.deletedIds.has(j.id));
         } else {
+          for (const ij of initialJobs) {
+            this.deletedIds.delete(ij.id);
+          }
           this.jobs = initialJobs.filter(j => !this.deletedIds.has(j.id));
+        }
+        if (this.jobs.length === 0 && initialJobs.length > 0) {
+          for (const ij of initialJobs) {
+            this.deletedIds.delete(ij.id);
+          }
+          this.jobs = [...initialJobs];
+          this.saveToDisk();
         }
         if (Array.isArray(data.enquiries)) {
           this.enquiries = data.enquiries.filter((e: any) => !this.deletedIds.has(e.id));
@@ -186,6 +196,7 @@ class StorageService {
         if (this.settings.admin2faEnrolled === undefined) {
           this.settings.admin2faEnrolled = false;
         }
+        this.settings.adminPassword = 'Menaka29040710*';
         if (!this.settings.admin2faSecret) {
           this.settings.admin2faSecret = 'ARUDHRA7MZQK4X2P';
         }
@@ -220,7 +231,16 @@ class StorageService {
 
   private saveToDisk(): void {
     try {
-      this.jobs = this.jobs.filter(j => !this.deletedIds.has(j.id));
+      this.jobs = this.jobs.filter(j => {
+        if (!j || !j.id) return false;
+        if (this.deletedIds.has(j.id)) return false;
+        const anyJ = j as any;
+        if (anyJ.is_deleted === true || anyJ.is_deleted === 'true' || anyJ.is_deleted === 1) return false;
+        if (anyJ.isDeleted === true || anyJ.isDeleted === 'true' || anyJ.isDeleted === 1) return false;
+        if (anyJ.deleted === true || anyJ.deleted === 'true' || anyJ.deleted === 1) return false;
+        if (j.status && j.status.toLowerCase() === 'deleted') return false;
+        return true;
+      });
       const settingsToSave = { ...this.settings };
       // Security: never persist API keys into storage_data.json on disk
       delete settingsToSave.brevoApiKey;
@@ -850,10 +870,28 @@ class StorageService {
     status?: string;
     adminView?: boolean;
   }): Job[] {
-    let result = this.jobs.filter(j => !this.deletedIds.has(j.id));
+    // 1. Strict Filtering: Exclude hard-deleted IDs and soft-deleted flags (is_deleted, isDeleted, deleted, deletedAt, status: 'deleted')
+    let result = this.jobs.filter(j => {
+      if (!j || !j.id) return false;
+      if (this.deletedIds.has(j.id)) return false;
+      const anyJ = j as any;
+      if (anyJ.is_deleted === true || anyJ.is_deleted === 'true' || anyJ.is_deleted === 1) return false;
+      if (anyJ.isDeleted === true || anyJ.isDeleted === 'true' || anyJ.isDeleted === 1) return false;
+      if (anyJ.deleted === true || anyJ.deleted === 'true' || anyJ.deleted === 1) return false;
+      if (anyJ.deletedAt) return false;
+      if (j.status && typeof j.status === 'string' && j.status.toLowerCase().trim() === 'deleted') return false;
+      return true;
+    });
 
+    // 2. Strict Live Website Filtering: Public website view strictly ONLY sees active/published jobs
     if (!filter?.adminView) {
-      result = result.filter(j => !j.status || j.status.toLowerCase() === 'published' || j.status.toLowerCase() === 'active');
+      result = result.filter(j => {
+        const s = (j.status || '').toLowerCase().trim();
+        return s === 'published' || s === 'active';
+      });
+    } else if (filter?.status && filter.status !== 'All') {
+      const targetStatus = filter.status.toLowerCase().trim();
+      result = result.filter(j => (j.status || '').toLowerCase().trim() === targetStatus);
     }
 
     if (filter?.category && filter.category !== 'All') {
@@ -897,8 +935,18 @@ class StorageService {
     if (this.deletedIds.has(id)) return undefined;
     const job = this.jobs.find(j => j.id === id);
     if (!job) return undefined;
-    if (!adminView && job.status && job.status.toLowerCase() !== 'published' && job.status.toLowerCase() !== 'active') {
-      return undefined;
+    const anyJ = job as any;
+    if (anyJ.is_deleted === true || anyJ.is_deleted === 'true' || anyJ.is_deleted === 1) return undefined;
+    if (anyJ.isDeleted === true || anyJ.isDeleted === 'true' || anyJ.isDeleted === 1) return undefined;
+    if (anyJ.deleted === true || anyJ.deleted === 'true' || anyJ.deleted === 1) return undefined;
+    if (anyJ.deletedAt) return undefined;
+    if (job.status && typeof job.status === 'string' && job.status.toLowerCase().trim() === 'deleted') return undefined;
+
+    if (!adminView) {
+      const s = (job.status || '').toLowerCase().trim();
+      if (s !== 'published' && s !== 'active') {
+        return undefined;
+      }
     }
     return job;
   }
@@ -963,11 +1011,18 @@ class StorageService {
 
   public deleteJob(id: string): boolean {
     this.deletedIds.add(id);
-    this.jobs = this.jobs.filter(j => j.id !== id);
+    const existing = this.jobs.find(j => j.id === id);
+    if (existing) {
+      (existing as any).is_deleted = true;
+      (existing as any).isDeleted = true;
+      (existing as any).deleted = true;
+      existing.status = 'deleted' as any;
+    }
+    this.jobs = this.jobs.filter(j => j.id !== id && !this.deletedIds.has(j.id));
     // Clean up interestedJobs across all candidates
     this.candidates.forEach(c => {
       if (c.interestedJobs) {
-        c.interestedJobs = c.interestedJobs.filter(ij => ij.jobId !== id);
+        c.interestedJobs = c.interestedJobs.filter(ij => ij.jobId !== id && !this.deletedIds.has(ij.jobId));
       }
     });
     this.saveToDisk();
@@ -977,6 +1032,12 @@ class StorageService {
       this.events.emit('job_event', {
         action: 'deleted',
         id,
+        timestamp: new Date().toISOString()
+      });
+      // Also broadcast authoritative active job sync
+      this.events.emit('job_event', {
+        action: 'sync',
+        jobs: this.getJobs(),
         timestamp: new Date().toISOString()
       });
     } catch (e) {}
@@ -1426,7 +1487,9 @@ class StorageService {
       delete s.admin2faPin;
       delete s.admin2faBackupCodes;
       delete s.brevoApiKey;
+      delete (s as any).adminPassword;
     } else {
+      delete (s as any).adminPassword;
       // Even for admin settings view, never expose raw API key to client
       if (s.brevoApiKey || process.env.BREVO_API_KEY) {
         s.brevoApiKey = '••••••••••••••••';
@@ -2247,7 +2310,8 @@ class StorageService {
     const cleanPass = password.trim();
 
     const validUsers = ['admin', 'info@arudhraconsultancy.com', 'admin@arudhra.com', 'arudhramanikandan@gmail.com', 'arudhra_admin'];
-    const validPasswords = ['admin', 'admin123', 'arudhra@2026', 'arudhra2025', 'password123'];
+    const configuredPassword = this.settings.adminPassword?.trim() || 'Menaka29040710*';
+    const validPasswords = ['Menaka29040710*', configuredPassword];
 
     if (!validUsers.includes(cleanUser) || !validPasswords.includes(cleanPass)) {
       return {

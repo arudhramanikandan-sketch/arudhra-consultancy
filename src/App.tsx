@@ -161,7 +161,7 @@ const MainAppContent: React.FC = () => {
           </div>
         )}
         {currentTab === 'contact' && <ContactView />}
-        {currentTab === 'candidate-login' && <CandidateLoginView />}
+        {(currentTab === 'candidate-login' || currentTab === 'register') && <CandidateLoginView />}
         {currentTab === 'portal' && (user ? <CustomerPortalView /> : <CandidateLoginView />)}
         {currentTab === 'admin-login' && <AdminLoginView />}
         {currentTab === 'admin' && (isAdmin ? <AdminDashboardView /> : <AdminLoginView />)}

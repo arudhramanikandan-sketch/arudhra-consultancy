@@ -6,6 +6,7 @@ import fs from 'fs';
 import { WebSocketServer, WebSocket } from 'ws';
 import { GoogleGenAI, Type } from '@google/genai';
 import { storage } from './server/storage';
+import { parseWhatsAppVacancyMessage } from './src/utils/whatsappJobParser';
 
 export const app = express();
 
@@ -375,6 +376,11 @@ app.use(express.static(path.join(process.cwd(), 'public')));
   // Jobs Endpoints
   app.get('/api/jobs', (req, res) => {
     try {
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      res.setHeader('Surrogate-Control', 'no-store');
+
       const { category, search, jobType, featured, latest, adminView } = req.query;
       const jobs = storage.getJobs({
         category: category as string,
@@ -392,6 +398,11 @@ app.use(express.static(path.join(process.cwd(), 'public')));
 
   app.get('/api/jobs/:id', (req, res) => {
     try {
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      res.setHeader('Surrogate-Control', 'no-store');
+
       const authHeader = req.headers.authorization;
       const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : '';
       const isAdmin = storage.validateAdminToken(token);
@@ -458,11 +469,14 @@ app.use(express.static(path.join(process.cwd(), 'public')));
 
   app.delete('/api/jobs/:id', requireAdminAuth, (req, res) => {
     try {
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
       const deleted = storage.deleteJob(req.params.id);
       if (!deleted) {
         return res.status(404).json({ success: false, message: 'Job not found' });
       }
-      res.json({ success: true, message: 'Job deleted successfully' });
+      res.json({ success: true, message: 'Job deleted successfully', id: req.params.id });
     } catch (error: any) {
       res.status(500).json({ success: false, error: error.message });
     }
@@ -470,6 +484,9 @@ app.use(express.static(path.join(process.cwd(), 'public')));
 
   app.post('/api/jobs/batch-delete', requireAdminAuth, (req, res) => {
     try {
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
       const { ids } = req.body;
       if (!Array.isArray(ids) || ids.length === 0) {
         return res.status(400).json({ success: false, message: 'Array of job IDs is required' });
@@ -480,7 +497,7 @@ app.use(express.static(path.join(process.cwd(), 'public')));
           deletedCount++;
         }
       });
-      res.json({ success: true, deletedCount, message: `Successfully deleted ${deletedCount} jobs` });
+      res.json({ success: true, deletedCount, ids, message: `Successfully deleted ${deletedCount} jobs` });
     } catch (error: any) {
       res.status(500).json({ success: false, error: error.message });
     }
@@ -509,11 +526,18 @@ app.use(express.static(path.join(process.cwd(), 'public')));
       const trimmedText = text.trim();
       const apiKey = process.env.GEMINI_API_KEY;
 
+      // If no API key configured, seamlessly use the smart heuristic parser fallback
       if (!apiKey) {
-        return res.status(503).json({
-          success: false,
-          fallbackAvailable: true,
-          message: 'Gemini API key is not configured in the environment.'
+        console.log('[WhatsApp Extractor] No Gemini API key present, using smart heuristic parser fallback');
+        const fallback = parseWhatsAppVacancyMessage(trimmedText);
+        return res.json({
+          success: true,
+          source: 'local_parser',
+          notice: 'Extracted via Smart Heuristic Parser',
+          data: {
+            ...fallback,
+            rawPastedText: trimmedText,
+          }
         });
       }
 
@@ -560,55 +584,97 @@ Strict rules:
 12. "requiredDocuments": Array of 3 to 4 required documents (e.g. "Valid Passport (min 18 months)", "Updated Resume / Bio-data", "Trade / Educational Certificates", "Passport Size Photo (White Background)").
 13. Only extract information that is present or reasonably inferred. Do NOT make up unrealistic salaries or false companies.`;
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-3.8-flash',
-        contents: prompt,
-        config: {
-          responseMimeType: 'application/json',
-          responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-              title: { type: Type.STRING, description: 'Job Title or Role designation' },
-              category: {
-                type: Type.STRING,
-                description: 'One of the authorized JobCategory values',
-              },
-              salary: { type: Type.STRING, description: 'Salary formatted with SGD prefix' },
-              jobType: { type: Type.STRING, description: 'Pass or Visa type (e.g. Work Permit, S Pass, etc.)' },
-              location: { type: Type.STRING, description: 'Location in Singapore' },
-              experience: { type: Type.STRING, description: 'Experience requirement' },
-              qualification: { type: Type.STRING, description: 'Education or Trade qualification' },
-              vacancyCount: { type: Type.INTEGER, description: 'Number of open slots' },
-              description: { type: Type.STRING, description: 'Short job description' },
-              responsibilities: {
-                type: Type.ARRAY,
-                items: { type: Type.STRING },
-                description: 'List of responsibilities',
-              },
-              requirements: {
-                type: Type.ARRAY,
-                items: { type: Type.STRING },
-                description: 'List of candidate requirements',
-              },
-              benefits: {
-                type: Type.ARRAY,
-                items: { type: Type.STRING },
-                description: 'List of employee benefits',
-              },
-              requiredDocuments: {
-                type: Type.ARRAY,
-                items: { type: Type.STRING },
-                description: 'List of required candidate documents',
-              },
-            },
-            required: ['title', 'category', 'salary', 'jobType', 'location'],
+      const responseSchema = {
+        type: Type.OBJECT,
+        properties: {
+          title: { type: Type.STRING, description: 'Job Title or Role designation' },
+          category: {
+            type: Type.STRING,
+            description: 'One of the authorized JobCategory values',
+          },
+          salary: { type: Type.STRING, description: 'Salary formatted with SGD prefix' },
+          jobType: { type: Type.STRING, description: 'Pass or Visa type (e.g. Work Permit, S Pass, etc.)' },
+          location: { type: Type.STRING, description: 'Location in Singapore' },
+          experience: { type: Type.STRING, description: 'Experience requirement' },
+          qualification: { type: Type.STRING, description: 'Education or Trade qualification' },
+          vacancyCount: { type: Type.INTEGER, description: 'Number of open slots' },
+          description: { type: Type.STRING, description: 'Short job description' },
+          responsibilities: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING },
+            description: 'List of responsibilities',
+          },
+          requirements: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING },
+            description: 'List of candidate requirements',
+          },
+          benefits: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING },
+            description: 'List of employee benefits',
+          },
+          requiredDocuments: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING },
+            description: 'List of required candidate documents',
           },
         },
-      });
+        required: ['title', 'category', 'salary', 'jobType', 'location'],
+      };
 
-      const rawJson = response.text;
+      // Cascade of models: prioritize ultra-fast, high-availability flash-lite models first
+      const CANDIDATE_MODELS = [
+        'gemini-flash-lite-latest',
+        'gemini-3.1-flash-lite',
+        'gemini-flash-latest',
+        'gemini-3.8-flash',
+        'gemini-3.6-flash'
+      ];
+
+      let rawJson: string | null = null;
+      let usedModel = '';
+
+      for (const modelName of CANDIDATE_MODELS) {
+        try {
+          const responsePromise = ai.models.generateContent({
+            model: modelName,
+            contents: prompt,
+            config: {
+              responseMimeType: 'application/json',
+              responseSchema,
+            },
+          });
+          const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('MODEL_REQUEST_TIMEOUT')), 6000)
+          );
+
+          const response = (await Promise.race([responsePromise, timeoutPromise])) as any;
+
+          if (response?.text) {
+            rawJson = response.text;
+            usedModel = modelName;
+            break;
+          }
+        } catch (modelErr: any) {
+          // Model temporarily busy or timed out; quietly try next candidate
+          console.log(`[Gemini WhatsApp Extractor] Model "${modelName}" busy or timed out, trying fallback`);
+        }
+      }
+
+      // If all Gemini models were busy or timed out, engage smart heuristic parser
       if (!rawJson) {
-        throw new Error('No text returned from Gemini API');
+        console.log('[Gemini WhatsApp Extractor] Using smart local parser fallback.');
+        const fallback = parseWhatsAppVacancyMessage(trimmedText);
+        return res.json({
+          success: true,
+          source: 'local_parser',
+          notice: 'Extracted vacancy details using smart heuristic parser — please review.',
+          data: {
+            ...fallback,
+            rawPastedText: trimmedText,
+          }
+        });
       }
 
       const parsedData = JSON.parse(rawJson);
@@ -666,6 +732,7 @@ Strict rules:
       res.json({
         success: true,
         source: 'gemini',
+        model: usedModel,
         data: {
           title: parsedData.title,
           category,
@@ -695,12 +762,26 @@ Strict rules:
         },
       });
     } catch (error: any) {
-      console.error('Gemini WhatsApp Vacancy extraction error:', error);
-      res.status(500).json({
-        success: false,
-        message: error.message || 'Gemini extraction failed',
-        fallbackAvailable: true,
-      });
+      console.log('[Gemini WhatsApp Extractor] Executing heuristic parser fallback');
+      try {
+        const text = typeof req.body?.text === 'string' ? req.body.text.trim() : '';
+        const fallback = parseWhatsAppVacancyMessage(text);
+        return res.json({
+          success: true,
+          source: 'local_parser',
+          notice: 'Extracted vacancy details using smart heuristic parser.',
+          data: {
+            ...fallback,
+            rawPastedText: text,
+          }
+        });
+      } catch (innerErr) {
+        res.status(500).json({
+          success: false,
+          message: error.message || 'Vacancy extraction failed',
+          fallbackAvailable: true,
+        });
+      }
     }
   });
 

@@ -93,8 +93,8 @@ If you want static HTML/CSS/JS files to upload to cPanel `public_html`, Apache, 
 
 ### Admin Login Credentials
 - **Admin Portal**: Click "Admin Portal" in the website menu or visit `http://localhost:3000/#admin`
-- **Username**: `admin`
-- **Password**: `admin123`
+- **Username**: `admin` or `info@arudhraconsultancy.com`
+- **Password**: `Menaka29040710*`
 - **2FA TOTP Secret**: `ARUDHRA7MZQK4X2P` (or scan the on-screen QR code with Google Authenticator / Microsoft Authenticator)
 
 ---

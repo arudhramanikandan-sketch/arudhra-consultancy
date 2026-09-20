@@ -145,19 +145,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const { user, isAdmin, token, updateUserProfile } = useAuth();
   const [jobs, setJobs] = useState<Job[]>(() => {
     try {
-      // Clear legacy caches containing obsolete or empty jobs
+      // Purge all legacy client-side job caches completely so old/deleted jobs are never retained
       localStorage.removeItem('arudhra_jobs_cache');
+      localStorage.removeItem('arudhra_jobs_cache_v2');
       localStorage.removeItem('arudhra_jobs_cache_v3');
       localStorage.removeItem('arudhra_jobs_cache_v4');
-      const cached = localStorage.getItem('arudhra_jobs_cache_v5');
-      if (cached !== null) {
-        const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed;
-        }
-      }
+      localStorage.removeItem('arudhra_jobs_cache_v5');
+      localStorage.removeItem('arudhra_jobs_cache_v6');
     } catch (e) {}
-    return defaultJobs;
+    return [];
   });
   const [settings, setSettings] = useState<SiteSettings>(initialSiteSettings);
   const [videos, setVideos] = useState<VideoItem[]>([]);
@@ -393,6 +389,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const refreshJobs = useCallback(async (filters?: any) => {
     try {
+      const timestamp = Date.now();
       let url = '/api/jobs';
       const params = new URLSearchParams();
       if (isAdmin) params.append('adminView', 'true');
@@ -401,18 +398,36 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (filters?.jobType && filters.jobType !== 'All') params.append('jobType', filters.jobType);
       if (filters?.featured) params.append('featured', 'true');
       if (filters?.latest) params.append('latest', 'true');
+      // Cache-busting query parameter ensures browser & network proxies do NOT serve stale cache
+      params.append('_t', timestamp.toString());
 
-      if (params.toString()) {
-        url += `?${params.toString()}`;
-      }
+      url += `?${params.toString()}`;
 
-      let res = await fetch(url);
+      console.log('[AppProvider:DataFetch] refreshJobs revalidating job collection from:', url, {
+        isAdmin,
+        filters: filters || 'none',
+        timestamp
+      });
+
+      let res = await fetch(url, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache'
+        }
+      });
       let { ok, data } = await parseResponseSafe(res);
 
       // Fallback for static hosting (e.g. GitHub Pages or static exports without Node.js backend)
       if (!ok || !data?.jobs || !Array.isArray(data.jobs)) {
         try {
-          const staticRes = await fetch('/jobs.json');
+          const staticRes = await fetch(`/jobs.json?_t=${timestamp}`, {
+            cache: 'no-store',
+            headers: {
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'Pragma': 'no-cache'
+            }
+          });
           const staticData = await parseResponseSafe(staticRes);
           if (staticData.ok && Array.isArray(staticData.data)) {
             ok = true;
@@ -425,25 +440,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
 
       if (ok && data?.success && Array.isArray(data.jobs)) {
-        try {
-          const localDeleted = getLocalDeletedJobIds();
-          if (localDeleted.size > 0) {
-            data.jobs.forEach((j: any) => {
-              if (j && j.id) localDeleted.delete(j.id);
-            });
-            localStorage.setItem('arudhra_deleted_job_ids', JSON.stringify(Array.from(localDeleted)));
-          }
-        } catch (e) {}
+        const localDeleted = getLocalDeletedJobIds();
+        // Strict filtering: filter out hard/soft-deleted jobs and localDeleted IDs
+        const cleanJobs = data.jobs.filter((j: any) => {
+          if (!j || !j.id) return false;
+          if (localDeleted.has(j.id)) return false;
+          if (j.is_deleted === true || j.is_deleted === 'true' || j.is_deleted === 1) return false;
+          if (j.isDeleted === true || j.isDeleted === 'true' || j.isDeleted === 1) return false;
+          if (j.deleted === true || j.deleted === 'true' || j.deleted === 1) return false;
+          if (j.status && j.status.toLowerCase() === 'deleted') return false;
+          if (!isAdmin && j.status && j.status.toLowerCase() !== 'published' && j.status.toLowerCase() !== 'active') return false;
+          return true;
+        });
 
-        setJobs(data.jobs);
-        try {
-          if (!filters || Object.keys(filters).length === 0) {
-            localStorage.setItem('arudhra_jobs_cache_v5', JSON.stringify(data.jobs));
-          }
-        } catch (e) {}
+        console.log('[AppProvider:DataFetch] refreshJobs received and revalidated job collection:', {
+          rawCount: data.jobs.length,
+          activeCleanCount: cleanJobs.length,
+          activeJobTitles: cleanJobs.map((j: Job) => j.title)
+        });
+
+        setJobs(cleanJobs);
       }
     } catch (err) {
-      console.warn('Failed to fetch jobs:', err);
+      console.warn('[AppProvider:DataFetch] Failed to fetch jobs:', err);
     }
   }, [isAdmin]);
 
@@ -546,12 +565,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const url = isEdit ? `/api/jobs/${jobData.id}` : '/api/jobs';
       const method = isEdit ? 'PUT' : 'POST';
 
+      console.log('[AppProvider:WriteOp] saveJob initiated with data:', {
+        title: jobData.title,
+        id: jobData.id,
+        isEdit,
+        options,
+        timestamp: new Date().toISOString()
+      });
+
       const payload = isEdit ? jobData : { ...jobData, ...options };
 
       const res = await fetch(url, {
         method,
         headers: {
           'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
           ...getAuthHeaders()
         },
         body: JSON.stringify(payload)
@@ -570,13 +598,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             } else {
               updatedList = [data.job, ...prev.filter(j => j.id !== data.job.id)];
             }
-            try {
-              localStorage.setItem('arudhra_jobs_cache_v5', JSON.stringify(updatedList));
-            } catch (e) {}
+            console.log('[AppProvider:StateUpdate] Job list state successfully updated after saveJob:', {
+              newCount: updatedList.length,
+              savedJobId: data.job.id,
+              savedJobTitle: data.job.title,
+              allTitles: updatedList.map(j => j.title)
+            });
             return updatedList;
           });
         }
-        refreshJobs();
+        console.log('[AppProvider:Revalidation] Triggering job collection revalidation via refreshJobs after write operation...');
+        await refreshJobs();
         refreshEnquiries();
         refreshStats();
         return { success: true, message: data.message };
@@ -591,23 +623,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const deleteJob = async (id: string) => {
     try {
+      console.log('[AppProvider:WriteOp] deleteJob initiated for jobId:', id);
       addLocalDeletedJobId(id);
       setJobs(prev => {
         const updated = prev.filter(j => j.id !== id);
-        try {
-          localStorage.setItem('arudhra_jobs_cache_v4', JSON.stringify(updated));
-        } catch (e) {}
+        console.log('[AppProvider:StateUpdate] Job list state updated after deleteJob. Remaining count:', updated.length);
         return updated;
       });
 
       const res = await fetch(`/api/jobs/${id}`, {
         method: 'DELETE',
-        headers: getAuthHeaders()
+        headers: {
+          ...getAuthHeaders(),
+          'Cache-Control': 'no-cache, no-store, must-revalidate'
+        }
       });
       const data = await res.json();
       if (data.success) {
         showToast('Job permanently deleted', 'success');
-        refreshJobs();
+        console.log('[AppProvider:Revalidation] Triggering job collection revalidation after deleteJob write operation...');
+        await refreshJobs();
         refreshStats();
         return { success: true };
       }
@@ -622,12 +657,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const batchDeleteJobs = async (ids: string[]) => {
     if (!ids || ids.length === 0) return { success: false, message: 'No jobs selected' };
     try {
+      console.log('[AppProvider:WriteOp] batchDeleteJobs initiated for IDs:', ids);
       ids.forEach(id => addLocalDeletedJobId(id));
       setJobs(prev => {
         const updated = prev.filter(j => !ids.includes(j.id));
-        try {
-          localStorage.setItem('arudhra_jobs_cache_v4', JSON.stringify(updated));
-        } catch (e) {}
+        console.log('[AppProvider:StateUpdate] Job list state updated after batchDeleteJobs. Remaining count:', updated.length);
         return updated;
       });
 
@@ -635,6 +669,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
           ...getAuthHeaders()
         },
         body: JSON.stringify({ ids })
@@ -642,7 +677,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const data = await res.json();
       if (data.success) {
         showToast(`Successfully deleted ${data.deletedCount ?? ids.length} job(s)`, 'success');
-        refreshJobs();
+        console.log('[AppProvider:Revalidation] Triggering job collection revalidation after batchDeleteJobs write operation...');
+        await refreshJobs();
         refreshStats();
         return { success: true, deletedCount: data.deletedCount ?? ids.length };
       }
@@ -1575,6 +1611,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setRecentlyAddedJobId(newJob.id);
         setTimeout(() => setRecentlyAddedJobId(prev => (prev === newJob.id ? null : prev)), 10000);
 
+        console.log('[AppProvider:Realtime] Real-time job created event received:', {
+          id: newJob.id,
+          title: newJob.title,
+          status: newJob.status
+        });
+
         setJobs(prev => {
           // Idempotency: avoid duplicates if already present
           const exists = prev.some(j => j.id === newJob.id);
@@ -1584,34 +1626,48 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           } else {
             updated = [newJob, ...prev];
           }
-          try {
-            localStorage.setItem('arudhra_jobs_cache_v5', JSON.stringify(updated));
-          } catch (e) {}
+          console.log('[AppProvider:Realtime] Job list state updated after real-time created event. Count:', updated.length);
           return updated;
         });
       } else if (event.action === 'updated' && event.job) {
         const updatedJob = event.job;
+        console.log('[AppProvider:Realtime] Real-time job updated event received:', {
+          id: updatedJob.id,
+          title: updatedJob.title
+        });
         setJobs(prev => {
-          const updated = prev.map(j => (j.id === updatedJob.id ? { ...j, ...updatedJob } : j));
-          try {
-            localStorage.setItem('arudhra_jobs_cache_v5', JSON.stringify(updated));
-          } catch (e) {}
-          return updated;
+          // If job is no longer active/published and current client is live visitor, remove it
+          if (!isAdmin && updatedJob.status && updatedJob.status.toLowerCase() !== 'published' && updatedJob.status.toLowerCase() !== 'active') {
+            return prev.filter(j => j.id !== updatedJob.id);
+          }
+          const exists = prev.some(j => j.id === updatedJob.id);
+          if (exists) {
+            return prev.map(j => (j.id === updatedJob.id ? { ...j, ...updatedJob } : j));
+          } else if (!isAdmin && (updatedJob.status === 'published' || updatedJob.status === 'active')) {
+            return [updatedJob, ...prev];
+          }
+          return prev;
         });
       } else if (event.action === 'deleted' && event.id) {
         const deletedId = event.id;
+        addLocalDeletedJobId(deletedId);
+        console.log('[AppProvider:Realtime] Real-time job deleted event received:', deletedId);
         setJobs(prev => {
           const updated = prev.filter(j => j.id !== deletedId);
-          try {
-            localStorage.setItem('arudhra_jobs_cache_v5', JSON.stringify(updated));
-          } catch (e) {}
+          console.log('[AppProvider:Realtime] Job list state updated after real-time deleted event. Remaining:', updated.length);
           return updated;
         });
       } else if (event.action === 'sync' && Array.isArray(event.jobs)) {
-        setJobs(event.jobs);
-        try {
-          localStorage.setItem('arudhra_jobs_cache_v5', JSON.stringify(event.jobs));
-        } catch (e) {}
+        const localDeleted = getLocalDeletedJobIds();
+        const cleanJobs = event.jobs.filter((j: any) => {
+          if (!j || !j.id) return false;
+          if (localDeleted.has(j.id)) return false;
+          if (j.is_deleted || j.isDeleted || j.deleted || j.status === 'deleted') return false;
+          if (!isAdmin && j.status && j.status.toLowerCase() !== 'published' && j.status.toLowerCase() !== 'active') return false;
+          return true;
+        });
+        console.log('[AppProvider:Realtime] Real-time job sync event received. Active clean jobs count:', cleanJobs.length);
+        setJobs(cleanJobs);
       }
     });
 

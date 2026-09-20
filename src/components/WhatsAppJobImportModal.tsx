@@ -48,7 +48,7 @@ export const WhatsAppJobImportModal: React.FC<WhatsAppJobImportModalProps> = ({
         if (data.success && data.data) {
           const result: WhatsAppVacancyExtractionResult = {
             ...data.data,
-            source: 'gemini',
+            source: data.source === 'gemini' ? 'gemini' : 'local_parser',
           };
           onExtract(result);
           onClose();
