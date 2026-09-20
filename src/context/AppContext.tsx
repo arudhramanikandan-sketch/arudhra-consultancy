@@ -392,29 +392,38 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       // Fallback for static hosting (e.g. GitHub Pages or static exports without Node.js backend)
       if (!ok || !data?.jobs || !Array.isArray(data.jobs)) {
-        try {
-          const staticRes = await fetch(`/jobs.json?_t=${timestamp}`, {
-            cache: 'no-store',
-            headers: {
-              'Cache-Control': 'no-cache, no-store, must-revalidate',
-              'Pragma': 'no-cache'
+        const candidateUrls = [
+          `./jobs.json?_t=${timestamp}`,
+          `/jobs.json?_t=${timestamp}`
+        ];
+        for (const staticUrl of candidateUrls) {
+          try {
+            const staticRes = await fetch(staticUrl, {
+              cache: 'no-store',
+              headers: {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache'
+              }
+            });
+            const staticData = await parseResponseSafe(staticRes);
+            if (staticData.ok && Array.isArray(staticData.data)) {
+              ok = true;
+              data = { success: true, jobs: staticData.data };
+              break;
+            } else if (staticData.ok && Array.isArray(staticData.data?.jobs)) {
+              ok = true;
+              data = { success: true, jobs: staticData.data.jobs };
+              break;
             }
-          });
-          const staticData = await parseResponseSafe(staticRes);
-          if (staticData.ok && Array.isArray(staticData.data)) {
-            ok = true;
-            data = { success: true, jobs: staticData.data };
-          } else if (staticData.ok && Array.isArray(staticData.data?.jobs)) {
-            ok = true;
-            data = { success: true, jobs: staticData.data.jobs };
-          }
-        } catch {}
+          } catch {}
+        }
       }
 
       if (ok && data?.success && Array.isArray(data.jobs)) {
         // Strict filtering: filter out hard/soft-deleted jobs
         const cleanJobs = data.jobs.filter((j: any) => {
           if (!j || !j.id) return false;
+          if (j.id === 'SG-JOB-106') return false;
           if (j.is_deleted === true || j.is_deleted === 'true' || j.is_deleted === 1) return false;
           if (j.isDeleted === true || j.isDeleted === 'true' || j.isDeleted === 1) return false;
           if (j.deleted === true || j.deleted === 'true' || j.deleted === 1) return false;

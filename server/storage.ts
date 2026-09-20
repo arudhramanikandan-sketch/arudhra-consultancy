@@ -274,6 +274,11 @@ class StorageService {
           fs.writeFileSync(path.join(distDir, 'jobs.json'), JSON.stringify(this.jobs, null, 2), 'utf-8');
         }
 
+        const docsDir = path.join(process.cwd(), 'docs');
+        if (fs.existsSync(docsDir)) {
+          fs.writeFileSync(path.join(docsDir, 'jobs.json'), JSON.stringify(this.jobs, null, 2), 'utf-8');
+        }
+
         // Also keep src/data/defaultJobs.ts in sync so initial load and static SSR always have current live jobs
         const defaultJobsPath = path.join(process.cwd(), 'src', 'data', 'defaultJobs.ts');
         if (fs.existsSync(defaultJobsPath)) {
