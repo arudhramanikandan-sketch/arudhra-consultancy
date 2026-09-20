@@ -261,13 +261,18 @@ class StorageService {
       fs.writeFileSync(tempPath, JSON.stringify(dataToSave, null, 2), 'utf-8');
       fs.renameSync(tempPath, this.filePath);
 
-      // Also sync public/jobs.json for static builds and direct client fallback
+      // Also sync public/jobs.json and dist/jobs.json for static builds and direct client fallback
       try {
         const publicDir = path.join(process.cwd(), 'public');
         if (!fs.existsSync(publicDir)) {
           fs.mkdirSync(publicDir, { recursive: true });
         }
         fs.writeFileSync(path.join(publicDir, 'jobs.json'), JSON.stringify(this.jobs, null, 2), 'utf-8');
+
+        const distDir = path.join(process.cwd(), 'dist');
+        if (fs.existsSync(distDir)) {
+          fs.writeFileSync(path.join(distDir, 'jobs.json'), JSON.stringify(this.jobs, null, 2), 'utf-8');
+        }
 
         // Also keep src/data/defaultJobs.ts in sync so initial load and static SSR always have current live jobs
         const defaultJobsPath = path.join(process.cwd(), 'src', 'data', 'defaultJobs.ts');
