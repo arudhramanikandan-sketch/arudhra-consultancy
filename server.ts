@@ -396,6 +396,19 @@ app.use(express.static(path.join(process.cwd(), 'public')));
     }
   });
 
+  app.get('/jobs.json', (req, res) => {
+    try {
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      res.setHeader('Surrogate-Control', 'no-store');
+      const jobs = storage.getJobs();
+      res.json(jobs);
+    } catch (error: any) {
+      res.status(500).json([]);
+    }
+  });
+
   app.get('/api/jobs/:id', (req, res) => {
     try {
       res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');

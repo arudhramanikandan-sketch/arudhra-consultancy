@@ -282,51 +282,6 @@ export const initialJobs: Job[] = [
     deadline: '2026-11-30',
     createdAt: '2026-08-29T11:00:00.000Z',
     updatedAt: '2026-08-29T11:00:00.000Z'
-  },
-  {
-    id: 'SG-JOB-106',
-    title: 'Electrical Maintenance & Automation Technician',
-    employer: 'Apex Industrial Systems Singapore',
-    category: 'Electrical & Maintenance',
-    location: 'Woodlands Industrial Park, Singapore',
-    salary: 'SGD 2,500 - 3,300 / month',
-    qualification: 'Diploma / ITI Electrical & Electronics',
-    experience: '3+ Years in Industrial Electrical Panels & PLC',
-    jobType: 'S Pass',
-    vacancyCount: 5,
-    description: 'Urgent vacancy for Electrical Technicians handling high-voltage distribution boards, PLC automation wiring, sensor calibration, motor drive maintenance, and industrial facility electrical troubleshooting.',
-    responsibilities: [
-      'Install, terminate, and commission electrical distribution panels and PLC control circuits',
-      'Troubleshoot motor starters, VFD drives, relays, limit switches, and control transformers',
-      'Perform preventive maintenance on industrial chillers, compressors, and backup gensets',
-      'Read and trace single-line electrical schematics accurately'
-    ],
-    requirements: [
-      'Diploma or ITI in Electrical / Electronic Engineering',
-      'Hands-on expertise with single-line diagrams (SLD) and electrical schematics',
-      'Commitment to Singapore MOM workplace electrical safety standards',
-      'Valid passport with minimum 2 years validity'
-    ],
-    benefits: [
-      'Transport allowance and shift allowances',
-      'Overtime pay for weekend scheduled maintenance shutdowns (1.5x / 2.0x)',
-      'Full medical and hospitalisation insurance under MOM guidelines',
-      'Annual bonus and safety performance rewards'
-    ],
-    requiredDocuments: [
-      'Resume with detailed electrical projects list',
-      'ITI / Diploma Electrical Certificates',
-      'Passport and Previous Experience Credentials',
-      'Passport Photos'
-    ],
-    image: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=800&q=80',
-    status: 'published',
-    featured: false,
-    latest: true,
-    postedDate: '2026-08-30',
-    deadline: '2026-12-15',
-    createdAt: '2026-08-30T10:00:00.000Z',
-    updatedAt: '2026-08-30T10:00:00.000Z'
   }
 ];
 
