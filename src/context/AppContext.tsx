@@ -110,50 +110,22 @@ interface AppContextType {
   toggleDarkMode: () => void;
 }
 
-function getLocalDeletedJobIds(): Set<string> {
-  try {
-    const raw = localStorage.getItem('arudhra_deleted_job_ids');
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) return new Set(parsed);
-    }
-  } catch {}
-  return new Set();
-}
-
-function addLocalDeletedJobId(id: string) {
-  try {
-    const set = getLocalDeletedJobIds();
-    set.add(id);
-    localStorage.setItem('arudhra_deleted_job_ids', JSON.stringify(Array.from(set)));
-  } catch {}
-}
-
-function removeLocalDeletedJobId(id: string) {
-  try {
-    const set = getLocalDeletedJobIds();
-    if (set.has(id)) {
-      set.delete(id);
-      localStorage.setItem('arudhra_deleted_job_ids', JSON.stringify(Array.from(set)));
-    }
-  } catch {}
-}
-
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, isAdmin, token, updateUserProfile } = useAuth();
   const [jobs, setJobs] = useState<Job[]>(() => {
     try {
-      // Purge all legacy client-side job caches completely so old/deleted jobs are never retained
+      // Purge all legacy client-side caches and shadow deleted IDs so API is always the single source of truth
       localStorage.removeItem('arudhra_jobs_cache');
       localStorage.removeItem('arudhra_jobs_cache_v2');
       localStorage.removeItem('arudhra_jobs_cache_v3');
       localStorage.removeItem('arudhra_jobs_cache_v4');
       localStorage.removeItem('arudhra_jobs_cache_v5');
       localStorage.removeItem('arudhra_jobs_cache_v6');
+      localStorage.removeItem('arudhra_deleted_job_ids');
     } catch (e) {}
-    return [];
+    return [...defaultJobs];
   });
   const [settings, setSettings] = useState<SiteSettings>(initialSiteSettings);
   const [videos, setVideos] = useState<VideoItem[]>([]);
@@ -440,11 +412,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
 
       if (ok && data?.success && Array.isArray(data.jobs)) {
-        const localDeleted = getLocalDeletedJobIds();
-        // Strict filtering: filter out hard/soft-deleted jobs and localDeleted IDs
+        // Strict filtering: filter out hard/soft-deleted jobs
         const cleanJobs = data.jobs.filter((j: any) => {
           if (!j || !j.id) return false;
-          if (localDeleted.has(j.id)) return false;
           if (j.is_deleted === true || j.is_deleted === 'true' || j.is_deleted === 1) return false;
           if (j.isDeleted === true || j.isDeleted === 'true' || j.isDeleted === 1) return false;
           if (j.deleted === true || j.deleted === 'true' || j.deleted === 1) return false;
@@ -588,7 +558,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (data.success) {
         showToast(data.message || (isEdit ? 'Job updated successfully' : 'Singapore Job created and published live'), 'success');
         if (data.job) {
-          removeLocalDeletedJobId(data.job.id);
           setJobs(prev => {
             let updatedList: Job[];
             if (options?.replaceExisting) {
@@ -624,7 +593,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const deleteJob = async (id: string) => {
     try {
       console.log('[AppProvider:WriteOp] deleteJob initiated for jobId:', id);
-      addLocalDeletedJobId(id);
       setJobs(prev => {
         const updated = prev.filter(j => j.id !== id);
         console.log('[AppProvider:StateUpdate] Job list state updated after deleteJob. Remaining count:', updated.length);
@@ -658,7 +626,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (!ids || ids.length === 0) return { success: false, message: 'No jobs selected' };
     try {
       console.log('[AppProvider:WriteOp] batchDeleteJobs initiated for IDs:', ids);
-      ids.forEach(id => addLocalDeletedJobId(id));
       setJobs(prev => {
         const updated = prev.filter(j => !ids.includes(j.id));
         console.log('[AppProvider:StateUpdate] Job list state updated after batchDeleteJobs. Remaining count:', updated.length);
@@ -1607,7 +1574,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const unsubscribeEvents = realtimeSync.subscribe((event) => {
       if (event.action === 'created' && event.job) {
         const newJob = event.job;
-        removeLocalDeletedJobId(newJob.id);
         setRecentlyAddedJobId(newJob.id);
         setTimeout(() => setRecentlyAddedJobId(prev => (prev === newJob.id ? null : prev)), 10000);
 
@@ -1650,7 +1616,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         });
       } else if (event.action === 'deleted' && event.id) {
         const deletedId = event.id;
-        addLocalDeletedJobId(deletedId);
         console.log('[AppProvider:Realtime] Real-time job deleted event received:', deletedId);
         setJobs(prev => {
           const updated = prev.filter(j => j.id !== deletedId);
@@ -1658,10 +1623,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           return updated;
         });
       } else if (event.action === 'sync' && Array.isArray(event.jobs)) {
-        const localDeleted = getLocalDeletedJobIds();
         const cleanJobs = event.jobs.filter((j: any) => {
           if (!j || !j.id) return false;
-          if (localDeleted.has(j.id)) return false;
           if (j.is_deleted || j.isDeleted || j.deleted || j.status === 'deleted') return false;
           if (!isAdmin && j.status && j.status.toLowerCase() !== 'published' && j.status.toLowerCase() !== 'active') return false;
           return true;
