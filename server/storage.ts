@@ -152,20 +152,10 @@ class StorageService {
         if (Array.isArray(data.deletedIds)) {
           this.deletedIds = new Set(data.deletedIds);
         }
-        if (Array.isArray(data.jobs) && data.jobs.length > 0) {
+        if (Array.isArray(data.jobs)) {
           this.jobs = data.jobs.filter((j: any) => !this.deletedIds.has(j.id));
         } else {
-          for (const ij of initialJobs) {
-            this.deletedIds.delete(ij.id);
-          }
           this.jobs = initialJobs.filter(j => !this.deletedIds.has(j.id));
-        }
-        if (this.jobs.length === 0 && initialJobs.length > 0) {
-          for (const ij of initialJobs) {
-            this.deletedIds.delete(ij.id);
-          }
-          this.jobs = [...initialJobs];
-          this.saveToDisk();
         }
         if (Array.isArray(data.enquiries)) {
           this.enquiries = data.enquiries.filter((e: any) => !this.deletedIds.has(e.id));
