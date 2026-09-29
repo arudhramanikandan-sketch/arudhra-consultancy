@@ -390,7 +390,8 @@ app.use(express.static(path.join(process.cwd(), 'public')));
         latest: latest === 'true',
         adminView: adminView === 'true'
       });
-      res.json({ success: true, count: jobs.length, jobs });
+      const lastUpdated = storage.getJobsLastUpdated();
+      res.json({ success: true, count: jobs.length, lastUpdated, jobs });
     } catch (error: any) {
       res.status(500).json({ success: false, error: error.message });
     }
@@ -996,6 +997,243 @@ Strict rules:
         result,
         message: 'Selected data cleaned and purged successfully.'
       });
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  // --- Professional CV Preparation Service Endpoints ---
+
+  app.get('/api/cv-orders', (req, res) => {
+    try {
+      const { mobile, status, search } = req.query;
+
+      // If not filtering by customer mobile, require admin token
+      if (!mobile) {
+        const authHeader = req.headers.authorization;
+        const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : '';
+        if (!storage.validateAdminToken(token)) {
+          return res.status(403).json({
+            success: false,
+            message: 'Forbidden: Admin authorization required to view all CV orders.'
+          });
+        }
+      }
+
+      const orders = storage.getCVOrders({
+        mobile: mobile as string,
+        status: status as string,
+        search: search as string
+      });
+
+      res.json({ success: true, count: orders.length, orders });
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  app.get('/api/cv-orders/track/:query', (req, res) => {
+    try {
+      const query = req.params.query;
+      if (!query || query.trim().length < 3) {
+        return res.status(400).json({ success: false, message: 'Please provide a valid Order ID (e.g. AC-CV-2026-...) or registered mobile number.' });
+      }
+
+      const results = storage.trackCVOrder(query);
+      if (results.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: `No CV orders found matching "${query}". Please check your Order ID or mobile number.`
+        });
+      }
+
+      // Return sanitized public tracking data
+      const publicOrders = results.map(o => ({
+        id: o.id,
+        customerName: o.customerName,
+        mobile: o.mobile.slice(0, 3) + '****' + o.mobile.slice(-3),
+        jobCategory: o.jobCategory,
+        experienceLevel: o.experienceLevel,
+        cvType: o.cvType,
+        cvPackageName: o.cvPackageName,
+        selectedTemplateId: o.selectedTemplateId,
+        selectedTemplateName: o.selectedTemplateName,
+        amount: o.amount,
+        currency: o.currency,
+        paymentStatus: o.paymentStatus,
+        paymentMethod: o.paymentMethod,
+        paidAt: o.paidAt,
+        orderStatus: o.orderStatus,
+        createdAt: o.createdAt,
+        updatedAt: o.updatedAt,
+        deliveredAt: o.deliveredAt,
+        deliveryMethod: o.deliveryMethod
+      }));
+
+      res.json({ success: true, count: publicOrders.length, orders: publicOrders });
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  app.get('/api/cv-orders/:id', (req, res) => {
+    try {
+      const order = storage.getCVOrderById(req.params.id);
+      if (!order) {
+        return res.status(404).json({ success: false, message: 'CV order not found' });
+      }
+      res.json({ success: true, order });
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  app.post('/api/cv-orders/initiate', (req, res) => {
+    try {
+      const {
+        customerName,
+        mobile,
+        email,
+        jobCategory,
+        customCategory,
+        experienceLevel,
+        cvType,
+        cvPackageName,
+        selectedTemplateId,
+        selectedTemplateName,
+        amount,
+        notes,
+        personalDetails,
+        careerObjective,
+        educationList,
+        employmentHistory,
+        skillsData,
+        projects,
+        internships,
+        certifications,
+        seminars,
+        activities,
+        achievements,
+        overseasInfo,
+        documents,
+        fresherDetails
+      } = req.body;
+
+      if (!customerName || !mobile || !jobCategory || !experienceLevel || !cvType) {
+        return res.status(400).json({
+          success: false,
+          message: 'Full Name, Mobile Number, Job Category, Experience Level, and CV Type are required.'
+        });
+      }
+
+      const order = storage.createCVOrder({
+        customerName,
+        mobile,
+        email: email || '',
+        jobCategory,
+        customCategory,
+        experienceLevel,
+        cvType,
+        cvPackageName: cvPackageName || 'Professional CV',
+        selectedTemplateId,
+        selectedTemplateName,
+        amount: Number(amount) || 199,
+        notes,
+        personalDetails,
+        careerObjective,
+        educationList,
+        employmentHistory,
+        skillsData,
+        projects,
+        internships,
+        certifications,
+        seminars,
+        activities,
+        achievements,
+        overseasInfo,
+        documents,
+        fresherDetails
+      });
+
+      res.status(201).json({
+        success: true,
+        order,
+        message: 'CV Order initiated successfully. Please complete payment to confirm order.'
+      });
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  app.post('/api/cv-orders/verify-payment', (req, res) => {
+    try {
+      const { orderId, paymentMethod, paymentId, utr } = req.body;
+      if (!orderId) {
+        return res.status(400).json({ success: false, message: 'Order ID is required to verify payment.' });
+      }
+
+      const result = storage.verifyCVPayment(orderId, {
+        paymentMethod: paymentMethod || 'upi',
+        paymentId,
+        utr
+      });
+
+      if (!result.success) {
+        return res.status(400).json(result);
+      }
+
+      res.json({
+        success: true,
+        order: result.order,
+        message: 'Payment verified successfully! Please send your details and documents via WhatsApp.'
+      });
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  app.patch('/api/cv-orders/:id/status', requireAdminAuth, (req, res) => {
+    try {
+      const {
+        status,
+        adminNotes,
+        deliveredPdfUrl,
+        deliveredWordUrl,
+        deliveredDocUrl,
+        deliveryMethod,
+        revisionNotes,
+        revisionCount
+      } = req.body;
+      if (!status) {
+        return res.status(400).json({ success: false, message: 'Status is required' });
+      }
+
+      const updated = storage.updateCVOrderStatus(req.params.id, status, adminNotes, {
+        deliveredPdfUrl,
+        deliveredWordUrl,
+        deliveredDocUrl,
+        deliveryMethod,
+        revisionNotes,
+        revisionCount
+      });
+
+      if (!updated) {
+        return res.status(404).json({ success: false, message: 'CV order not found' });
+      }
+
+      res.json({ success: true, order: updated, message: 'CV order status updated successfully' });
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  app.delete('/api/cv-orders/:id', requireAdminAuth, (req, res) => {
+    try {
+      const deleted = storage.deleteCVOrder(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ success: false, message: 'CV order not found' });
+      }
+      res.json({ success: true, message: 'CV order deleted successfully' });
     } catch (error: any) {
       res.status(500).json({ success: false, error: error.message });
     }

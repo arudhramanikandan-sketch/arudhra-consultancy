@@ -22,7 +22,24 @@ import {
   CandidateRecord,
   CandidateDocument,
   InterestedJob,
-  ApplicationStatus
+  ApplicationStatus,
+  CVOrder,
+  CVOrderStatus,
+  CVExperienceLevel,
+  CVPackageType,
+  CVEmploymentRecord,
+  CVFresherDetails,
+  CVPersonalDetails,
+  CVEducationRecord,
+  CVSkillsData,
+  CVProjectRecord,
+  CVInternshipRecord,
+  CVCertificationRecord,
+  CVSeminarRecord,
+  CVActivityRecord,
+  CVAchievementRecord,
+  CVOverseasInfo,
+  CVSupportingDocument
 } from '../src/types';
 import { sendWhatsAppOtp, isWhatsAppConfigured, formatWhatsAppNumber } from './whatsapp';
 import {
@@ -131,6 +148,7 @@ class StorageService {
   private users: User[] = [initialAdminUser];
   private candidates: CandidateRecord[] = [...initialCandidates];
   private candidateCounter: number = 3;
+  private cvOrders: CVOrder[] = [];
   private otpStore: Map<string, OtpRecord> = new Map();
   private otpRateLimits: Map<string, RateLimitRecord> = new Map();
   private emailOtpStore: Map<string, EmailOtpRecord> = new Map();
@@ -180,6 +198,9 @@ class StorageService {
         if (typeof data.candidateCounter === 'number') {
           this.candidateCounter = data.candidateCounter;
         }
+        if (Array.isArray(data.cvOrders)) {
+          this.cvOrders = data.cvOrders.filter((o: any) => !this.deletedIds.has(o.id));
+        }
         if (data.settings && typeof data.settings === 'object') {
           this.settings = { ...this.settings, ...data.settings };
         }
@@ -202,6 +223,11 @@ class StorageService {
         this.settings.autoClearOldLeadsOnNewJob = false;
         this.settings.autoReplaceOldFlyers = false;
         this.settings.autoReplaceOldVideos = false;
+        if (data.settings?.jobsLastUpdatedAt) {
+          this.settings.jobsLastUpdatedAt = data.settings.jobsLastUpdatedAt;
+        } else {
+          this.settings.jobsLastUpdatedAt = this.getJobsLastUpdated();
+        }
         console.log(`[Storage] Persistent storage loaded. Jobs: ${this.jobs.length}, Enquiries: ${this.enquiries.length}, Candidates: ${this.candidates.length}, Users: ${this.users.length}, Tracked deleted items: ${this.deletedIds.size}, Brevo configured: ${isBrevoConfigured(this.settings.brevoApiKey)}`);
         try {
           const publicDir = path.join(process.cwd(), 'public');
@@ -232,6 +258,7 @@ class StorageService {
         return true;
       });
       const settingsToSave = { ...this.settings };
+      settingsToSave.jobsLastUpdatedAt = this.getJobsLastUpdated();
       // Security: never persist API keys into storage_data.json on disk
       delete settingsToSave.brevoApiKey;
 
@@ -244,6 +271,7 @@ class StorageService {
         users: this.users,
         candidates: this.candidates.filter(c => !this.deletedIds.has(c.id) && !this.deletedIds.has(c.candidateId)),
         candidateCounter: this.candidateCounter,
+        cvOrders: this.cvOrders.filter(o => !this.deletedIds.has(o.id)),
         deletedIds: Array.from(this.deletedIds),
         savedAt: new Date().toISOString()
       };
@@ -951,6 +979,33 @@ class StorageService {
     return job;
   }
 
+  public touchJobsLastUpdated(timestamp?: string): string {
+    const ts = timestamp || new Date().toISOString();
+    this.settings.jobsLastUpdatedAt = ts;
+    return ts;
+  }
+
+  public getJobsLastUpdated(): string {
+    if (this.settings.jobsLastUpdatedAt) {
+      return this.settings.jobsLastUpdatedAt;
+    }
+    let latest = 0;
+    for (const job of this.jobs) {
+      const d = new Date(job.updatedAt || job.createdAt || job.postedDate).getTime();
+      if (!isNaN(d) && d > latest) {
+        latest = d;
+      }
+    }
+    if (latest > 0) {
+      const ts = new Date(latest).toISOString();
+      this.settings.jobsLastUpdatedAt = ts;
+      return ts;
+    }
+    const fallback = new Date().toISOString();
+    this.settings.jobsLastUpdatedAt = fallback;
+    return fallback;
+  }
+
   public createJob(
     jobData: Omit<Job, 'id' | 'createdAt' | 'updatedAt'>,
     _options?: { replaceExisting?: boolean; clearOldLeads?: boolean }
@@ -970,6 +1025,7 @@ class StorageService {
       updatedAt: now
     };
     this.jobs.unshift(newJob);
+    this.touchJobsLastUpdated(now);
     this.saveToDisk();
 
     // Broadcast real-time job creation event to all connected listeners
@@ -995,6 +1051,7 @@ class StorageService {
       ...updates,
       updatedAt: now
     };
+    this.touchJobsLastUpdated(now);
     this.saveToDisk();
 
     // Broadcast real-time job update event to all connected listeners
@@ -1025,6 +1082,7 @@ class StorageService {
         c.interestedJobs = c.interestedJobs.filter(ij => ij.jobId !== id && !this.deletedIds.has(ij.jobId));
       }
     });
+    this.touchJobsLastUpdated();
     this.saveToDisk();
 
     // Broadcast real-time job deletion event to all connected listeners
@@ -1060,6 +1118,7 @@ class StorageService {
       updatedAt: now
     };
     this.jobs.unshift(duplicated);
+    this.touchJobsLastUpdated(now);
     this.saveToDisk();
 
     // Broadcast real-time job creation for duplicate
@@ -1482,6 +1541,7 @@ class StorageService {
     if (!s.email || s.email === 'arudhramanikandan@gmail.com' || s.email === 'admin@arudhra.com') {
       s.email = 'info@arudhraconsultancy.com';
     }
+    s.jobsLastUpdatedAt = this.getJobsLastUpdated();
     if (!includeSensitive) {
       delete s.admin2faSecret;
       delete s.admin2faPin;
@@ -2509,6 +2569,12 @@ class StorageService {
     const pendingFollowUps = validEnquiries.filter(e => ['Contacted', 'Documents Pending', 'Processing'].includes(e.status)).length;
     const selectedClosed = validEnquiries.filter(e => ['Selected', 'Closed'].includes(e.status)).length;
 
+    const validCvOrders = this.cvOrders.filter(o => !this.deletedIds.has(o.id));
+    const totalCvOrders = validCvOrders.length;
+    const paidCvOrders = validCvOrders.filter(o => o.paymentStatus === 'paid').length;
+    const inProgressCvOrders = validCvOrders.filter(o => ['paid', 'in_preparation', 'under_review'].includes(o.orderStatus)).length;
+    const completedCvOrders = validCvOrders.filter(o => o.orderStatus === 'completed').length;
+
     return {
       totalJobs,
       activeJobs,
@@ -2517,8 +2583,240 @@ class StorageService {
       totalCandidates,
       newEnquiries,
       pendingFollowUps,
-      selectedClosed
+      selectedClosed,
+      totalCvOrders,
+      paidCvOrders,
+      inProgressCvOrders,
+      completedCvOrders
     };
+  }
+
+  // --- Professional CV Order Methods ---
+
+  public getCVOrders(filter?: { search?: string; status?: string; mobile?: string }): CVOrder[] {
+    let list = this.cvOrders.filter(o => !this.deletedIds.has(o.id));
+
+    if (filter?.mobile) {
+      const cleanMobile = this.normalizePhone(filter.mobile);
+      list = list.filter(o => this.normalizePhone(o.mobile).includes(cleanMobile));
+    }
+    if (filter?.status && filter.status !== 'All') {
+      list = list.filter(o => o.orderStatus === filter.status);
+    }
+    if (filter?.search) {
+      const q = filter.search.toLowerCase().trim();
+      list = list.filter(
+        o =>
+          o.id.toLowerCase().includes(q) ||
+          o.customerName.toLowerCase().includes(q) ||
+          o.mobile.includes(q) ||
+          (o.email && o.email.toLowerCase().includes(q)) ||
+          o.jobCategory.toLowerCase().includes(q) ||
+          o.cvPackageName.toLowerCase().includes(q)
+      );
+    }
+
+    return list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
+  public getCVOrderById(id: string): CVOrder | undefined {
+    const cleanId = id.trim().toUpperCase();
+    return this.cvOrders.find(o => !this.deletedIds.has(o.id) && o.id.toUpperCase() === cleanId);
+  }
+
+  public trackCVOrder(query: string): CVOrder[] {
+    const clean = query.trim().toUpperCase();
+    const cleanPhone = this.normalizePhone(query);
+    return this.cvOrders
+      .filter(o => !this.deletedIds.has(o.id))
+      .filter(o => {
+        if (o.id.toUpperCase() === clean) return true;
+        if (cleanPhone && cleanPhone.length >= 6 && this.normalizePhone(o.mobile).includes(cleanPhone)) return true;
+        if (o.email && o.email.toLowerCase() === query.trim().toLowerCase()) return true;
+        return false;
+      })
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
+  public createCVOrder(data: {
+    customerName: string;
+    mobile: string;
+    email: string;
+    jobCategory: string;
+    customCategory?: string;
+    experienceLevel: CVExperienceLevel;
+    cvType: CVPackageType;
+    cvPackageName: string;
+    selectedTemplateId?: string;
+    selectedTemplateName?: string;
+    amount: number;
+    notes?: string;
+    personalDetails?: CVPersonalDetails;
+    careerObjective?: string;
+    educationList?: CVEducationRecord[];
+    employmentHistory?: CVEmploymentRecord[];
+    skillsData?: CVSkillsData;
+    projects?: CVProjectRecord[];
+    internships?: CVInternshipRecord[];
+    certifications?: CVCertificationRecord[];
+    seminars?: CVSeminarRecord[];
+    activities?: CVActivityRecord[];
+    achievements?: CVAchievementRecord[];
+    overseasInfo?: CVOverseasInfo;
+    documents?: CVSupportingDocument[];
+    fresherDetails?: CVFresherDetails;
+  }): CVOrder {
+    // Generate sequential AR-CV-100001 ID
+    let nextNum = 100001;
+    for (const o of this.cvOrders) {
+      const match = o.id.match(/^AR-CV-(\d+)/i) || o.id.match(/^AC-CV-\d+-(\d+)/i);
+      if (match) {
+        const num = parseInt(match[1], 10);
+        if (num >= nextNum) {
+          nextNum = num + 1;
+        }
+      }
+    }
+    const newId = `AR-CV-${nextNum}`;
+    const now = new Date().toISOString();
+
+    const order: CVOrder = {
+      id: newId,
+      customerName: data.customerName.trim(),
+      mobile: data.mobile.trim(),
+      email: data.email.trim(),
+      jobCategory: data.jobCategory === 'Other' && data.customCategory ? data.customCategory.trim() : data.jobCategory,
+      customCategory: data.customCategory?.trim(),
+      experienceLevel: data.experienceLevel,
+      cvType: data.cvType,
+      cvPackageName: data.cvPackageName,
+      selectedTemplateId: data.selectedTemplateId,
+      selectedTemplateName: data.selectedTemplateName,
+      amount: data.amount,
+      currency: 'INR',
+      paymentStatus: 'pending',
+      orderStatus: 'payment_pending',
+      notes: data.notes?.trim(),
+
+      personalDetails: data.personalDetails,
+      careerObjective: data.careerObjective?.trim(),
+      educationList: data.educationList,
+      employmentHistory: data.employmentHistory,
+      skillsData: data.skillsData,
+      projects: data.projects,
+      internships: data.internships,
+      certifications: data.certifications,
+      seminars: data.seminars,
+      activities: data.activities,
+      achievements: data.achievements,
+      overseasInfo: data.overseasInfo,
+      documents: data.documents,
+      fresherDetails: data.fresherDetails,
+
+      createdAt: now,
+      updatedAt: now
+    };
+
+    this.cvOrders.unshift(order);
+    this.saveToDisk();
+
+    this.events.emit('cvOrderCreated', order);
+    return order;
+  }
+
+  public verifyCVPayment(
+    orderId: string,
+    paymentDetails: {
+      paymentMethod?: 'upi' | 'card' | 'netbanking' | 'qr';
+      paymentId?: string;
+      utr?: string;
+    }
+  ): { success: boolean; order?: CVOrder; message?: string } {
+    const order = this.getCVOrderById(orderId);
+    if (!order) {
+      return { success: false, message: `Order #${orderId} was not found.` };
+    }
+
+    const now = new Date().toISOString();
+    const method = paymentDetails.paymentMethod || 'upi';
+    const ref = paymentDetails.paymentId || paymentDetails.utr || `PAY-IN-${Date.now().toString().slice(-8)}`;
+
+    order.paymentStatus = 'paid';
+    order.orderStatus = 'paid';
+    order.paymentMethod = method;
+    order.paymentId = ref;
+    order.paidAt = now;
+    order.updatedAt = now;
+
+    this.saveToDisk();
+    this.events.emit('cvOrderPaid', order);
+
+    return {
+      success: true,
+      order,
+      message: 'Payment verified and confirmed by Arudhra Consultancy backend.'
+    };
+  }
+
+  public updateCVOrderStatus(
+    id: string,
+    status: CVOrderStatus,
+    adminNotes?: string,
+    deliveryData?: {
+      deliveredPdfUrl?: string;
+      deliveredWordUrl?: string;
+      deliveredDocUrl?: string;
+      deliveryMethod?: 'whatsapp' | 'email' | 'both';
+      revisionNotes?: string;
+      revisionCount?: number;
+    }
+  ): CVOrder | undefined {
+    const order = this.getCVOrderById(id);
+    if (!order) return undefined;
+
+    const now = new Date().toISOString();
+    order.orderStatus = status;
+    if (adminNotes !== undefined) {
+      order.adminNotes = adminNotes;
+    }
+    if (status === 'completed' || status === 'delivered') {
+      order.deliveredAt = now;
+    }
+    if (deliveryData?.deliveredPdfUrl) {
+      order.deliveredPdfUrl = deliveryData.deliveredPdfUrl;
+    }
+    if (deliveryData?.deliveredWordUrl) {
+      order.deliveredWordUrl = deliveryData.deliveredWordUrl;
+    }
+    if (deliveryData?.deliveredDocUrl) {
+      order.deliveredDocUrl = deliveryData.deliveredDocUrl;
+    }
+    if (deliveryData?.deliveryMethod) {
+      order.deliveryMethod = deliveryData.deliveryMethod;
+    }
+    if (deliveryData?.revisionNotes !== undefined) {
+      order.revisionNotes = deliveryData.revisionNotes;
+    }
+    if (deliveryData?.revisionCount !== undefined) {
+      order.revisionCount = deliveryData.revisionCount;
+    }
+    order.updatedAt = now;
+
+    this.saveToDisk();
+    this.events.emit('cvOrderUpdated', order);
+    return order;
+  }
+
+  public deleteCVOrder(id: string): boolean {
+    const cleanId = id.trim().toUpperCase();
+    const idx = this.cvOrders.findIndex(o => o.id.toUpperCase() === cleanId);
+    if (idx === -1) return false;
+
+    this.deletedIds.add(this.cvOrders[idx].id);
+    this.cvOrders.splice(idx, 1);
+    this.saveToDisk();
+    this.events.emit('cvOrderDeleted', cleanId);
+    return true;
   }
 }
 

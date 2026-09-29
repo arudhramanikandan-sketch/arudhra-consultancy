@@ -170,6 +170,19 @@ export const Footer: React.FC = () => {
               </li>
               <li>
                 <button
+                  id="footer-link-cv"
+                  onClick={() => {
+                    setCurrentTab('cv');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="hover:text-red-300 transition-colors flex items-center gap-1.5 font-semibold text-stone-300 cursor-pointer"
+                >
+                  <ChevronRight className="w-3.5 h-3.5 text-stone-600" />
+                  <span>Create Your Professional CV</span>
+                </button>
+              </li>
+              <li>
+                <button
                   id="footer-link-about"
                   onClick={() => {
                     setCurrentTab('about');

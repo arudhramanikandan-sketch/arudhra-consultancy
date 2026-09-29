@@ -4,6 +4,7 @@ import { AdBannerSection } from '../components/AdBannerSection';
 import { AllLiveJobsSection } from '../components/FeaturedJobsSection';
 import { WhyChooseSection } from '../components/WhyChooseSection';
 import { ProcessSection } from '../components/ProcessSection';
+import { CVServiceSection } from '../components/CVServiceSection';
 import { VideosSection } from '../components/VideosSection';
 import { GoogleReviewsSection } from '../components/GoogleReviewsSection';
 import { TravelESimSection } from '../components/TravelESimSection';
@@ -36,6 +37,9 @@ export const HomeView: React.FC<HomeViewProps> = ({ onSearch }) => {
 
       {/* 4. Why Choose Arudhra Consultancy */}
       <WhyChooseSection />
+
+      {/* 5. Create Your Professional CV Service */}
+      <CVServiceSection />
 
       {/* 6. How the Recruitment Process Works */}
       <ProcessSection />

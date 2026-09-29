@@ -4,6 +4,7 @@ import { useApp } from '../context/AppContext';
 import { Job, Enquiry, Advertisement, VideoItem, SiteSettings, EnquiryStatus, CandidateRecord, ApplicationStatus } from '../types';
 import { CandidateAdminModal } from '../components/CandidateAdminModal';
 import { CandidateProfilePdfModal } from '../components/CandidateProfilePdfModal';
+import { AdminCVOrdersSection } from '../components/AdminCVOrdersSection';
 import {
   Briefcase,
   Users,
@@ -90,7 +91,7 @@ export const AdminDashboardView: React.FC = () => {
     purgeAllOldData
   } = useApp();
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'candidates' | 'jobs' | 'enquiries' | 'ads' | 'videos' | 'branding' | 'settings'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'candidates' | 'jobs' | 'enquiries' | 'cv-orders' | 'ads' | 'videos' | 'branding' | 'settings'>('overview');
 
   // Candidate Management State
   const [selectedCandidate, setSelectedCandidate] = useState<CandidateRecord | null>(null);
@@ -860,6 +861,7 @@ export const AdminDashboardView: React.FC = () => {
             { id: 'candidates', label: `Candidates (${adminCandidates.length})`, icon: User },
             { id: 'jobs', label: `Singapore Jobs (${jobs.length})`, icon: Briefcase },
             { id: 'enquiries', label: `Candidate Leads (${enquiries.length})`, icon: Users },
+            { id: 'cv-orders', label: 'CV Orders', icon: FileText },
             { id: 'branding', label: 'Brand & Logo', icon: Building },
             { id: 'ads', label: 'Flyers & Ads', icon: ImageIcon },
             { id: 'videos', label: 'Videos', icon: Youtube },
@@ -960,6 +962,13 @@ export const AdminDashboardView: React.FC = () => {
                 >
                   <Users className="w-4 h-4 text-slate-600" />
                   <span>Review Leads</span>
+                </button>
+                <button
+                  onClick={() => setActiveTab('cv-orders')}
+                  className="px-4 py-2.5 bg-red-950 hover:bg-red-900 text-red-200 border border-red-800 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                  <FileText className="w-4 h-4 text-red-400" />
+                  <span>CV Orders</span>
                 </button>
               </div>
             </div>
@@ -2057,6 +2066,13 @@ export const AdminDashboardView: React.FC = () => {
                 </table>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* 3.5. CV ORDERS TAB */}
+        {activeTab === 'cv-orders' && (
+          <div className="animate-in fade-in">
+            <AdminCVOrdersSection />
           </div>
         )}
 

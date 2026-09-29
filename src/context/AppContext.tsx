@@ -24,6 +24,7 @@ interface Toast {
 
 interface AppContextType {
   jobs: Job[];
+  jobsLastUpdatedAt: string;
   realtimeConnected: boolean;
   recentlyAddedJobId: string | null;
   settings: SiteSettings;
@@ -128,6 +129,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return [...defaultJobs];
   });
   const [settings, setSettings] = useState<SiteSettings>(initialSiteSettings);
+  const [jobsLastUpdatedAt, setJobsLastUpdatedAt] = useState<string>(() => {
+    try {
+      const saved = localStorage.getItem('arudhra_jobs_last_updated');
+      if (saved) return saved;
+    } catch {}
+    return initialSiteSettings.jobsLastUpdatedAt || new Date().toISOString();
+  });
   const [videos, setVideos] = useState<VideoItem[]>([]);
   const [ads, setAds] = useState<Advertisement[]>([]);
   const [enquiries, setEnquiries] = useState<Enquiry[]>([]);
@@ -353,6 +361,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const { ok, data } = await parseResponseSafe(res);
       if (ok && data?.success && data.settings) {
         setSettings(data.settings);
+        if (data.settings.jobsLastUpdatedAt) {
+          setJobsLastUpdatedAt(data.settings.jobsLastUpdatedAt);
+          try {
+            localStorage.setItem('arudhra_jobs_last_updated', data.settings.jobsLastUpdatedAt);
+          } catch {}
+        }
       }
     } catch (err) {
       console.warn('Failed to fetch settings:', err);
@@ -423,7 +437,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         // Strict filtering: filter out hard/soft-deleted jobs
         const cleanJobs = data.jobs.filter((j: any) => {
           if (!j || !j.id) return false;
-          if (j.id === 'SG-JOB-106') return false;
           if (j.is_deleted === true || j.is_deleted === 'true' || j.is_deleted === 1) return false;
           if (j.isDeleted === true || j.isDeleted === 'true' || j.isDeleted === 1) return false;
           if (j.deleted === true || j.deleted === 'true' || j.deleted === 1) return false;
@@ -437,6 +450,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           activeCleanCount: cleanJobs.length,
           activeJobTitles: cleanJobs.map((j: Job) => j.title)
         });
+
+        if (data.lastUpdated) {
+          setJobsLastUpdatedAt(data.lastUpdated);
+          try {
+            localStorage.setItem('arudhra_jobs_last_updated', data.lastUpdated);
+          } catch {}
+        }
 
         setJobs(cleanJobs);
       }
@@ -565,6 +585,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       });
       const data = await res.json();
       if (data.success) {
+        const nowTs = new Date().toISOString();
+        setJobsLastUpdatedAt(nowTs);
+        try {
+          localStorage.setItem('arudhra_jobs_last_updated', nowTs);
+        } catch {}
         showToast(data.message || (isEdit ? 'Job updated successfully' : 'Singapore Job created and published live'), 'success');
         if (data.job) {
           setJobs(prev => {
@@ -617,6 +642,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       });
       const data = await res.json();
       if (data.success) {
+        const nowTs = new Date().toISOString();
+        setJobsLastUpdatedAt(nowTs);
+        try {
+          localStorage.setItem('arudhra_jobs_last_updated', nowTs);
+        } catch {}
         showToast('Job permanently deleted', 'success');
         console.log('[AppProvider:Revalidation] Triggering job collection revalidation after deleteJob write operation...');
         await refreshJobs();
@@ -1738,6 +1768,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         currentTab,
         setCurrentTab,
         goBack,
+        jobsLastUpdatedAt,
         candidate,
         candidateLoading,
         adminCandidates,

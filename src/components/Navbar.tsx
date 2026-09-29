@@ -74,6 +74,7 @@ export const Navbar: React.FC = () => {
   const navLinks = [
     { id: 'home', label: 'Home' },
     { id: 'jobs', label: 'Singapore Jobs' },
+    { id: 'cv', label: 'Create Your CV' },
     { id: 'esim', label: 'Travel eSIM' },
     { id: 'videos', label: 'Videos' },
     { id: 'about', label: 'About Us' },

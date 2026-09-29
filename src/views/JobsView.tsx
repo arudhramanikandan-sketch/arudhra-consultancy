@@ -9,12 +9,14 @@ import {
   RefreshCw,
   Sparkles,
   Clock,
+  Calendar,
   X,
   SlidersHorizontal,
   Users,
 } from "lucide-react";
 import { JobCategory, JobType } from "../types";
 import { SubpageBackButton } from "../components/SubpageBackButton";
+import { formatJobsLastUpdated } from "../utils/dateFormatter";
 
 interface JobsViewProps {
   initialSearch?: string;
@@ -25,8 +27,12 @@ export const JobsView: React.FC<JobsViewProps> = ({
   initialSearch = "",
   initialCategory = "All",
 }) => {
-  const { jobs, refreshJobs, setCurrentTab, settings } = useApp();
+  const { jobs, refreshJobs, setCurrentTab, settings, jobsLastUpdatedAt } = useApp();
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const formattedLastUpdated = formatJobsLastUpdated(
+    jobsLastUpdatedAt || settings.jobsLastUpdatedAt
+  );
 
   // Ensure latest persisted jobs are pulled immediately on mount
   useEffect(() => {
@@ -184,9 +190,19 @@ export const JobsView: React.FC<JobsViewProps> = ({
 
         {/* Header Title */}
         <div className="bg-slate-900 text-white rounded-3xl p-6 sm:p-10 relative overflow-hidden shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="relative z-10 max-w-2xl space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/20 text-rose-300 text-xs font-bold border border-rose-500/30">
-              <span>🇸🇬 Singapore Overseas Jobs Directory</span>
+          <div className="relative z-10 max-w-2xl space-y-2.5">
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/20 text-rose-300 text-xs font-bold border border-rose-500/30">
+                <span>🇸🇬 Singapore Overseas Jobs Directory</span>
+              </div>
+              <div
+                id="jobs-last-updated-badge"
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-800/90 text-amber-300 text-xs font-semibold border border-amber-400/30 shadow-xs backdrop-blur-xs"
+                title="Dynamic latest update timestamp for all job vacancies"
+              >
+                <Clock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                <span>Last Updated: {formattedLastUpdated}</span>
+              </div>
             </div>
             <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
               Singapore Job Opportunities
@@ -196,10 +212,17 @@ export const JobsView: React.FC<JobsViewProps> = ({
               SGD, verified employer locations, and immediate application
               tracking.
             </p>
+            <div
+              id="jobs-last-updated-subtext"
+              className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-slate-800/70 border border-slate-700/50 text-xs text-slate-200 font-medium"
+            >
+              <Calendar className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+              <span>Last Updated: <strong className="text-white font-semibold">{formattedLastUpdated}</strong></span>
+            </div>
           </div>
 
-          {settings.whatsappGroupUrl && (
-            <div className="relative z-10 shrink-0 w-full sm:w-auto">
+          <div className="relative z-10 shrink-0 flex flex-col sm:flex-row md:flex-col lg:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+            {settings.whatsappGroupUrl && (
               <a
                 id="jobs-join-whatsapp-group-btn"
                 href={settings.whatsappGroupUrl}
@@ -211,8 +234,19 @@ export const JobsView: React.FC<JobsViewProps> = ({
                 <Users className="w-4 h-4" />
                 <span>Join WhatsApp Job Group</span>
               </a>
-            </div>
-          )}
+            )}
+            <button
+              id="jobs-manual-refresh-btn"
+              type="button"
+              onClick={handleManualRefresh}
+              disabled={isRefreshing}
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 text-xs sm:text-sm font-semibold border border-slate-700/60 transition-all cursor-pointer"
+              title="Refresh job listings and timestamp"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 text-amber-400 ${isRefreshing ? "animate-spin" : ""}`} />
+              <span>{isRefreshing ? "Syncing..." : "Refresh"}</span>
+            </button>
+          </div>
         </div>
 
         {/* Search & Quick Controls Bar */}
@@ -535,6 +569,10 @@ export const JobsView: React.FC<JobsViewProps> = ({
                 filled. Our Singapore overseas recruitment desk updates verified
                 employer vacancies frequently.
               </p>
+              <div className="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200">
+                <Clock className="w-3.5 h-3.5 text-slate-500" />
+                <span>Last Updated: {formattedLastUpdated}</span>
+              </div>
             </div>
             <button
               id="empty-register-profile-btn"

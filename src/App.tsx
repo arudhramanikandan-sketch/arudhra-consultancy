@@ -18,6 +18,7 @@ import { CandidateLoginView } from './views/CandidateLoginView';
 import { AdminLoginView } from './views/AdminLoginView';
 import { AdminDashboardView } from './views/AdminDashboardView';
 import { TravelESimView } from './views/TravelESimView';
+import { CreateCVView } from './views/CreateCVView';
 import { GoogleReviewsSection } from './components/GoogleReviewsSection';
 import { SubpageBackButton } from './components/SubpageBackButton';
 
@@ -150,6 +151,7 @@ const MainAppContent: React.FC = () => {
           <JobsView initialSearch={jobSearchQuery} initialCategory={jobCategoryQuery} />
         )}
         {currentTab === 'about' && <AboutUsView />}
+        {currentTab === 'cv' && <CreateCVView />}
         {currentTab === 'videos' && <VideosView />}
         {currentTab === 'esim' && <TravelESimView />}
         {currentTab === 'reviews' && (

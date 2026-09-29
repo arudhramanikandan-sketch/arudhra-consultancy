@@ -53,7 +53,8 @@ export const initialSiteSettings: SiteSettings = {
   autoReplaceOldFlyers: false,
   autoReplaceOldVideos: false,
   autoClearOldLeadsOnNewJob: false,
-  autoPruneOldLeads: false
+  autoPruneOldLeads: false,
+  jobsLastUpdatedAt: '2026-09-29T05:56:00.000Z'
 };
 
 export const initialJobs: Job[] = [];

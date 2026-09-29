@@ -1,4 +1,4 @@
-import { Job } from "../types";
+import { Job } from '../types';
 
 /**
  * Default fallback job array populated with active Singapore vacancies.
@@ -6,406 +6,335 @@ import { Job } from "../types";
  */
 export const defaultJobs: Job[] = [
   {
-    "id": "SG-JOB-2026-001",
-    "title": "Senior Instrument Technician",
-    "employer": "Process & Petrochemical Engineering Client",
-    "category": "Electrical & Maintenance",
-    "location": "Jurong Island / Process Plant, Singapore",
-    "salary": "SGD 1,500 - 1,700 / month + OT",
-    "qualification": "Diploma / ITI in Instrumentation or Electrical Engineering",
-    "experience": "Process plant / Petrochemical instrumentation maintenance (Age below 40)",
-    "jobType": "PCM",
-    "vacancyCount": 2,
-    "description": "Immediate opening for Senior Instrument Technician under PCM Work Permit in Singapore. Responsible for process plant instrumentation calibration, loop checking, maintenance, and field sensor repair.",
-    "responsibilities": [
-      "Perform routine and preventive maintenance on process instrumentation including pressure, level, temperature, and flow transmitters.",
-      "Execute calibration, loop testing, PLC/DCS I/O verification, and diagnostic inspections according to safety standards.",
-      "Troubleshoot field control valves, pneumatic actuators, solenoids, and positioners.",
-      "Adhere strictly to plant Permit-To-Work (PTW) system, safety protocols, and standard operating procedures.",
-      "Maintain accurate calibration records, loop sheets, and daily maintenance logs."
+    id: "SG-JOB-2026-N01",
+    title: "Electrical Engineer with AutoCAD Exp (S Pass)",
+    employer: "MOE School Project / Electrical Engineering Contractor",
+    category: "Electrical & Maintenance",
+    location: "Singapore (MOE School Project Sites)",
+    salary: "SGD 3,800 / month",
+    qualification: "Degree / Diploma in Electrical Engineering",
+    experience: "3 Years Singapore Experience (SG U-Turn) | Mandatory MOE School Project Exp",
+    jobType: "S Pass",
+    vacancyCount: 1,
+    description: "Immediate opening for an Electrical Engineer under S Pass with proficient AutoCAD design skills. Minimum 3 years Singapore experience required (SG U-Turn). Mandatory prior experience handling Singapore Ministry of Education (MOE) school projects.",
+    responsibilities: [
+      "Prepare, review, and modify electrical engineering schematics, single line diagrams (SLD), and conduit layouts using AutoCAD.",
+      "Coordinate electrical installations, sub-station works, ELV systems, lighting, and power distribution across MOE school site works.",
+      "Liaise with main contractors, resident engineers (RE), resident technical officers (RTO), and school project consultants for site inspections and approvals.",
+      "Supervise on-site electrical subcontractors and technicians to ensure compliance with Singapore CP5 standards and project schedules.",
+      "Prepare method statements, risk assessments, test reports, and as-built drawings for final handover."
     ],
-    "requirements": [
-      "Diploma or ITI in Instrumentation / Electrical / Electronics Engineering.",
-      "Working Days: Monday to Friday (with scheduled shifts and overtime as required).",
-      "Rest Day: Sunday.",
-      "Housing: Provided by company.",
-      "Age: Below 40 years old.",
-      "Familiar with process plant instrumentation standards, P&ID, and loop diagrams."
+    requirements: [
+      "Degree or Diploma in Electrical Engineering.",
+      "Mandatory 3 Years Singapore work experience (SG U-Turn candidates).",
+      "Strictly required experience in Singapore MOE (Ministry of Education) school projects.",
+      "High proficiency in AutoCAD drafting and electrical engineering software.",
+      "Strong communication and site coordination abilities."
     ],
-    "benefits": [
-      "Basic Salary: SGD 1,500 - 1,700 / month.",
-      "Accommodation provided by employer.",
-      "Overtime pay applicable for extra hours worked.",
-      "Work Permit pass sponsorship under PCM scheme.",
-      "Medical insurance and standard Singapore statutory benefits."
+    benefits: [
+      "Monthly Salary: SGD 3,800 / month.",
+      "Accommodation: Self-arrangement (housing allowance included in salary package).",
+      "S Pass sponsorship under Singapore MOM guidelines.",
+      "Medical insurance and statutory coverage under Singapore Employment Act."
     ],
-    "requiredDocuments": [
-      "Updated Resume with detailed instrumentation experience",
+    requiredDocuments: [
+      "Updated Resume highlighting MOE School project experience & AutoCAD skills",
       "Passport Copy (Front & Back)",
-      "Diploma / ITI Educational Certificates & Marksheets",
-      "Past Singapore / Overseas Experience Letters",
-      "Digital passport photograph"
+      "Past Singapore S Pass / Work Pass records & Employment Letters",
+      "Degree / Diploma Educational Certificates & Transcripts",
+      "Digital Passport Photograph"
     ],
-    "image": "/arudhra-logo.png",
-    "status": "published",
-    "featured": true,
-    "latest": true,
-    "postedDate": "2026-09-27",
-    "createdAt": "2026-09-27T03:41:37.715Z",
-    "updatedAt": "2026-09-27T03:41:37.715Z"
+    image: "/arudhra-logo.png",
+    status: "published",
+    featured: true,
+    latest: true,
+    postedDate: "2026-09-29",
+    createdAt: "2026-09-29T00:00:00.000Z",
+    updatedAt: "2026-09-29T00:00:00.000Z"
   },
   {
-    "id": "SG-JOB-2026-002",
-    "title": "General Worker (Store / Warehouse Based)",
-    "employer": "Equipment & Material Storage Facility",
-    "category": "Logistics & Warehouse",
-    "location": "Central Store / Warehouse, Singapore",
-    "salary": "SGD 520 Basic + $80 Allowance + MOM OT (1.5x & 2x)",
-    "qualification": "Secondary School / 10th / 12th / Basic Technical",
-    "experience": "Warehouse & Store handling | 1-Year U-Turn candidates eligible",
-    "jobType": "Work Permit",
-    "vacancyCount": 2,
-    "description": "Skilled Work Permit vacancy for General Worker stationed strictly in the central company store/warehouse (not construction site). Duties involve warehouse material handling, inventory support, and store organizing.",
-    "responsibilities": [
-      "Receive, sort, store, and organize incoming tools, equipment, materials, and spare parts in warehouse racks.",
-      "Assist in picking, packing, issuing, and dispatching equipment for operations.",
-      "Rigging and signalling support inside store yard if certified.",
-      "Maintain store cleanliness, housekeeping, and stock inventory accuracy.",
-      "Operate strictly inside store premises (no outdoor construction site deployment)."
+    id: "SG-JOB-2026-N02",
+    title: "QS cum Drafter - Aluminium Doors & Windows (S Pass)",
+    employer: "Aluminium Systems & Architectural Specialist",
+    category: "Construction & Civil",
+    location: "Singapore (Normal Office Hours)",
+    salary: "SGD 2,000 - 2,200 / month (Fixed)",
+    qualification: "Degree in Civil / Building Engineering",
+    experience: "Singapore experienced in Aluminium Doors & Windows drafting, design & claims",
+    jobType: "S Pass",
+    vacancyCount: 1,
+    description: "Specialist Aluminium façade, doors & windows company in Singapore is hiring an experienced Quantity Surveyor (QS) cum Drafter under S Pass. Candidates must have strong drafting skills in aluminium architectural systems and proven progress claim experience.",
+    responsibilities: [
+      "Perform architectural and shop drafting for aluminium doors, windows, curtain walls, and louvres.",
+      "Carry out quantity take-off, cost estimation, and variation orders (VO) for aluminium works.",
+      "Prepare, submit, and substantiate monthly interim progress claims, subcontractor payment certificates, and final accounts.",
+      "Assist in system design, profile calculations, and technical submittals for consultant approval.",
+      "Coordinate closely with project managers and fabrication workshop regarding design details and material schedules."
     ],
-    "requirements": [
-      "WP-Skilled category eligibility.",
-      "Stationed in central store, not at construction site.",
-      "Working Schedule: 6 days per week (8:00 AM – 5:00 PM).",
-      "Follow MOM Law overtime: 1.5x regular OT & 2.0x rest day/holiday OT.",
-      "Basic Salary: SGD 520 + Fixed Allowance: SGD 80.",
-      "Preferably have Rigger & Signalman certificate and handling experience.",
-      "English speaking candidate.",
-      "1-Year U-Turn workers also eligible to apply."
+    requirements: [
+      "Degree in Civil Engineering, Building, or Quantity Surveying.",
+      "Proven Singapore experience in aluminium doors & windows drafting and QS claims.",
+      "Proficiency in AutoCAD, design drafting, and progress claim documentation.",
+      "Working Hours: Normal Office Hours.",
+      "Accommodation: No housing provided (self-arranged)."
     ],
-    "benefits": [
-      "Basic Salary SGD 520 + Allowance SGD 80 / month.",
-      "Strict MOM overtime calculation (1.5x on normal days, 2x on Sundays/PH).",
-      "Indoor warehouse & store environment (no outdoor site weather exposure).",
-      "Work permit sponsorship and medical coverage.",
-      "Stable 6-day work week (8 AM to 5 PM)."
+    benefits: [
+      "Fixed Salary: SGD 2,000 - 2,200 / month.",
+      "Normal office working hours with standard rest days.",
+      "S Pass sponsorship with Singapore MOM regulatory compliance.",
+      "Annual leave, medical benefits, and career advancement in architectural aluminium sector."
     ],
-    "requiredDocuments": [
+    requiredDocuments: [
+      "Updated CV showcasing aluminium drafting and QS claim portfolio",
+      "Civil / Building Degree Certificates & Marksheets",
+      "Passport Copy (Front & Back)",
+      "Past Singapore Work Pass / experience records",
+      "Digital passport photo"
+    ],
+    image: "/arudhra-logo.png",
+    status: "published",
+    featured: true,
+    latest: true,
+    postedDate: "2026-09-29",
+    createdAt: "2026-09-29T00:00:00.000Z",
+    updatedAt: "2026-09-29T00:00:00.000Z"
+  },
+  {
+    id: "SG-JOB-2026-N03",
+    title: "Safety Coordinator (Indian Transfer - Min 2 Yrs Exp)",
+    employer: "Building & Civil Construction Engineering Contractor",
+    category: "Construction & Civil",
+    location: "Singapore (Construction Project Sites)",
+    salary: "SGD 1,500 - 1,800 / month (Based on Experience & Certificates)",
+    qualification: "WSH Coordinator / Advanced Certificate in WSH / BCSS / Relevant Safety Certs",
+    experience: "Minimum 2 Years Singapore Experience | In-Country Indian Transfer",
+    jobType: "Work Permit",
+    vacancyCount: 2,
+    description: "Immediate opening for an Indian Transfer Safety Coordinator currently in Singapore. Candidate must have minimum 2 years of proven site safety coordination experience on Singapore construction projects and valid MOM-accredited safety certifications.",
+    responsibilities: [
+      "Conduct daily site safety inspections, toolbox meetings, and enforce Workplace Safety and Health (WSH) regulations.",
+      "Assist WSH Officer in risk assessments, Safe Work Procedures (SWP), and incident reporting.",
+      "Monitor site Permit-To-Work (PTW) compliance, personal protective equipment (PPE) usage, and scaffolding/machinery safety.",
+      "Coordinate safety inductions for newly deployed site workers and subcontractors.",
+      "Liaise with site supervisors, project managers, and external safety auditors."
+    ],
+    requirements: [
+      "Candidate profile: Indian Transfer candidate currently in Singapore.",
+      "Minimum 2 years of active Singapore construction safety coordination experience.",
+      "Possess valid MOM-approved Safety Coordinator certificates (Advanced Certificate in WSH / BCSS / CSC)."
+    ],
+    benefits: [
+      "Basic Salary: SGD 1,500 - 1,800 / month (evaluated on experience & certificates).",
+      "Direct transfer sponsorship with rapid pass processing.",
+      "Site transport / accommodation allowances as per company policy.",
+      "Workplace medical coverage and statutory Singapore benefits."
+    ],
+    requiredDocuments: [
+      "Updated CV with detailed Singapore safety project history",
+      "Valid MOM Safety Certifications (WSH Coordinator / BCSS / Supervise Construction Work)",
+      "Current Singapore Work Permit / FIN card copy (for transfer)",
+      "Passport Copy (Front & Back)",
+      "Educational & Trade Certificates"
+    ],
+    image: "/arudhra-logo.png",
+    status: "published",
+    featured: true,
+    latest: true,
+    postedDate: "2026-09-29",
+    createdAt: "2026-09-29T00:00:00.000Z",
+    updatedAt: "2026-09-29T00:00:00.000Z"
+  },
+  {
+    id: "SG-JOB-2026-N04",
+    title: "Excavator Operator (Large Recycling Service Co - Tuas)",
+    employer: "Large Recycling Service Company",
+    category: "Logistics & Warehouse",
+    location: "Tuas, Singapore",
+    salary: "SGD 2,400 - 2,600 / month (Based on Experience & Skills)",
+    qualification: "Valid Singapore Excavator Operator License / Certificate",
+    experience: "Heavy Machinery / Excavator Operator Experience (Safety-conscious & Independent)",
+    jobType: "NTS Work Permit",
+    vacancyCount: 3,
+    description: "Large recycling services company in Tuas requires skilled Excavator Operators under NTS Work Permit. Responsible for operating hydraulic excavators for material loading, sorting, and processing within the recycling yard.",
+    responsibilities: [
+      "Operate hydraulic excavators safely and efficiently for sorting, stockpiling, and loading recyclable materials and scrap.",
+      "Perform pre-operational daily machinery checks, including fluid levels, hydraulic lines, and grease points.",
+      "Work independently adhering strictly to yard traffic control and environmental safety guidelines.",
+      "Coordinate with ground spotters, haulage drivers, and plant processing teams.",
+      "Follow other work arrangements and perform duties as assigned by the company."
+    ],
+    requirements: [
+      "Age: Under 50 years old.",
+      "Language: Conversational English speaking.",
+      "Certification: Valid Singapore Excavator Operator license or recognized certificate.",
+      "Experience as an excavator operator has an advantage. Safety-conscious and able to work independently.",
+      "Working hours: 12 hours a day (8:00 AM - 8:00 PM), 2 rest days off per month."
+    ],
+    benefits: [
+      "Monthly Salary: SGD 2,400 - 2,600 / month (base on experience and skills).",
+      "NTS Work Permit sponsorship by established recycling corporation.",
+      "Stable long-term indoor/facility yard deployment in Tuas.",
+      "MOM statutory medical coverage and work injury compensation."
+    ],
+    requiredDocuments: [
       "Updated Resume / Biodata",
+      "Valid Singapore Excavator Operator Certificate / License",
       "Passport Copy (Front & Back)",
-      "Rigger & Signalman Certificate (if available)",
-      "Past Singapore Work Permit records (for U-turn candidates)",
-      "Digital passport photograph"
+      "Educational & Technical Certificates",
+      "Digital Passport Photograph"
     ],
-    "image": "/arudhra-logo.png",
-    "status": "published",
-    "featured": true,
-    "latest": true,
-    "postedDate": "2026-09-27",
-    "createdAt": "2026-09-27T03:41:37.715Z",
-    "updatedAt": "2026-09-27T03:41:37.715Z"
+    image: "/arudhra-logo.png",
+    status: "published",
+    featured: true,
+    latest: true,
+    postedDate: "2026-09-29",
+    createdAt: "2026-09-29T00:00:00.000Z",
+    updatedAt: "2026-09-29T00:00:00.000Z"
   },
   {
-    "id": "SG-JOB-2026-003",
-    "title": "Site Engineer / Coordinator (1 FTE M&E + 1 FTE Building)",
-    "employer": "Building & Infrastructure Construction Main Contractor",
-    "category": "Construction & Civil",
-    "location": "Office & Project Sites (Company Transport Provided), Singapore",
-    "salary": "SGD 2,000 - 2,500 / month (No OT Required)",
-    "qualification": "Diploma in Civil Engineering or M&E of any country",
-    "experience": "Civil / Building construction or M&E site coordination experience",
-    "jobType": "S Pass",
-    "vacancyCount": 2,
-    "description": "Immediate opening for 2 full-time S Pass positions: 1 FTE Mechanical & Electrical (M&E) Engineer/Coordinator and 1 FTE Building/Civil Engineer/Coordinator. Report to main office with company transport provided to project sites.",
-    "responsibilities": [
-      "Coordinate daily site activities between main contractor, subcontractors, and consultants for building/M&E works.",
-      "Review architectural, structural, or M&E drawings and verify site installation compliance.",
-      "Monitor project progress against schedule, quality requirements, and safety compliance.",
-      "Conduct site inspections, report discrepancies, and follow up on rectification work.",
-      "Report daily to corporate office; use provided company transport for site inspection rounds."
+    id: "SG-JOB-2026-N05",
+    title: "Western Cuisine Chef (Chain Swiss Restaurant)",
+    employer: "Chain Swiss Market-Style Restaurant",
+    category: "F&B & Hospitality",
+    location: "Singapore (Mall Outlets / Follow Company Arrangement)",
+    salary: "Basic SGD 2,500 - 2,700 | Gross Around SGD 4,000++ / month",
+    qualification: "Culinary Arts / Hotel Management / Western Cook Certification",
+    experience: "Relevant experience in preparing Western cuisine | Cooking Video Required",
+    jobType: "NTS Work Permit",
+    vacancyCount: 2,
+    description: "Chain Swiss market-style restaurant in Singapore needs Western Cuisine Chefs under NTS Work Permit. Opportunity to earn gross salary around SGD 4,000++ with extensive overtime (30+ hours/month) and counter incentives ($100 - $300).",
+    responsibilities: [
+      "Work in a popular market-style restaurant. Prepare, cook, and present a variety of western dishes according to the restaurant's recipes.",
+      "Take customer orders, serve customers, prepare food, and assist in front desk selling.",
+      "Maintain live cooking stations, grilling, sautéing, food quality control, and food hygiene.",
+      "Follow any other ad-hoc tasks and station assignments assigned by supervisor.",
+      "Maintain strict food hygiene, sanitation, and clean kitchen station standards."
     ],
-    "requirements": [
-      "Minimum Education: Diploma in Civil Engineering or M&E Engineering from any country.",
-      "Looking for 1 FTE (M&E) + 1 FTE (Building).",
-      "Working Schedule: Monday to Saturday (8:00 AM – 5:00 PM).",
-      "Rest Day: Sunday.",
-      "NO OT is required for this role.",
-      "Will report to office; company provides transport to bring staff to job sites.",
-      "Clear technical communication and team coordination skills."
+    requirements: [
+      "Male / Female under 40 years old, presentable appearance.",
+      "Good spoken English proficiency.",
+      "Relevant experience in preparing Western cuisine.",
+      "Mandatory requirement: A video demonstrating the entire western food cooking is required.",
+      "5 working days per week / 44 hours per week. Need OT over 30 hours+ per month.",
+      "3 rotating shifts (earliest starts 7:00 AM, latest ends around 12:00 AM) with 1-hour meal break."
     ],
-    "benefits": [
-      "Salary Range: SGD 2,000 - 2,500 / month.",
-      "S Pass application sponsorship and quota provided.",
-      "Company transport provided between office and project sites.",
-      "Predictable working hours (8:00 AM - 5:00 PM) with no compulsory OT.",
-      "Annual leave, medical insurance, and Singapore statutory benefits."
+    benefits: [
+      "Basic Salary: SGD 2,500 - 2,700 / month (confirmed based on experience).",
+      "Gross salary around SGD 4,000++ including overtime pay (30+ hours/month).",
+      "Counter incentive: SGD 100 - 300 / month after probation (depends on how many counters handled).",
+      "Staff meals NOT provided, but convenient shopping mall food access or bring own food.",
+      "NTS Work Permit sponsorship and Singapore statutory benefits."
     ],
-    "requiredDocuments": [
-      "Updated Resume highlighting Civil / M&E engineering experience",
-      "Passport Copy (valid for min 2 years)",
-      "Diploma in Civil Engineering or M&E Degree / Certificate & Marksheets",
-      "Previous employment / experience certificates",
-      "Digital passport photograph"
-    ],
-    "image": "/arudhra-logo.png",
-    "status": "published",
-    "featured": true,
-    "latest": true,
-    "postedDate": "2026-09-27",
-    "createdAt": "2026-09-27T03:41:37.715Z",
-    "updatedAt": "2026-09-27T03:41:37.715Z"
-  },
-  {
-    "id": "SG-JOB-2026-004",
-    "title": "Class 4 Driver - Slaughtered Chicken & Cold Chain Delivery",
-    "employer": "Poultry Manufacturing & Food Supply Enterprise",
-    "category": "Logistics & Warehouse",
-    "location": "Cold Chain Plant, Singapore",
-    "salary": "SGD 3,000+++ / month",
-    "qualification": "Valid Singapore Class 4 Driving License",
-    "experience": "FMCG / Cold Chain supply & delivery experience preferred",
-    "jobType": "NTS Work Permit",
-    "vacancyCount": 3,
-    "description": "Urgent hiring for Class 4 Heavy Vehicle Driver under NTS Work Permit for established chicken manufacturing and cold-chain distribution company. Responsible for daily delivery of slaughtered poultry products to clients and markets across Singapore.",
-    "responsibilities": [
-      "Drive Class 4 refrigerated vehicle safely for delivery to customers/clients and transfer of slaughtered chicken.",
-      "Act as standby driver when required to perform general delivery and distribution duties.",
-      "Perform loading, unloading, stock counting, and reconciliation before and after delivery.",
-      "Maintain cold-chain temperature monitoring and vehicle safety checks daily.",
-      "Handle customer delivery orders and delivery notes accurately."
-    ],
-    "requirements": [
-      "Must have valid Singapore Class 4 Driving License with clean record.",
-      "Working Schedule: 6 days per week, starting around 5:00 AM until finish (approx. 3:00 PM / 4:00+ PM).",
-      "Required to stay near company premises as no public transport available during midnight (unless candidate owns vehicle).",
-      "Able to carry weight up to 25kg regularly.",
-      "Able to work in chill environment (12°C - 15°C) with strong smells of raw chicken, and comfortable handling raw poultry.",
-      "Perform duties during weekends & Public Holidays if required.",
-      "Prefer candidate with FMCG / cold chain supply and delivery experience.",
-      "Team player, self-motivated, and able to perform duties without supervision."
-    ],
-    "benefits": [
-      "Attractive Salary: SGD 3,000+++ / month (offered upon interview based on experience).",
-      "NTS Work Permit pass sponsorship.",
-      "Essential food manufacturing and cold chain industry stability.",
-      "Comprehensive medical insurance and statutory coverage."
-    ],
-    "requiredDocuments": [
-      "Valid Singapore Class 4 Driving License Copy",
-      "Updated Resume with heavy vehicle delivery background",
-      "Passport Copy (valid for min 18 months)",
-      "Driving experience references or past testimonials",
-      "Digital passport photograph"
-    ],
-    "image": "/arudhra-logo.png",
-    "status": "published",
-    "featured": true,
-    "latest": true,
-    "postedDate": "2026-09-27",
-    "createdAt": "2026-09-27T03:41:37.715Z",
-    "updatedAt": "2026-09-27T03:41:37.715Z"
-  },
-  {
-    "id": "SG-JOB-2026-005",
-    "title": "CNC Lathe and Manual Milling Machine Operator",
-    "employer": "Precision Engineering & Machining Facility",
-    "category": "Manufacturing & Production",
-    "location": "Woodlands, Singapore",
-    "salary": "SGD 1,400 - 1,600 + $200 Housing (Gross SGD 2,500 - 3,000+)",
-    "qualification": "ITI / Diploma in Machinist / Mechanical / Precision Engineering",
-    "experience": "Proficient in CNC Lathes & Manual Milling (FANUC & Mitsubishi systems, Age below 40)",
-    "jobType": "NTS Work Permit",
-    "vacancyCount": 2,
-    "description": "Established precision engineering facility in Woodlands requires skilled CNC Lathe and Manual Milling Machine Operator under NTS Work Permit. Must have solid operating experience on FANUC and Mitsubishi control systems.",
-    "responsibilities": [
-      "Operate and set up both CNC lathes and conventional manual milling machines according to technical drawings.",
-      "Operate FANUC and Mitsubishi control systems, setting work coordinates and tool offsets.",
-      "Perform milling, facing, turning, threading, and drilling on metal/alloy components.",
-      "Inspect machined components using vernier calipers, micrometers, and precision gauges.",
-      "Maintain cutting tools, coolant levels, and ensure clean workshop housekeeping."
-    ],
-    "requirements": [
-      "Basic Salary: SGD 1,400 - 1,600 / month.",
-      "Housing Allowance: SGD 200 / month.",
-      "Total Monthly Earnings: SGD 2,500 - 3,000+ with overtime.",
-      "Must be proficient in operating BOTH CNC lathes and manual milling machines.",
-      "Must understand and operate FANUC and Mitsubishi systems.",
-      "Candidates should ideally provide photos of machines they have operated during interview.",
-      "Location: Woodlands, Singapore.",
-      "Age Limit: Below 40 years old."
-    ],
-    "benefits": [
-      "Basic Salary: SGD 1,400 - 1,600 / month.",
-      "Fixed Housing Allowance: SGD 200 / month.",
-      "High overtime availability yielding SGD 2,500 - 3,000+ gross monthly income.",
-      "NTS Work Permit sponsorship.",
-      "Medical insurance and statutory Singapore employment benefits."
-    ],
-    "requiredDocuments": [
-      "Updated Resume detailing CNC Lathe & Milling experience",
+    requiredDocuments: [
+      "Updated Culinary CV with detailed Western kitchen experience",
+      "Cooking Demonstration Video showing western food preparation",
+      "Culinary / Food Safety / Hotel Management Certificates",
       "Passport Copy (Front & Back)",
-      "Machinist / ITI Mechanical Certificates",
-      "Photos / Samples of machines previously operated",
-      "Digital passport photograph"
+      "Recent Professional Photograph"
     ],
-    "image": "/arudhra-logo.png",
-    "status": "published",
-    "featured": true,
-    "latest": true,
-    "postedDate": "2026-09-27",
-    "createdAt": "2026-09-27T03:41:37.715Z",
-    "updatedAt": "2026-09-27T03:41:37.715Z"
+    image: "/arudhra-logo.png",
+    status: "published",
+    featured: true,
+    latest: true,
+    postedDate: "2026-09-29",
+    createdAt: "2026-09-29T00:00:00.000Z",
+    updatedAt: "2026-09-29T00:00:00.000Z"
   },
   {
-    "id": "SG-JOB-2026-006",
-    "title": "Heavy Machinery Mechanic (Hook Lift Truck, Excavator, Forklift)",
-    "employer": "Heavy Machinery & Equipment Maintenance Co.",
-    "category": "Automotive & Mechanical",
-    "location": "Tuas / Industrial Area, Singapore",
-    "salary": "SGD 1,200 Basic | Gross SGD 2,200 - 2,300 + Sunday OT",
-    "qualification": "Diploma / ITI in Heavy Diesel / Automotive Mechanical Engineering",
-    "experience": "3-5 years fixing Hook lift trucks, excavators, forklifts (Singapore/Gulf/India exp ok)",
-    "jobType": "S Pass",
-    "vacancyCount": 2,
-    "description": "S Pass vacancy for Heavy Machinery Mechanic specializing in repairing and troubleshooting hook lift trucks, hydraulic excavators, and diesel/electric forklifts. Minimum 3 to 5 years hands-on mechanical repair experience.",
-    "responsibilities": [
-      "Troubleshoot, repair, and overhaul mechanical and hydraulic systems for hook lift trucks, excavators, and forklifts.",
-      "Service heavy diesel engines, transmission systems, brake systems, PTOs, and hydraulic cylinders.",
-      "Perform preventative maintenance, oil changes, hose replacements, and structural welding repairs.",
-      "Diagnose electrical faults, starter motors, alternators, and hydraulic pump malfunctions.",
-      "Conduct functional tests and safety checks after completing machine repairs."
+    id: "SG-JOB-2026-N06",
+    title: "Supermarket Food Preparation Worker (Meat / Fish)",
+    employer: "Large Multinational Listed Supermarket Chain",
+    category: "Retail & Customer Service",
+    location: "Singapore (Supermarket Outlets Islandwide)",
+    salary: "SGD 2,000 / month",
+    qualification: "Secondary / High School / Butchery / Food Handling Experience",
+    experience: "Supermarket meat and fish handling experience | Cutting Video Required",
+    jobType: "NTS Work Permit",
+    vacancyCount: 4,
+    description: "Large multinational listed supermarket chain requires Food Preparation Workers (Meat/Fish/Other food) under NTS Work Permit. Responsible for handling meat and other food in the supermarket, sales, and store duties.",
+    responsibilities: [
+      "Debone, cut, slice, and trim fresh meat and poultry according to supermarket presentation standards.",
+      "Scale, gut, clean, and fillet fresh fish and seafood products.",
+      "Weigh, label, pack, and display fresh meat and seafood in cold display chillers.",
+      "Maintain cold-chain integrity, food safety hygiene, and station sanitization.",
+      "Assist customers with portion requests, counter sales, and all other tasks arranged by the company."
     ],
-    "requirements": [
-      "Must have hands-on experience fixing Hook lift trucks, excavators, and forklifts (Heavy machinery machine experience).",
-      "Must have at least 3 - 5 years experience - Singapore, Gulf, or India experience accepted.",
-      "Working Days: Monday to Friday (8:00 AM – 5:00 PM) and Saturday (8:00 AM – 12:00 PM).",
-      "Rest Day: Sunday (Can do extra OT on Sunday if worker desires).",
-      "Overtime: Yes, regular OT available."
+    requirements: [
+      "Male or Female under 45 years old.",
+      "Speak English.",
+      "Has relevant supermarket experience and experience in handling meat and fish.",
+      "Mandatory requirement: Need videos of cutting meat.",
+      "Working hours: 12 hours/day, 4 days off per month. Shift arrangement needs to follow company."
     ],
-    "benefits": [
-      "Basic Salary: SGD 1,200 / month.",
-      "Gross Monthly Income: SGD 2,200 - 2,300 with regular overtime.",
-      "Housing: Provided by company.",
-      "Optional Sunday overtime for extra income earnings.",
-      "S Pass pass sponsorship and statutory medical insurance."
+    benefits: [
+      "Monthly Salary: SGD 2,000 / month.",
+      "NTS Work Permit sponsorship under a leading multinational retail brand.",
+      "Stable retail supermarket environment with air-conditioned premises.",
+      "Standard MOM health insurance, annual leave, and statutory benefits."
     ],
-    "requiredDocuments": [
-      "Updated Resume highlighting heavy machinery mechanic repair experience",
+    requiredDocuments: [
+      "Updated Resume / Biodata",
+      "Video demonstrating cutting meat and butchery skills",
       "Passport Copy (Front & Back)",
-      "Mechanical / ITI Certificates or Apprenticeship papers",
-      "Past Singapore / Gulf / India Experience Letters",
-      "Digital passport photograph"
+      "Educational & Trade Certificates",
+      "Digital Passport Photograph"
     ],
-    "image": "/arudhra-logo.png",
-    "status": "published",
-    "featured": true,
-    "latest": true,
-    "postedDate": "2026-09-27",
-    "createdAt": "2026-09-27T03:41:37.715Z",
-    "updatedAt": "2026-09-27T03:41:37.715Z"
+    image: "/arudhra-logo.png",
+    status: "published",
+    featured: true,
+    latest: true,
+    postedDate: "2026-09-29",
+    createdAt: "2026-09-29T00:00:00.000Z",
+    updatedAt: "2026-09-29T00:00:00.000Z"
   },
   {
-    "id": "SG-JOB-2026-007",
-    "title": "Class 3 Driver - Furniture Delivery",
-    "employer": "Commercial Furniture & Interior Supply Co.",
-    "category": "Logistics & Warehouse",
-    "location": "Islandwide Delivery, Singapore",
-    "salary": "SGD 1,050 Basic + 1.5x OT | Overall Salary SGD 2,000+",
-    "qualification": "Valid Singapore Class 3 Driving License",
-    "experience": "Construction delivery or Furniture company delivery experience required",
-    "jobType": "NTS Work Permit",
-    "vacancyCount": 2,
-    "description": "Furniture manufacturing and distribution company hiring Class 3 Driver under NTS Work Permit. Responsible for transporting furniture, fittings, and interior supplies to residential and commercial project sites across Singapore.",
-    "responsibilities": [
-      "Drive Class 3 commercial vehicle for daily delivery of furniture and interior goods across Singapore.",
-      "Assist in safe loading, securing goods with straps/blankets, and unloading items at destination sites.",
-      "Deliver furniture goods safely to residential homes, offices, and commercial sites.",
-      "Ensure delivery orders and delivery receipts are signed by customers.",
-      "Conduct daily vehicle inspections and maintain cleanliness of vehicle."
+    id: "SG-JOB-2026-N07",
+    title: "Dishwasher, Cleaner cum Kitchen Helper (5 Vacancies)",
+    employer: "Premier F&B & Hospitality Group",
+    category: "F&B & Hospitality",
+    location: "Singapore (Restaurant Outlets)",
+    salary: "SGD 1,700 Fixed ($1,100 Basic + $100 Food + $500 Accom) + OT @ $7/hr",
+    qualification: "Any Degree with RMI",
+    experience: "Kitchen helper, commercial dishwashing, cleaning or F&B utility",
+    jobType: "E Pass",
+    vacancyCount: 5,
+    description: "Leading restaurant group in Singapore is hiring 5 Dishwashers, Cleaners cum Kitchen Helpers under E Pass. Offering fixed SGD 1,700 (Basic $1,100 + Food $100 + Accommodation Allowance $500) plus overtime at $7 per hour, with performance salary increment review after 6 months.",
+    responsibilities: [
+      "Operate commercial automatic dishwashers and hand-wash pots, pans, utensils, cutlery, and glassware.",
+      "Perform kitchen cleaning, floor sanitizing, trash disposal, and kitchen equipment degreasing.",
+      "Assist chefs with basic kitchen helper duties including vegetable peeling, basic prep work, and dry storage organizing.",
+      "Ensure dining hall tableware is washed, dried, sorted, and returned promptly to service stations.",
+      "Follow Singapore NEA/SFA hygiene guidelines and kitchen supervisor directives."
     ],
-    "requirements": [
-      "Must have valid Singapore Class 3 Driving License.",
-      "Basic Salary: SGD 1,050 + OT 1.5x.",
-      "Overall Monthly Salary: SGD 2,000+.",
-      "Working Hours: 8:00 AM – 6:00 PM.",
-      "Rest Days: 4 days off per month.",
-      "Housing: Provided by company.",
-      "Must have Construction delivery experience OR Furniture Company delivery experience."
+    requirements: [
+      "Education: Any Degree with RMI.",
+      "Born years 1991 - 1999 (Age 27 - 35).",
+      "Working Hours: 12 hours per day.",
+      "Monthly 2 days off.",
+      "Overtime rate: SGD 7.00 per hour."
     ],
-    "benefits": [
-      "Basic Salary: SGD 1,050 / month.",
-      "Overtime paid at 1.5x hourly rate.",
-      "Overall monthly income reaching SGD 2,000+.",
-      "Accommodation: House provided by company.",
-      "4 rest days per month.",
-      "NTS Work Permit pass sponsorship and medical insurance."
+    benefits: [
+      "Basic Salary: SGD 1,100 / month.",
+      "Food Allowance: SGD 100 / month.",
+      "Accommodation Allowance: SGD 500 / month.",
+      "Total Fixed Monthly Package: SGD 1,700 / month.",
+      "Overtime: $7.00 per hour.",
+      "Performance increment: After 6 months, if perform well, the employer may increase salary.",
+      "E Pass sponsorship and statutory Singapore medical benefits."
     ],
-    "requiredDocuments": [
-      "Valid Singapore Class 3 Driving License Copy",
-      "Updated Resume with driving & delivery background",
-      "Passport Copy (valid for min 18 months)",
-      "Past Singapore Work Permit records (if applicable)",
-      "Digital passport photograph"
+    requiredDocuments: [
+      "Updated Resume / Biodata",
+      "Degree Certificate with RMI",
+      "Passport Copy showing birth year between 1991 - 1999",
+      "Digital Passport Photograph",
+      "Any past hospitality / kitchen references"
     ],
-    "image": "/arudhra-logo.png",
-    "status": "published",
-    "featured": true,
-    "latest": true,
-    "postedDate": "2026-09-27",
-    "createdAt": "2026-09-27T03:41:37.715Z",
-    "updatedAt": "2026-09-27T03:41:37.715Z"
-  },
-  {
-    "id": "SG-JOB-2026-008",
-    "title": "Forklift Operator cum Welder (WP-SKILLED - Construction)",
-    "employer": "Civil Construction & Structural Engineering Contractor",
-    "category": "Construction & Civil",
-    "location": "Construction Site / Yard, Singapore",
-    "salary": "SGD 1,300 All-in Salary | Basic SGD 720 + OT SGD 5.66/hr",
-    "qualification": "CoreTrade Certified + Forklift License + Driving License",
-    "experience": "Construction forklift operation and structural welding (Age below 40)",
-    "jobType": "Work Permit",
-    "vacancyCount": 2,
-    "description": "Urgent requirement for WP-Skilled Forklift Operator cum Welder on civil construction and structural site in Singapore. Must possess valid CoreTrade certification and forklift operating license.",
-    "responsibilities": [
-      "Operate forklifts on construction site to shift, load, and position structural steel and building materials.",
-      "Carry out structural welding, fabrication, tack welding, cutting, and grinding as required on site.",
-      "Assist in rigging, hoisting, and staging materials safely in laydown yards.",
-      "Conduct pre-operation safety checks on forklift and welding machines daily.",
-      "Strictly comply with site safety regulations, MOM laws, and wear mandatory PPE."
-    ],
-    "requirements": [
-      "WP-SKILLED category eligibility.",
-      "All-in Salary: SGD 1,300 / month.",
-      "Basic Monthly Salary: SGD 720 / month.",
-      "Overtime Rate: SGD 5.66 per hour.",
-      "Working Hours: Monday to Saturday (8:00 AM – 7:00 PM).",
-      "Must have valid Driving License.",
-      "Must have CoreTrade certification.",
-      "Must have valid Forklift License.",
-      "Age Limit: 40 years old and below."
-    ],
-    "benefits": [
-      "All-in Salary: SGD 1,300 / month.",
-      "Basic Salary SGD 720 with Overtime at SGD 5.66 per hour.",
-      "Long-term civil construction project stability.",
-      "Work Permit pass sponsorship.",
-      "Medical insurance and standard Singapore statutory entitlements."
-    ],
-    "requiredDocuments": [
-      "CoreTrade Certification Card / Certificate Copy",
-      "Singapore Forklift Operator License",
-      "Valid Driving License Copy",
-      "Updated Resume with construction site experience",
-      "Passport Copy (Front & Back)",
-      "Digital passport photograph"
-    ],
-    "image": "/arudhra-logo.png",
-    "status": "published",
-    "featured": true,
-    "latest": true,
-    "postedDate": "2026-09-27",
-    "createdAt": "2026-09-27T03:41:37.715Z",
-    "updatedAt": "2026-09-27T03:41:37.715Z"
+    image: "/arudhra-logo.png",
+    status: "published",
+    featured: true,
+    latest: true,
+    postedDate: "2026-09-29",
+    createdAt: "2026-09-29T00:00:00.000Z",
+    updatedAt: "2026-09-29T00:00:00.000Z"
   }
 ];

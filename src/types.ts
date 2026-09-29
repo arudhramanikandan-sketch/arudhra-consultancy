@@ -261,7 +261,304 @@ export type AppTab =
   | 'portal'
   | 'admin-login'
   | 'admin'
-  | 'esim';
+  | 'esim'
+  | 'cv';
+
+export type CVPackageType =
+  | 'basic'
+  | 'professional'
+  | 'modern'
+  | 'overseas'
+  | 'cv_cover_letter';
+
+export type CVExperienceLevel =
+  | 'Fresher / No Experience'
+  | '1–2 Years'
+  | '3–5 Years'
+  | '5+ Years';
+
+export type CVPaymentStatus =
+  | 'payment_verification_pending'
+  | 'payment_verified'
+  | 'payment_rejected'
+  | 'pending'
+  | 'paid'
+  | 'failed';
+
+export type CVOrderStatus =
+  | 'order_received'
+  | 'details_under_review'
+  | 'cv_preparation'
+  | 'cv_ready'
+  | 'delivered'
+  | 'revision_requested'
+  | 'completed'
+  | 'payment_pending'
+  | 'paid'
+  | 'details_pending'
+  | 'details_received'
+  | 'in_preparation'
+  | 'under_review'
+  | 'cancelled';
+
+export interface CVPersonalDetails {
+  fullName: string;
+  mobile: string;
+  email: string;
+  fatherParentName?: string;
+  fatherName?: string;
+  dateOfBirth?: string;
+  dob?: string;
+  gender?: string;
+  maritalStatus?: string;
+  nationality?: string;
+  currentCity?: string;
+  country?: string;
+  communicationAddress?: string;
+  profilePhotoUrl?: string;
+}
+
+export interface CVEducationRecord {
+  id: string;
+  qualificationLevel: string; // '10th / Secondary' | '12th / Higher Secondary' | 'Diploma' | 'ITI' | 'UG' | 'PG' | 'PhD / Doctorate' | 'Professional Certification' | 'Other'
+  courseDegree: string;
+  specialization?: string;
+  schoolCollege: string;
+  boardUniversity?: string;
+  location?: string;
+  yearJoining?: string;
+  yearPassing: string;
+  percentageCgpa?: string;
+  notes?: string;
+}
+
+export interface CVEmploymentRecord {
+  id: string;
+  companyName: string;
+  jobTitle: string;
+  location?: string;
+  startDate: string;
+  endDate?: string;
+  isCurrentlyWorking: boolean;
+  responsibilities: string;
+  keySkills?: string;
+  achievements?: string;
+}
+
+export interface CVLanguageItem {
+  name: string;
+  proficiency: 'Basic' | 'Intermediate' | 'Fluent' | 'Native';
+}
+
+export interface CVSkillsData {
+  technicalSkills: string[];
+  softwareTools: string[];
+  professionalSkills: string[];
+  languagesKnown: CVLanguageItem[];
+  otherSkills: string[];
+}
+
+export interface CVProjectRecord {
+  id: string;
+  title: string;
+  description?: string;
+  role?: string;
+  toolsUsed?: string;
+  duration?: string;
+  outcome?: string;
+}
+
+export interface CVInternshipRecord {
+  id: string;
+  company: string;
+  position: string;
+  startDate?: string;
+  endDate?: string;
+  responsibilities?: string;
+  skillsLearned?: string;
+}
+
+export interface CVCertificationRecord {
+  id: string;
+  name: string;
+  issuingOrganization: string;
+  yearDate?: string;
+  certificateId?: string;
+  description?: string;
+}
+
+export interface CVSeminarRecord {
+  id: string;
+  title: string;
+  organization?: string;
+  dateYear?: string;
+  description?: string;
+}
+
+export interface CVActivityRecord {
+  id: string;
+  category: 'Sports' | 'Competitions' | 'Leadership' | 'Volunteer Activities' | 'Clubs / Organizations' | 'Other';
+  title: string;
+  description?: string;
+}
+
+export interface CVAchievementRecord {
+  id: string;
+  title: string;
+  description?: string;
+  dateYear?: string;
+}
+
+export interface CVOverseasInfo {
+  preferredPosition?: string;
+  preferredCountry?: string;
+  preferredLocation?: string;
+  passportAvailable?: 'Yes' | 'No';
+  passportExpiryDate?: string;
+  visaStatus?: string;
+  noticePeriod?: string;
+  drivingLicence?: string;
+  linkedinProfile?: string;
+  portfolioWebsite?: string;
+}
+
+export interface CVSupportingDocument {
+  id: string;
+  name: string;
+  type: string;
+  fileSize?: string;
+  fileData?: string;
+  uploadedAt: string;
+}
+
+export interface CVFresherDetails {
+  qualification: string;
+  courseDegree: string;
+  institution: string;
+  yearOfPassing: string;
+  internship?: string;
+  academicProject?: string;
+  skills: string;
+  certifications?: string;
+}
+
+export interface CVPackageInfo {
+  id: CVPackageType;
+  name: string;
+  price: number;
+  badge?: string;
+  popular?: boolean;
+  description: string;
+  features: string[];
+  revisions: string;
+  deliveryTime: string;
+  recommendedFor?: string;
+}
+
+export interface CVOrder {
+  id: string; // e.g. AR-CV-100001
+  customerName: string;
+  mobile: string;
+  email: string;
+  jobCategory: string;
+  customCategory?: string;
+  experienceLevel: CVExperienceLevel;
+  cvType: CVPackageType;
+  cvPackageName: string;
+  selectedTemplateId?: string;
+  selectedTemplateName?: string;
+  amount: number;
+  currency: string;
+  paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded';
+  paymentMethod?: 'upi' | 'card' | 'netbanking' | 'qr';
+  paymentId?: string;
+  paidAt?: string;
+  orderStatus: CVOrderStatus;
+  notes?: string;
+  adminNotes?: string;
+
+  // Complete Detailed Candidate Profile Data:
+  personalDetails?: CVPersonalDetails;
+  careerObjective?: string;
+  educationList?: CVEducationRecord[];
+  employmentHistory?: CVEmploymentRecord[];
+  skillsData?: CVSkillsData;
+  projects?: CVProjectRecord[];
+  internships?: CVInternshipRecord[];
+  certifications?: CVCertificationRecord[];
+  seminars?: CVSeminarRecord[];
+  activities?: CVActivityRecord[];
+  achievements?: CVAchievementRecord[];
+  overseasInfo?: CVOverseasInfo;
+  documents?: CVSupportingDocument[];
+
+  // Legacy Fresher fallback support
+  fresherDetails?: CVFresherDetails;
+
+  // Final Delivery Files (PDF & Editable Word)
+  deliveredPdfUrl?: string;
+  deliveredWordUrl?: string;
+  deliveredDocUrl?: string;
+  deliveredAt?: string;
+  deliveryMethod?: 'whatsapp' | 'email' | 'both';
+  revisionCount?: number;
+  revisionNotes?: string;
+
+  whatsappSent?: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type CVTemplateFilter =
+  | 'All'
+  | 'Fresher'
+  | 'Experienced'
+  | 'Hospitality'
+  | 'Skilled Worker'
+  | 'Engineering'
+  | 'IT'
+  | 'Healthcare'
+  | 'Office / Professional';
+
+export interface CVTemplate {
+  id: string;
+  name: string;
+  tagline: string;
+  badge?: string;
+  suitableCategories: string[];
+  suitableExperience: string[];
+  filterCategory: CVTemplateFilter;
+  layoutStyle: 'classic-ats' | 'modern-accent' | 'compact-technical' | 'executive-split' | 'clean-minimal';
+  themeColor: string; // hex or tailwind tone
+  accentBg: string;
+  borderTone: string;
+  atsFriendly: boolean;
+  overseasSuitable: boolean;
+  features: string[];
+  dummyCandidate: {
+    name: string;
+    targetRole: string;
+    location: string;
+    contactInfo: string;
+    passportOrPass?: string;
+    summary: string;
+    skills: string[];
+    workExperience: Array<{
+      title: string;
+      company: string;
+      period: string;
+      location: string;
+      points: string[];
+    }>;
+    education: Array<{
+      degree: string;
+      institution: string;
+      year: string;
+    }>;
+    certifications: string[];
+    languages?: string[];
+  };
+}
 
 export interface SiteSettings {
   businessName: string;
@@ -321,4 +618,6 @@ export interface SiteSettings {
   autoReplaceOldVideos?: boolean;
   autoClearOldLeadsOnNewJob?: boolean;
   autoPruneOldLeads?: boolean;
+  // Jobs dynamic last updated timestamp (DD MMM YYYY, hh:mm AM/PM)
+  jobsLastUpdatedAt?: string;
 }
