@@ -517,6 +517,23 @@ app.use(express.static(path.join(process.cwd(), 'public')));
     }
   });
 
+  app.post('/api/jobs/clear-all', requireAdminAuth, (req, res) => {
+    try {
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      const result = storage.clearAllLiveJobs();
+      res.json({
+        success: true,
+        deletedCount: result.deletedCount,
+        lastUpdated: result.timestamp,
+        message: `Successfully removed all live Singapore jobs (${result.deletedCount} removed)`
+      });
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
   app.post('/api/jobs/:id/duplicate', requireAdminAuth, (req, res) => {
     try {
       const duplicated = storage.duplicateJob(req.params.id);

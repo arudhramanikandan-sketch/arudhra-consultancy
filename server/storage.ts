@@ -1103,6 +1103,57 @@ class StorageService {
     return true;
   }
 
+  public clearAllLiveJobs(): { deletedCount: number; timestamp: string } {
+    const liveJobs = this.jobs.filter(j => {
+      if (!j || !j.id) return false;
+      if (this.deletedIds.has(j.id)) return false;
+      const anyJ = j as any;
+      if (anyJ.is_deleted === true || anyJ.isDeleted === true || anyJ.deleted === true || anyJ.deletedAt) return false;
+      return true;
+    });
+
+    const deletedCount = liveJobs.length;
+    liveJobs.forEach(j => {
+      this.deletedIds.add(j.id);
+      const existing = this.jobs.find(ej => ej.id === j.id);
+      if (existing) {
+        (existing as any).is_deleted = true;
+        (existing as any).isDeleted = true;
+        (existing as any).deleted = true;
+        existing.status = 'deleted' as any;
+      }
+    });
+
+    this.jobs = [];
+
+    // Clean up candidate interested jobs
+    this.candidates.forEach(c => {
+      if (c.interestedJobs) {
+        c.interestedJobs = c.interestedJobs.filter(ij => !this.deletedIds.has(ij.jobId));
+      }
+    });
+
+    const now = new Date().toISOString();
+    this.touchJobsLastUpdated(now);
+    this.saveToDisk();
+
+    // Broadcast real-time deletion and sync event to all connected listeners
+    try {
+      this.events.emit('job_event', {
+        action: 'batch_deleted',
+        ids: liveJobs.map(j => j.id),
+        timestamp: now
+      });
+      this.events.emit('job_event', {
+        action: 'sync',
+        jobs: [],
+        timestamp: now
+      });
+    } catch (e) {}
+
+    return { deletedCount, timestamp: now };
+  }
+
   public duplicateJob(id: string): Job | undefined {
     const orig = this.getJobById(id);
     if (!orig) return undefined;

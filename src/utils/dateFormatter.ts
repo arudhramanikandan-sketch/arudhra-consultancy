@@ -16,7 +16,7 @@ export function formatJobsLastUpdated(dateInput?: string | number | Date | null)
   const ampm = hours >= 12 ? 'PM' : 'AM';
   hours = hours % 12;
   hours = hours ? hours : 12; // 0 hour should be 12
-  const formattedHours = hours.toString();
+  const formattedHours = hours.toString().padStart(2, '0');
   const minutes = validDate.getMinutes().toString().padStart(2, '0');
 
   return `${day} ${month} ${year}, ${formattedHours}:${minutes} ${ampm}`;

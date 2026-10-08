@@ -682,6 +682,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       });
       const data = await res.json();
       if (data.success) {
+        const nowTs = new Date().toISOString();
+        setJobsLastUpdatedAt(nowTs);
+        try {
+          localStorage.setItem('arudhra_jobs_last_updated', nowTs);
+        } catch {}
         showToast(`Successfully deleted ${data.deletedCount ?? ids.length} job(s)`, 'success');
         console.log('[AppProvider:Revalidation] Triggering job collection revalidation after batchDeleteJobs write operation...');
         await refreshJobs();
@@ -692,6 +697,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       for (const id of ids) {
         await fetch(`/api/jobs/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
       }
+      const nowTsFallback = new Date().toISOString();
+      setJobsLastUpdatedAt(nowTsFallback);
+      try {
+        localStorage.setItem('arudhra_jobs_last_updated', nowTsFallback);
+      } catch {}
       showToast(`Deleted ${ids.length} job(s)`, 'success');
       refreshJobs();
       refreshStats();
