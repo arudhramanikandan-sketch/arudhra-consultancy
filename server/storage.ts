@@ -164,8 +164,24 @@ class StorageService {
 
   private loadFromDisk(): void {
     try {
-      if (fs.existsSync(this.filePath)) {
-        const raw = fs.readFileSync(this.filePath, 'utf-8');
+      let activePath = this.filePath;
+      if (!fs.existsSync(activePath)) {
+        const candidatePaths = [
+          path.join(process.cwd(), 'storage_data.json'),
+          path.join(__dirname, '../storage_data.json'),
+          path.join(__dirname, 'storage_data.json')
+        ];
+        for (const cp of candidatePaths) {
+          if (fs.existsSync(cp)) {
+            activePath = cp;
+            this.filePath = cp;
+            break;
+          }
+        }
+      }
+
+      if (fs.existsSync(activePath)) {
+        const raw = fs.readFileSync(activePath, 'utf-8');
         const data = JSON.parse(raw);
         if (Array.isArray(data.deletedIds)) {
           this.deletedIds = new Set(data.deletedIds);
@@ -302,6 +318,17 @@ class StorageService {
         if (fs.existsSync(defaultJobsPath)) {
           const content = `import { Job } from '../types';\n\n/**\n * Default fallback job array populated with active Singapore vacancies.\n * Synchronized with server storage and updated whenever jobs are created/modified in Admin.\n */\nexport const defaultJobs: Job[] = ${JSON.stringify(this.jobs, null, 2)};\n`;
           fs.writeFileSync(defaultJobsPath, content, 'utf-8');
+        }
+
+        // Also keep server/data.ts synchronized with current initialJobs and jobsLastUpdatedAt
+        const serverDataPath = path.join(process.cwd(), 'server', 'data.ts');
+        if (fs.existsSync(serverDataPath)) {
+          let sContent = fs.readFileSync(serverDataPath, 'utf-8');
+          sContent = sContent.replace(
+            /jobsLastUpdatedAt:\s*['"][^'"]*['"]/,
+            `jobsLastUpdatedAt: '${settingsToSave.jobsLastUpdatedAt}'`
+          );
+          fs.writeFileSync(serverDataPath, sContent, 'utf-8');
         }
       } catch (e) {
         // Ignore static file write error
@@ -986,21 +1013,30 @@ class StorageService {
   }
 
   public getJobsLastUpdated(): string {
+    let latestMs = 0;
     if (this.settings.jobsLastUpdatedAt) {
-      return this.settings.jobsLastUpdatedAt;
-    }
-    let latest = 0;
-    for (const job of this.jobs) {
-      const d = new Date(job.updatedAt || job.createdAt || job.postedDate).getTime();
-      if (!isNaN(d) && d > latest) {
-        latest = d;
+      const t = new Date(this.settings.jobsLastUpdatedAt).getTime();
+      if (!isNaN(t) && t > latestMs) {
+        latestMs = t;
       }
     }
-    if (latest > 0) {
-      const ts = new Date(latest).toISOString();
-      this.settings.jobsLastUpdatedAt = ts;
-      return ts;
+
+    for (const job of this.jobs) {
+      const dStr = job.updatedAt || job.createdAt || job.postedDate;
+      if (dStr) {
+        const t = new Date(dStr).getTime();
+        if (!isNaN(t) && t > latestMs) {
+          latestMs = t;
+        }
+      }
     }
+
+    if (latestMs > 0) {
+      const latestIso = new Date(latestMs).toISOString();
+      this.settings.jobsLastUpdatedAt = latestIso;
+      return latestIso;
+    }
+
     const fallback = new Date().toISOString();
     this.settings.jobsLastUpdatedAt = fallback;
     return fallback;

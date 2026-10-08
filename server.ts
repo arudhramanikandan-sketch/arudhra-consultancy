@@ -460,6 +460,7 @@ app.use(express.static(path.join(process.cwd(), 'public')));
       res.status(201).json({
         success: true,
         job,
+        lastUpdated: storage.getJobsLastUpdated(),
         deletedJobsCount,
         deletedLeadsCount,
         message: msg
@@ -475,7 +476,12 @@ app.use(express.static(path.join(process.cwd(), 'public')));
       if (!updated) {
         return res.status(404).json({ success: false, message: 'Job not found' });
       }
-      res.json({ success: true, job: updated, message: 'Job updated successfully' });
+      res.json({
+        success: true,
+        job: updated,
+        lastUpdated: storage.getJobsLastUpdated(),
+        message: 'Job updated successfully'
+      });
     } catch (error: any) {
       res.status(500).json({ success: false, error: error.message });
     }
@@ -490,7 +496,12 @@ app.use(express.static(path.join(process.cwd(), 'public')));
       if (!deleted) {
         return res.status(404).json({ success: false, message: 'Job not found' });
       }
-      res.json({ success: true, message: 'Job deleted successfully', id: req.params.id });
+      res.json({
+        success: true,
+        message: 'Job deleted successfully',
+        id: req.params.id,
+        lastUpdated: storage.getJobsLastUpdated()
+      });
     } catch (error: any) {
       res.status(500).json({ success: false, error: error.message });
     }

@@ -31,7 +31,9 @@ if not exist ".git" (
 
 echo.
 echo [2/5] Building production assets (creating dist/ and docs/)...
+call npm run build
 call npm run build:pages
+copy /Y public\jobs.json docs\jobs.json >nul 2>nul
 
 echo.
 echo [3/5] Adding all files (including hidden dotfiles and design assets)...

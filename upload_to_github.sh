@@ -18,7 +18,9 @@ if [ ! -d ".git" ]; then
 fi
 
 echo "[2/5] Building production assets (dist/ and docs/)..."
+npm run build
 npm run build:pages
+cp public/jobs.json docs/jobs.json 2>/dev/null || true
 
 echo "[3/5] Adding all files (including hidden dotfiles and design assets)..."
 git add -A

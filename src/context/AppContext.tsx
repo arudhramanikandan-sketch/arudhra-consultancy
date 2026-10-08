@@ -132,9 +132,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [jobsLastUpdatedAt, setJobsLastUpdatedAt] = useState<string>(() => {
     try {
       const saved = localStorage.getItem('arudhra_jobs_last_updated');
-      if (saved) return saved;
+      if (saved && !isNaN(new Date(saved).getTime())) {
+        return saved;
+      }
     } catch {}
-    return initialSiteSettings.jobsLastUpdatedAt || new Date().toISOString();
+    // Calculate dynamically from defaultJobs if available
+    if (Array.isArray(defaultJobs) && defaultJobs.length > 0) {
+      let maxMs = 0;
+      for (const j of defaultJobs) {
+        const ms = new Date(j.updatedAt || j.createdAt || j.postedDate).getTime();
+        if (!isNaN(ms) && ms > maxMs) maxMs = ms;
+      }
+      if (maxMs > 0) return new Date(maxMs).toISOString();
+    }
+    return '';
   });
   const [videos, setVideos] = useState<VideoItem[]>([]);
   const [ads, setAds] = useState<Advertisement[]>([]);
@@ -451,10 +462,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           activeJobTitles: cleanJobs.map((j: Job) => j.title)
         });
 
-        if (data.lastUpdated) {
-          setJobsLastUpdatedAt(data.lastUpdated);
+        let effectiveLastUpdated = data.lastUpdated;
+        if (!effectiveLastUpdated && cleanJobs.length > 0) {
+          let maxMs = 0;
+          for (const j of cleanJobs) {
+            const ms = new Date(j.updatedAt || j.createdAt || j.postedDate).getTime();
+            if (!isNaN(ms) && ms > maxMs) maxMs = ms;
+          }
+          if (maxMs > 0) effectiveLastUpdated = new Date(maxMs).toISOString();
+        }
+
+        if (effectiveLastUpdated) {
+          setJobsLastUpdatedAt(effectiveLastUpdated);
           try {
-            localStorage.setItem('arudhra_jobs_last_updated', data.lastUpdated);
+            localStorage.setItem('arudhra_jobs_last_updated', effectiveLastUpdated);
           } catch {}
         }
 
@@ -585,7 +606,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       });
       const data = await res.json();
       if (data.success) {
-        const nowTs = new Date().toISOString();
+        const nowTs = data.lastUpdated || (data.job && (data.job.updatedAt || data.job.createdAt)) || new Date().toISOString();
         setJobsLastUpdatedAt(nowTs);
         try {
           localStorage.setItem('arudhra_jobs_last_updated', nowTs);
@@ -642,7 +663,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       });
       const data = await res.json();
       if (data.success) {
-        const nowTs = new Date().toISOString();
+        const nowTs = data.lastUpdated || new Date().toISOString();
         setJobsLastUpdatedAt(nowTs);
         try {
           localStorage.setItem('arudhra_jobs_last_updated', nowTs);

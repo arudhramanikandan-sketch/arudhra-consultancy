@@ -1,5 +1,9 @@
 import { Job } from '../types';
 
+/**
+ * Default fallback job array populated with active Singapore vacancies.
+ * Synchronized with server storage and updated whenever jobs are created/modified in Admin.
+ */
 export const defaultJobs: Job[] = [
   {
     "id": "SG-JOB-301",
@@ -837,5 +841,1063 @@ export const defaultJobs: Job[] = [
     "postedDate": "2026-10-08",
     "createdAt": "2026-10-08T05:22:18.409Z",
     "updatedAt": "2026-10-08T05:22:18.409Z"
+  },
+  {
+    "id": "SG-JOB-321",
+    "title": "U-Turn Safety Supervisor (Chinese A1 Maincon)",
+    "employer": "Chinese A1 Main Contractor Pte Ltd",
+    "category": "Construction & Civil",
+    "location": "Singapore (Islandwide Infrastructure Projects)",
+    "salary": "SGD 27 - 30 / day (Coretrade SGD 30 / day) + 1.5x OT",
+    "qualification": "Advanced Certificate in Workplace Safety & Health (WSH) / Coretrade",
+    "experience": "Min 2 - 3 Years SG relevant experience in building construction",
+    "jobType": "Work Permit",
+    "vacancyCount": 3,
+    "description": "Chinese A1 Main Contractor urgently requires U-Turn Safety Supervisors for active civil, infrastructure, and building construction sites. Bangladeshi and Indian nationalities with solid Singapore track records are welcome to apply.",
+    "responsibilities": [
+      "Supervise daily site workplace safety and health (WSH) practices in compliance with MOM and BCA regulations",
+      "Conduct morning toolbox meetings, inspect scaffoldings, lifting operations, and working-at-height zones",
+      "Liaise with site safety officers, project engineers, lifting supervisors, and subcontractor foremen",
+      "Execute safety inspection checklists, enforce PPE protocols, and prevent site hazard incidents"
+    ],
+    "requirements": [
+      "Bangladeshi or Indian nationality",
+      "Min 2 - 3 years Singapore relevant experience in building construction",
+      "Basic: SGD 27 - 30 / day; with Coretrade certification SGD 30 / day",
+      "Overtime (OT) paid at 1.5x standard hourly rate",
+      "Company deduction: SGD 100/month for 12 months, fully refunded after completing 2-year contract"
+    ],
+    "benefits": [
+      "Daily overtime opportunities at 1.5x rate",
+      "Long-term employment with Chinese A1 Main Contractor",
+      "Security deposit refund upon 2-year contract completion",
+      "Standard MOM medical insurance and site safety gear provided"
+    ],
+    "requiredDocuments": [
+      "Valid Passport Copy",
+      "Singapore WSH Safety Supervisor Certificate / Coretrade",
+      "Past Singapore Work Experience Records / FIN Copy",
+      "Educational Certificates"
+    ],
+    "status": "published",
+    "featured": true,
+    "latest": true,
+    "postedDate": "2026-10-08",
+    "createdAt": "2026-10-08T12:51:47.321Z",
+    "updatedAt": "2026-10-08T12:51:47.321Z"
+  },
+  {
+    "id": "SG-JOB-322",
+    "title": "Class 3 Driver (Food Supplies Company)",
+    "employer": "Fresh Food Distribution Pte Ltd",
+    "category": "Logistics & Warehouse",
+    "location": "Singapore (Central Distribution Hub)",
+    "salary": "SGD 1,800 / month",
+    "qualification": "Valid Singapore Class 3 Driving License",
+    "experience": "1+ Years Class 3 driving experience in Singapore",
+    "jobType": "NTS Work Permit",
+    "vacancyCount": 2,
+    "description": "Reputable food supply and distribution company requires Class 3 Drivers for early morning deliveries to supermarkets, commercial kitchens, and food courts across Singapore.",
+    "responsibilities": [
+      "Drive company Class 3 van or light lorry for scheduled morning delivery routes",
+      "Assist with safe loading, unloading, and handling of temperature-controlled food supplies",
+      "Verify delivery invoices, customer orders, and obtain signed delivery acknowledgments",
+      "Maintain vehicle cleanliness, monitor fuel levels, and strictly adhere to road safety guidelines"
+    ],
+    "requirements": [
+      "Valid Singapore Class 3 Driving License",
+      "Working hours: Morning 4:00 AM to 4:00 PM",
+      "3 off days per month",
+      "Company dormitory provided",
+      "Age limit below 45 years",
+      "Polite, customer-friendly behavior; strict rule: absolutely no drinking during working/driving hours"
+    ],
+    "benefits": [
+      "Company dormitory accommodation provided",
+      "Stable employment in essential food distribution sector",
+      "Standard MOM work injury compensation and medical benefits"
+    ],
+    "requiredDocuments": [
+      "Valid Passport Copy",
+      "Singapore Class 3 Driving License (Front & Back)",
+      "Past Singapore Work Records / FIN (if applicable)"
+    ],
+    "status": "published",
+    "featured": false,
+    "latest": true,
+    "postedDate": "2026-10-08",
+    "createdAt": "2026-10-08T12:51:47.321Z",
+    "updatedAt": "2026-10-08T12:51:47.321Z"
+  },
+  {
+    "id": "SG-JOB-323",
+    "title": "South Indian All-Rounder Chef (NTS Restaurant)",
+    "employer": "Traditional South Indian Restaurant Pte Ltd",
+    "category": "F&B & Hospitality",
+    "location": "Singapore (Little India / Islandwide Outlets)",
+    "salary": "SGD 1,300 - 1,500 / month + Food & Accommodation",
+    "qualification": "Culinary Certificate / Catering Experience / 5+ Years Hands-on Cooking",
+    "experience": "Minimum 5 Years relevant South Indian commercial cooking experience",
+    "jobType": "NTS Work Permit",
+    "vacancyCount": 3,
+    "description": "Established South Indian restaurant chain is hiring experienced All-Rounder Chefs capable of mastering both vegetarian and non-vegetarian traditional specialties, gravies, and breakfast tiffin items.",
+    "responsibilities": [
+      "Prepare authentic South Indian dishes including dosas, idlis, sambar, rasam, biryanis, and curries",
+      "Manage morning kitchen preparations, spice blending, marinade mixing, and bulk gravies",
+      "Maintain high culinary hygiene in line with Singapore Food Agency (SFA) guidelines",
+      "Monitor food freshness, stock inventory, and ensure consistent taste and portion sizes"
+    ],
+    "requirements": [
+      "Minimum 5 years relevant cooking experience in high-volume South Indian restaurants",
+      "Strong South Indian culinary repertoire; all-round cooking experience preferred",
+      "Age below 38 years",
+      "Duty meals (Food) provided by company",
+      "Accommodation provided by company",
+      "2 off days per month; only eligible and experienced candidates should apply"
+    ],
+    "benefits": [
+      "Duty meals (Food) provided daily",
+      "Company accommodation provided",
+      "Stable restaurant employment with potential performance incentives",
+      "Standard MOM medical insurance"
+    ],
+    "requiredDocuments": [
+      "Valid Passport Copy",
+      "Detailed Culinary Resume / Bio-data",
+      "Cooking Photos & Video Clips of Food Preparation",
+      "Past Experience Certificates"
+    ],
+    "status": "published",
+    "featured": true,
+    "latest": true,
+    "postedDate": "2026-10-08",
+    "createdAt": "2026-10-08T12:51:47.321Z",
+    "updatedAt": "2026-10-08T12:51:47.321Z"
+  },
+  {
+    "id": "SG-JOB-324",
+    "title": "Class 3 Private Car Driver (BMW Luxury Vehicle)",
+    "employer": "Private Executive Fleet Pte Ltd",
+    "category": "Logistics & Warehouse",
+    "location": "Singapore (Orchard / Sentosa / Islandwide)",
+    "salary": "SGD 1,400 / month + Overtime after 7:00 PM",
+    "qualification": "Valid Singapore Class 3 Driving License",
+    "experience": "2+ Years driving luxury / executive private cars in Singapore",
+    "jobType": "Work Permit",
+    "vacancyCount": 1,
+    "description": "Private executive household requires an experienced, discreet Class 3 Driver skilled in operating BMW luxury vehicles. Must have an immaculate driving record and thorough familiarity with Singapore routes.",
+    "responsibilities": [
+      "Chauffeur family members in luxury BMW sedan / SUV safely and punctually across Singapore",
+      "Maintain the executive vehicle in pristine condition, including regular washing, detailing, and servicing",
+      "Execute household errands, airport pickups, and executive meeting transfers",
+      "Practice high standards of discretion, confidentiality, and polite demeanor at all times"
+    ],
+    "requirements": [
+      "Valid Singapore Class 3 Driving License",
+      "Able to drive luxury BMW vehicles smoothly and confidently",
+      "Working hours: 8:00 AM to 7:00 PM; all work after 7:00 PM paid as overtime (OT)",
+      "Roster: 2 Sundays work, 2 Sundays off per month",
+      "Clean driving record with no demerit points or reckless driving history"
+    ],
+    "benefits": [
+      "Overtime pay for all duties past 7:00 PM",
+      "Comfortable driving environment in high-end vehicle",
+      "Direct employer relationship with stable employment terms"
+    ],
+    "requiredDocuments": [
+      "Valid Passport Copy",
+      "Singapore Class 3 Driving License",
+      "Past Singapore Driving Records / Employment History"
+    ],
+    "status": "published",
+    "featured": false,
+    "latest": true,
+    "postedDate": "2026-10-08",
+    "createdAt": "2026-10-08T12:51:47.321Z",
+    "updatedAt": "2026-10-08T12:51:47.321Z"
+  },
+  {
+    "id": "SG-JOB-325",
+    "title": "Class 4 Indian Driver (Printing Company - Balestier)",
+    "employer": "Commercial Color Printing & Packaging Pte Ltd",
+    "category": "Logistics & Warehouse",
+    "location": "Balestier / Islandwide, Singapore",
+    "salary": "Basic SGD 2,800 + SGD 150 Bed Allowance (Gross SGD 3,200 - 3,500)",
+    "qualification": "Valid Singapore Class 4 Driving License",
+    "experience": "1+ Years Class 4 lorry driving and delivery experience in Singapore",
+    "jobType": "NTS Work Permit",
+    "vacancyCount": 2,
+    "description": "Established commercial printing company requires Class 4 Drivers of Indian nationality for delivery of paper rolls, palletized packaging goods, and publications islandwide. Designated parking at Balestier.",
+    "responsibilities": [
+      "Drive company Class 4 lorry for scheduled industrial deliveries to publishing clients and print warehouses",
+      "Supervise proper strapping, tarping, and weight distribution of heavy paper rolls and printed pallets",
+      "Park vehicle safely at designated Balestier lorry parking location",
+      "Inspect lorry daily, check tires, fluid levels, and report maintenance issues promptly"
+    ],
+    "requirements": [
+      "Indian nationality",
+      "Age below 45 years",
+      "Basic salary: SGD 2,800 / month + Bed allowance: SGD 150 / month",
+      "Guaranteed overtime: Minimum 20 hours @ SGD 12.50 / hour",
+      "Gross monthly salary: SGD 3,200 - 3,500",
+      "Weekly working hours: 7:30 AM to 7:30 PM, 2 off days monthly"
+    ],
+    "benefits": [
+      "Guaranteed minimum 20 OT hours paid @ $12.50/hr",
+      "Bed allowance SGD 150 provided",
+      "Convenient Balestier parking base",
+      "MOM work injury and medical coverage"
+    ],
+    "requiredDocuments": [
+      "Valid Passport Copy",
+      "Singapore Class 4 Driving License (Front & Back)",
+      "Past Singapore Heavy Vehicle Driving Verification"
+    ],
+    "status": "published",
+    "featured": true,
+    "latest": true,
+    "postedDate": "2026-10-08",
+    "createdAt": "2026-10-08T12:51:47.321Z",
+    "updatedAt": "2026-10-08T12:51:47.321Z"
+  },
+  {
+    "id": "SG-JOB-326",
+    "title": "CNC Milling Machinist (Construction & Engineering)",
+    "employer": "Precision Engineering Components Pte Ltd",
+    "category": "Manufacturing & Production",
+    "location": "Jurong / Tuas Industrial Estate, Singapore",
+    "salary": "Basic SGD 1,700 + SGD 300 Housing + SGD 60 Attd (Gross ~SGD 3,200)",
+    "qualification": "NTC / ITC / Diploma in Mechanical or Precision Machining",
+    "experience": "2+ Years CNC milling, setting, and programming experience",
+    "jobType": "NTS Work Permit",
+    "vacancyCount": 2,
+    "description": "Leading precision engineering manufacturer supplying construction structural components is hiring CNC Milling Machinists. Indian nationality with proven machine setting capability and programming skills preferred.",
+    "responsibilities": [
+      "Set up and operate CNC milling machines to manufacture high-precision engineering parts",
+      "Select, mount, and calibrate cutting tools, jigs, fixtures, and workpieces",
+      "Perform program setting and G-code/M-code edits; full programming ability preferred",
+      "Inspect finished components using micrometers, vernier calipers, and coordinate measuring instruments"
+    ],
+    "requirements": [
+      "Indian nationality, age below 30 years",
+      "Must be proficient in machine setting; programming capability preferred",
+      "Working hours: 5.5 days, 44 hours per week",
+      "Basic: SGD 1,700 / month",
+      "Housing allowance: SGD 300 / month (no company dormitory provided)",
+      "Full attendance allowance: SGD 60 / month",
+      "Overtime rate: 1.5x on weekdays/Saturdays, 2.0x on Sundays and Public Holidays",
+      "Estimated gross monthly earnings around SGD 3,200"
+    ],
+    "benefits": [
+      "Substantial overtime potential at 1.5x and 2.0x rates",
+      "Monthly housing allowance of SGD 300",
+      "Monthly perfect attendance bonus of SGD 60",
+      "Clean, modern precision manufacturing environment"
+    ],
+    "requiredDocuments": [
+      "Valid Passport Copy",
+      "Technical Diploma / NTC Machinist Certificate",
+      "Detailed Resume detailing CNC machine models and programming controllers"
+    ],
+    "status": "published",
+    "featured": false,
+    "latest": true,
+    "postedDate": "2026-10-08",
+    "createdAt": "2026-10-08T12:51:47.321Z",
+    "updatedAt": "2026-10-08T12:51:47.321Z"
+  },
+  {
+    "id": "SG-JOB-327",
+    "title": "General Plumbing Worker (Jua Seng Plumbing)",
+    "employer": "Jua Seng Plumbing Pte Ltd",
+    "category": "Construction & Civil",
+    "location": "Singapore (Islandwide Residential & Commercial Projects)",
+    "salary": "SGD 26 / day + Overtime",
+    "qualification": "Secondary School / Technical Trainee / No experience needed",
+    "experience": "Fresh candidates welcome (No plumbing experience required)",
+    "jobType": "Work Permit",
+    "vacancyCount": 2,
+    "description": "Established plumbing company Jua Seng is hiring 2 General Workers. Candidates without plumbing experience are welcome; on-the-job training in water pipe fittings, PVC installation, and drainage will be provided in a supportive environment.",
+    "responsibilities": [
+      "Assist senior plumbers with pipe cutting, threading, and PVC joint connections",
+      "Carry plumbing tools, equipment, copper fittings, and materials across work sites",
+      "Assist in laying sanitary drainage, water supply pipes, and fixture mounting",
+      "Maintain site tidiness, clear debris, and follow supervisor safety guidelines"
+    ],
+    "requirements": [
+      "No prior plumbing experience required; training provided",
+      "Good company culture with cooperative working environment",
+      "Basic rate: SGD 26 / day + overtime pay",
+      "Physically fit and willing to learn plumbing trade skills"
+    ],
+    "benefits": [
+      "Learn professional Singapore plumbing and sanitary trade",
+      "Regular daily overtime pay",
+      "MOM work injury and hospital insurance coverage"
+    ],
+    "requiredDocuments": [
+      "Valid Passport Copy",
+      "Past Singapore FIN (if applicable)"
+    ],
+    "status": "published",
+    "featured": false,
+    "latest": true,
+    "postedDate": "2026-10-08",
+    "createdAt": "2026-10-08T12:51:47.321Z",
+    "updatedAt": "2026-10-08T12:51:47.321Z"
+  },
+  {
+    "id": "SG-JOB-328",
+    "title": "Windows & Doors General Worker (Sapphire Windows - High OT)",
+    "employer": "Sapphire Windows Pte Ltd",
+    "category": "Manufacturing & Production",
+    "location": "Woodlands / Islandwide Sites, Singapore",
+    "salary": "SGD 23 - 26 / day + High OT (70 - 80 Hours OT Monthly)",
+    "qualification": "General Worker / Secondary / Technical Trainee",
+    "experience": "General factory or construction worker experience welcome",
+    "jobType": "Work Permit",
+    "vacancyCount": 3,
+    "description": "Sapphire Windows, Singapore's leading architectural window and door specialist, is hiring 3 General Workers. Top earning potential with 70 to 80 hours of guaranteed overtime every month.",
+    "responsibilities": [
+      "Assist in window and door aluminum frame cutting, gasket insertion, and hardware assembly",
+      "Handle glass panels, silicone sealing, quality inspection, and protective packaging",
+      "Support on-site installation teams with window framing and hardware adjustments",
+      "Operate hand tools, drills, and riveting equipment under workshop supervision"
+    ],
+    "requirements": [
+      "Basic salary: SGD 23 - 26 / day",
+      "High overtime volume: 70 to 80 hours of OT available every single month",
+      "Willing to work extra hours for high monthly gross income",
+      "Careful handling of glass and aluminum profiles"
+    ],
+    "benefits": [
+      "70 to 80 hours of monthly overtime available",
+      "Reputable, high-standard company with clean workshop",
+      "MOM medical insurance and safety equipment provided"
+    ],
+    "requiredDocuments": [
+      "Valid Passport Copy",
+      "Past Singapore Work Experience Records (if applicable)"
+    ],
+    "status": "published",
+    "featured": true,
+    "latest": true,
+    "postedDate": "2026-10-08",
+    "createdAt": "2026-10-08T12:51:47.321Z",
+    "updatedAt": "2026-10-08T12:51:47.321Z"
+  },
+  {
+    "id": "SG-JOB-329",
+    "title": "General Worker cum Landscaping Worker (BSG Construction)",
+    "employer": "BSG Construction Pte Ltd",
+    "category": "Construction & Civil",
+    "location": "Singapore (Islandwide Infrastructure & Park Sites)",
+    "salary": "SGD 32 / day (8:00 AM - 7:00 PM) + Overtime",
+    "qualification": "Construction Work Permit Holder",
+    "experience": "1+ Years general construction or outdoor maintenance experience",
+    "jobType": "Construction Permit",
+    "vacancyCount": 4,
+    "description": "BSG Construction is hiring 4 workers under Construction Permits for civil works, site upkeep, and occasional grass cutting and grounds maintenance across active Singapore sites.",
+    "responsibilities": [
+      "Perform general construction assistance, concrete clearing, and site logistics",
+      "Operate grass cutters, lawn trimmers, and outdoor groundskeeping tools when assigned",
+      "Load and unload site building supplies, safety barriers, and landscape materials",
+      "Keep worksites organized and compliant with National Environment Agency (NEA) standards"
+    ],
+    "requirements": [
+      "Construction Permit quota",
+      "Working hours: 8:00 AM to 7:00 PM (Monday - Friday) @ SGD 32 / day",
+      "Saturday work after 1:00 PM considered and paid as Overtime (OT)",
+      "Must be willing to perform grass cutting and landscaping duties when required"
+    ],
+    "benefits": [
+      "Competitive day rate of SGD 32",
+      "Saturday afternoon paid as overtime",
+      "MOM standard insurance coverage"
+    ],
+    "requiredDocuments": [
+      "Valid Passport Copy",
+      "Past Singapore FIN / Construction Permit Copy"
+    ],
+    "status": "published",
+    "featured": false,
+    "latest": true,
+    "postedDate": "2026-10-08",
+    "createdAt": "2026-10-08T12:51:47.321Z",
+    "updatedAt": "2026-10-08T12:51:47.321Z"
+  },
+  {
+    "id": "SG-JOB-330",
+    "title": "Landed Property General Worker (CTH Builders - No Rebar/Formwork)",
+    "employer": "CTH Builders Pte Ltd",
+    "category": "Construction & Civil",
+    "location": "Singapore (Bungalow & Landed Residential Sites)",
+    "salary": "SGD 26 / day + Minimum 2 Hours Daily OT Guaranteed",
+    "qualification": "Construction Worker (BCA Certified)",
+    "experience": "1+ Years general construction experience in Singapore",
+    "jobType": "Work Permit",
+    "vacancyCount": 1,
+    "description": "CTH Builders Pte Ltd, specialized in luxury bungalow and landed property construction, urgently requires 1 General Worker. Guaranteed no heavy rebar tying and no structural formwork.",
+    "responsibilities": [
+      "Assist in architectural landed house construction, plastering support, and masonry prep",
+      "Support floor leveling, wall finishing, material transport, and site housekeeping",
+      "Help trade masters with sanitary, tiling, and interior framing tasks",
+      "Strictly no heavy steel rebar tying and no timber formwork required"
+    ],
+    "requirements": [
+      "Basic pay: SGD 26 / day",
+      "Minimum 2 hours daily overtime guaranteed",
+      "Guarantee: Absolutely no rebar and no formwork works",
+      "Good working attitude on high-end bungalow landed projects"
+    ],
+    "benefits": [
+      "Guaranteed minimum 2 hours OT every single working day",
+      "Lighter physical workload (strictly no rebar / formwork)",
+      "Long-term residential landed property projects"
+    ],
+    "requiredDocuments": [
+      "Valid Passport Copy",
+      "BCA Construction Safety Orientation / SEC(K) Certificate",
+      "Past Singapore FIN Copy"
+    ],
+    "status": "published",
+    "featured": false,
+    "latest": true,
+    "postedDate": "2026-10-08",
+    "createdAt": "2026-10-08T12:51:47.321Z",
+    "updatedAt": "2026-10-08T12:51:47.321Z"
+  },
+  {
+    "id": "SG-JOB-331",
+    "title": "Coretrade General Worker (Heng Choon Construction)",
+    "employer": "Heng Choon Construction Pte Ltd",
+    "category": "Construction & Civil",
+    "location": "Singapore (Landed House & Bungalow Sites)",
+    "salary": "SGD 28 / day + Minimum 2 Hours Daily OT Guaranteed",
+    "qualification": "BCA Coretrade Registration / Multi-Skilling Scheme",
+    "experience": "2+ Years building construction experience in Singapore",
+    "jobType": "Work Permit",
+    "vacancyCount": 1,
+    "description": "Heng Choon Construction Pte Ltd builds landed properties and bungalows in Singapore. Urgently hiring 1 Coretrade General Worker with guaranteed daily overtime.",
+    "responsibilities": [
+      "Perform skilled building construction tasks for landed property developments",
+      "Support site supervisors with trade coordination and quality checks",
+      "Operate trade tools safely and maintain site organization",
+      "Ensure all building works adhere to BCA Quality Mark specifications"
+    ],
+    "requirements": [
+      "Valid BCA Coretrade Certification required",
+      "Basic pay: SGD 28 / day",
+      "Minimum 2 hours daily overtime guaranteed",
+      "Landed property construction background preferred"
+    ],
+    "benefits": [
+      "Guaranteed minimum 2 hours OT daily",
+      "Attractive Coretrade basic rate of SGD 28/day",
+      "MOM medical insurance and safety equipment provided"
+    ],
+    "requiredDocuments": [
+      "Valid Passport Copy",
+      "BCA Coretrade Registration Card / Multi-skilling Cert",
+      "Past Singapore Employment History"
+    ],
+    "status": "published",
+    "featured": false,
+    "latest": true,
+    "postedDate": "2026-10-08",
+    "createdAt": "2026-10-08T12:51:47.321Z",
+    "updatedAt": "2026-10-08T12:51:47.321Z"
+  },
+  {
+    "id": "SG-JOB-332",
+    "title": "Hacking & Ceiling Partition Worker (Sin Gan Renovation)",
+    "employer": "Sin Gan Ceiling & Renovation Pte Ltd",
+    "category": "Construction & Civil",
+    "location": "Singapore (Commercial & Residential Renovation)",
+    "salary": "Hacking: SGD 45 / day | Ceiling Partition: SGD 30+++ / day",
+    "qualification": "Experienced Interior Renovation Worker",
+    "experience": "Min 2 - 3 Years SG experience in hacking or ceiling partition works",
+    "jobType": "Work Permit",
+    "vacancyCount": 3,
+    "description": "Sin Gan Renovation requires 2 experienced Hacking Workers and 1 Ceiling Partition Worker for interior commercial and residential renovation projects across Singapore.",
+    "responsibilities": [
+      "Hacking workers: Execute structural and non-structural demolition, hacking walls, tiles, and floor screed safely",
+      "Ceiling partition worker: Erect metal stud framing, install gypsum/plaster boards, and tape ceiling joints",
+      "Follow building protection guidelines to safeguard client property and common corridors",
+      "Dispose of hacked renovation debris into designated disposal bags and bins"
+    ],
+    "requirements": [
+      "2x Hacking Workers: Must understand hacking techniques thoroughly; High rate of SGD 45 / day",
+      "1x Ceiling Partition Worker: Min 2 - 3 years ceiling partition experience in Singapore; SGD 30+++ / day",
+      "Familiar with power tools (demolition hammers, laser levels, screw guns)",
+      "Good team coordination and safety awareness"
+    ],
+    "benefits": [
+      "High daily wage up to SGD 45 for experienced hacking workers",
+      "Steady commercial and residential renovation projects",
+      "Overtime pay and MOM insurance provided"
+    ],
+    "requiredDocuments": [
+      "Valid Passport Copy",
+      "Past Singapore Renovation Experience Verification / FIN"
+    ],
+    "status": "published",
+    "featured": true,
+    "latest": true,
+    "postedDate": "2026-10-08",
+    "createdAt": "2026-10-08T12:51:47.321Z",
+    "updatedAt": "2026-10-08T12:51:47.321Z"
+  },
+  {
+    "id": "SG-JOB-333",
+    "title": "Electrical Installation Worker (SM Electrical Works)",
+    "employer": "SM Electrical & Engineering Works Pte Ltd",
+    "category": "Electrical & Maintenance",
+    "location": "Singapore (Commercial & Industrial Projects)",
+    "salary": "Salary Offered Upon Interview Based on Experience",
+    "qualification": "NTC / ITI Electrician / Past Singapore Electrical Site Worker",
+    "experience": "2+ Years experience performing electrical installations in Singapore",
+    "jobType": "Work Permit",
+    "vacancyCount": 2,
+    "description": "Established electrical contractor requires 2 Electrical Workers with proven Singapore site experience in GI conduit piping, cable tray installation, wiring, and DB terminations.",
+    "responsibilities": [
+      "Install GI / PVC conduits, trunking, cable trays, and ladder racks",
+      "Pull low-voltage and high-voltage power cables and communication wirings",
+      "Assist licensed electricians with distribution board (DB) terminations and circuit testing",
+      "Adhere strictly to Singapore CP5 / SS 638 electrical safety standards"
+    ],
+    "requirements": [
+      "Must understand and have hands-on experience performing electrical works in Singapore",
+      "Able to read electrical single-line diagrams and layout drawings",
+      "Salary offered upon interview based on proven technical experience",
+      "Valid CSOC / BCSS safety pass"
+    ],
+    "benefits": [
+      "Competitive salary tailored to individual experience level",
+      "Overtime pay for after-hours electrical cutovers",
+      "MOM work injury and hospital insurance coverage"
+    ],
+    "requiredDocuments": [
+      "Valid Passport Copy",
+      "Electrician Trade Certificate (ITI / NTC)",
+      "Past Singapore Electrical Site Employment Records"
+    ],
+    "status": "published",
+    "featured": false,
+    "latest": true,
+    "postedDate": "2026-10-08",
+    "createdAt": "2026-10-08T12:51:47.321Z",
+    "updatedAt": "2026-10-08T12:51:47.321Z"
+  },
+  {
+    "id": "SG-JOB-334",
+    "title": "Lifting Supervisor & Electrician (AC Works - BCA Certified)",
+    "employer": "AC Works Engineering Pte Ltd",
+    "category": "Construction & Civil",
+    "location": "Singapore (Islandwide Substation & Heavy Sites)",
+    "salary": "Lifting: SGD 30 / day | Electrician: SGD 20 - 30 / day",
+    "qualification": "Lifting Supervisor Cert + BCSS / Coretrade Electrician",
+    "experience": "2+ Years relevant Singapore lifting or electrical installation experience",
+    "jobType": "Work Permit",
+    "vacancyCount": 5,
+    "description": "AC Works is hiring 2 Lifting Supervisors with valid lifting certificates and BCSS, along with 3 Electricians with or without Coretrade for active heavy engineering projects.",
+    "responsibilities": [
+      "Lifting Supervisors: Coordinate mobile and crawler crane lifting plans, inspect rigging gears, and direct crane operations",
+      "Electricians: Perform industrial electrical cabling, switchboard installations, and equipment power connections",
+      "Enforce mandatory BCA and MOM safety protocols on site",
+      "Conduct pre-lift briefings and toolbox safety discussions"
+    ],
+    "requirements": [
+      "2x Lifting Supervisor: Must have valid Lifting Supervisor Certificate, BCSS, and Singapore lifting experience @ SGD 30 / day",
+      "3x Electrician: SGD 28 - 30 / day (with Coretrade), SGD 20 - 25 / day (without Coretrade) based on interview and skill test",
+      "Solid understanding of site safety practices"
+    ],
+    "benefits": [
+      "Competitive day rates for certified supervisors and electricians",
+      "Regular daily overtime available",
+      "Standard MOM safety gear, footwear, and insurance provided"
+    ],
+    "requiredDocuments": [
+      "Valid Passport Copy",
+      "BCA / MOM Lifting Supervisor Certificate & BCSS Pass",
+      "Electrician Trade Certificate / Coretrade Card"
+    ],
+    "status": "published",
+    "featured": true,
+    "latest": true,
+    "postedDate": "2026-10-08",
+    "createdAt": "2026-10-08T12:51:47.321Z",
+    "updatedAt": "2026-10-08T12:51:47.321Z"
+  },
+  {
+    "id": "SG-JOB-335",
+    "title": "Chiller Pipe & Aircon General Worker (Allbest Engineering)",
+    "employer": "Allbest Chiller & HVAC Pte Ltd",
+    "category": "Electrical & Maintenance",
+    "location": "Singapore (Commercial Chiller Plants & High-Rise Buildings)",
+    "salary": "SGD 22 / day + Overtime",
+    "qualification": "General Worker / Pipefitting Trainee",
+    "experience": "Fresh or general site worker; willingness to learn chiller systems",
+    "jobType": "Work Permit",
+    "vacancyCount": 2,
+    "description": "Allbest requires 2 General Workers for central chiller pipe installation, insulation, and HVAC maintenance works in commercial buildings.",
+    "responsibilities": [
+      "Assist pipefitters with chilled water pipe cutting, flange alignment, and bracket mounting",
+      "Apply thermal insulation, lagging, and vapor barrier wraps around chiller pipes",
+      "Transport piping supplies, valves, pressure gauges, and welding equipment across plant rooms",
+      "Maintain clean, tidy mechanical plant rooms and adhere to client safety rules"
+    ],
+    "requirements": [
+      "Basic pay: SGD 22 / day + Overtime",
+      "Willingness to learn commercial chiller pipefitting and HVAC systems",
+      "Physically fit and comfortable working in industrial plant rooms",
+      "Good team cooperation and safety mindset"
+    ],
+    "benefits": [
+      "Learn specialized central chiller and HVAC piping trade",
+      "Consistent daily overtime opportunities",
+      "MOM work injury and hospital insurance coverage"
+    ],
+    "requiredDocuments": [
+      "Valid Passport Copy",
+      "CSOC Safety Pass (if applicable)"
+    ],
+    "status": "published",
+    "featured": false,
+    "latest": true,
+    "postedDate": "2026-10-08",
+    "createdAt": "2026-10-08T12:51:47.321Z",
+    "updatedAt": "2026-10-08T12:51:47.321Z"
+  },
+  {
+    "id": "SG-JOB-336",
+    "title": "Air Conditioning Project Coordinator (United Aircon)",
+    "employer": "United Air Conditioning Pte Ltd",
+    "category": "IT & Admin Support",
+    "location": "Singapore (Office & Islandwide Project Sites)",
+    "salary": "SGD 2,500 / month (Offered Upon Interview)",
+    "qualification": "Diploma / Degree in Mechanical / Building Services / Engineering",
+    "experience": "2+ Years HVAC / ACMV project coordination experience in Singapore",
+    "jobType": "Work Permit",
+    "vacancyCount": 1,
+    "description": "United Air Conditioning is hiring 1 Project Coordinator with HVAC background to oversee project meetings, contractor briefings, tendering submissions, and site progress.",
+    "responsibilities": [
+      "Attend client, main contractor, and MEP consultant coordination meetings",
+      "Conduct site briefings with air conditioning installation foremen and sub-contractors",
+      "Prepare tender project submissions, progress claims, and variation order documentations",
+      "Liaise between technical engineering teams, suppliers, and client site representatives"
+    ],
+    "requirements": [
+      "Must have proven project coordinator experience in air conditioning / ACMV sector",
+      "Proficient in spoken and written English, with excellent computer skills (MS Office, Email, basic AutoCAD)",
+      "Working hours: 8:00 AM to 7:00 PM, Monday to Saturday",
+      "Salary: SGD 2,500 / month, final offer subject to interview evaluation",
+      "Strong communication, negotiation, and organizational skills"
+    ],
+    "benefits": [
+      "Professional project management career progression",
+      "Attractive monthly remuneration of SGD 2,500",
+      "MOM insurance and paid annual leave"
+    ],
+    "requiredDocuments": [
+      "Valid Passport Copy",
+      "Engineering Diploma / Degree Certificate",
+      "Detailed CV listing past Singapore ACMV project track record"
+    ],
+    "status": "published",
+    "featured": true,
+    "latest": true,
+    "postedDate": "2026-10-08",
+    "createdAt": "2026-10-08T12:51:47.321Z",
+    "updatedAt": "2026-10-08T12:51:47.321Z"
+  },
+  {
+    "id": "SG-JOB-337",
+    "title": "Hacking Demolition General Worker (D&R Renovation - High OT)",
+    "employer": "D&R Renovation & Demolition Pte Ltd",
+    "category": "Construction & Civil",
+    "location": "Singapore (HDB, Condo & Commercial Units)",
+    "salary": "SGD 30 / day + Fixed OT SGD 4.10 / hr (Many OT Hours)",
+    "qualification": "General Worker / Renovation Demolition",
+    "experience": "No past hacking experience needed (Must be willing to perform hacking)",
+    "jobType": "Work Permit",
+    "vacancyCount": 1,
+    "description": "D&R is hiring 1 General Worker for interior hacking and demolition works. No prior hacking experience required; strong willingness to work hard and earn high overtime pay is essential.",
+    "responsibilities": [
+      "Operate demolition hammers, breaker drills, and sledgehammers for wall and tile hacking",
+      "Clear hacked masonry, concrete blocks, and floor tiles into heavy-duty disposal bags",
+      "Trolley demolition debris to designated disposal bins on ground level",
+      "Lay floor and lift protection before commencing interior hacking works"
+    ],
+    "requirements": [
+      "Basic pay: SGD 30 / day",
+      "Fixed overtime rate: SGD 4.10 / hour",
+      "Rest day: Sunday off",
+      "High volume of overtime hours available every week",
+      "No hacking experience required, but must be physically capable and willing to do hacking"
+    ],
+    "benefits": [
+      "Fixed OT rate of SGD 4.10/hr with many overtime hours every week",
+      "Regular Sunday rest day",
+      "MOM standard insurance coverage"
+    ],
+    "requiredDocuments": [
+      "Valid Passport Copy",
+      "Past Singapore FIN (if applicable)"
+    ],
+    "status": "published",
+    "featured": false,
+    "latest": true,
+    "postedDate": "2026-10-08",
+    "createdAt": "2026-10-08T12:51:47.321Z",
+    "updatedAt": "2026-10-08T12:51:47.321Z"
+  },
+  {
+    "id": "SG-JOB-338",
+    "title": "U-Turn Carpenter Trainee (L D Studio Carpentry)",
+    "employer": "L D Studio Interior & Carpentry Pte Ltd",
+    "category": "Manufacturing & Production",
+    "location": "Kaki Bukit / Sungei Kadut, Singapore",
+    "salary": "SGD 26 - 28 / day + Overtime",
+    "qualification": "U-Turn Worker / Good Spoken English / Secondary",
+    "experience": "Willing to learn custom carpentry and joinery (Age below 35)",
+    "jobType": "Work Permit",
+    "vacancyCount": 1,
+    "description": "Boutique interior carpentry studio is seeking 1 U-Turn worker eager to learn custom cabinet fabrication, laminate lamination, and interior wood joinery. Candidate must speak good English.",
+    "responsibilities": [
+      "Learn and assist senior carpenters with plywood cutting, edging, and laminate bonding",
+      "Assemble modular cabinets, wardrobe carcasses, kitchen islands, and feature walls",
+      "Operate workshop table saws, edge banding machines, and router trimmers safely",
+      "Assist in on-site delivery, leveling, and installation at residential and retail projects"
+    ],
+    "requirements": [
+      "U-Turn worker status with good spoken English proficiency",
+      "Must be genuinely willing to learn fine carpentry craftsmanship",
+      "Age below 35 years",
+      "Basic rate: SGD 26 - 28 / day + Overtime",
+      "Please provide candidate bio with active WhatsApp mobile number"
+    ],
+    "benefits": [
+      "Learn high-value interior carpentry trade under master carpenters",
+      "Clean workshop environment with modern woodworking tools",
+      "Regular overtime pay and MOM benefits"
+    ],
+    "requiredDocuments": [
+      "Valid Passport Copy",
+      "Candidate Bio with WhatsApp Phone Number",
+      "Past Singapore Work Permit Records"
+    ],
+    "status": "published",
+    "featured": false,
+    "latest": true,
+    "postedDate": "2026-10-08",
+    "createdAt": "2026-10-08T12:51:47.321Z",
+    "updatedAt": "2026-10-08T12:51:47.321Z"
+  },
+  {
+    "id": "SG-JOB-339",
+    "title": "Aircon Ducting & HVAC Technician (KE / KME Engineering)",
+    "employer": "KE / KME Airconditioning & Ducting Pte Ltd",
+    "category": "Electrical & Maintenance",
+    "location": "Singapore (Commercial & Industrial HVAC Projects)",
+    "salary": "Competitive Salary Offered During Interview",
+    "qualification": "Aircon Technician / HVAC Certificate / NTC",
+    "experience": "2+ Years hands-on aircon troubleshooting, copper welding, and servicing",
+    "jobType": "Work Permit",
+    "vacancyCount": 1,
+    "description": "KE / KME Airconditioning is hiring 1 Aircon Technician. New and transfer candidates welcome. Must be proficient in diagnostics, copper brazing, error codes, and complete system overhauls.",
+    "responsibilities": [
+      "Conduct in-depth aircon system troubleshooting and error code diagnostics",
+      "Perform precision copper welding / brazing for refrigerant piping lines",
+      "Top up refrigerant gas (R410A / R32) and test compressor operating pressures",
+      "Replace faulty PCB electronic boards, expansion valves, and hermetic compressors",
+      "Perform Fan Coil Unit (FCU) and condensing unit chemical overhauls and deep cleaning"
+    ],
+    "requirements": [
+      "Must understand: 1. Aircon troubleshooting, 2. Copper welding, 3. Error code reading, 4. Gas top-up, 5. PCB & expansion valve replacement, 6. Compressor replacement, 7. FCU chemical wash",
+      "New and transfer candidates in Singapore are both accepted",
+      "Salary will be offered during technical interview based on proficiency"
+    ],
+    "benefits": [
+      "Attractive salary package offered upon interview",
+      "Open to both new and transfer candidates in Singapore",
+      "MOM work injury and medical coverage"
+    ],
+    "requiredDocuments": [
+      "Valid Passport Copy",
+      "HVAC / Aircon Trade Certificates",
+      "Work Experience Summary detailing specific brand systems handled"
+    ],
+    "status": "published",
+    "featured": true,
+    "latest": true,
+    "postedDate": "2026-10-08",
+    "createdAt": "2026-10-08T12:51:47.321Z",
+    "updatedAt": "2026-10-08T12:51:47.321Z"
+  },
+  {
+    "id": "SG-JOB-340",
+    "title": "Class 3 Driver cum General Worker (Lee Plus Construction - R1)",
+    "employer": "Lee Plus Construction Pte Ltd",
+    "category": "Logistics & Warehouse",
+    "location": "Singapore (Islandwide Sites & Yard)",
+    "salary": "SGD 1,400 - 1,500 / month + OT SGD 6.90 / hr",
+    "qualification": "Class 3 Driving License + R1 Construction Status",
+    "experience": "At least 2 Years driving in SG + 6 Years construction experience (R1)",
+    "jobType": "Work Permit",
+    "vacancyCount": 1,
+    "description": "Lee Plus Construction requires 1 Driver cum General Worker (R1 certified) for worker transportation, site housekeeping, and material haulage.",
+    "responsibilities": [
+      "Drive company lorry for morning and evening worker pickup and drop-off",
+      "Perform site cleaning, debris housekeeping, and waste disposal",
+      "Lay floor protection sheets before subcontractor works commence",
+      "Assist in hauling building materials, cement, tiles, and tools across floors"
+    ],
+    "requirements": [
+      "At least 2 years driving experience in Singapore with valid Class 3 driving license",
+      "Minimum 6 years construction experience in Singapore (certified R1 status)",
+      "Working hours: 8:00 AM to 7:00 PM, Monday to Saturday",
+      "Basic salary: SGD 1,400 - 1,500 / month",
+      "Overtime (OT) rate: SGD 6.90 / hour"
+    ],
+    "benefits": [
+      "Stable monthly basic salary of SGD 1,400 - 1,500",
+      "Overtime paid at SGD 6.90/hr",
+      "MOM medical insurance and safety equipment provided"
+    ],
+    "requiredDocuments": [
+      "Valid Passport Copy",
+      "Singapore Class 3 Driving License",
+      "BCA R1 Construction Certification / Past Employment Records"
+    ],
+    "status": "published",
+    "featured": false,
+    "latest": true,
+    "postedDate": "2026-10-08",
+    "createdAt": "2026-10-08T12:51:47.321Z",
+    "updatedAt": "2026-10-08T12:51:47.321Z"
+  },
+  {
+    "id": "SG-JOB-341",
+    "title": "Class 3 Driver cum General Worker (Sapphire Windows)",
+    "employer": "Sapphire Windows Pte Ltd",
+    "category": "Logistics & Warehouse",
+    "location": "Woodlands / Islandwide Delivery, Singapore",
+    "salary": "SGD 28 - 32 / day + SGD 300 Lorry Driving Allowance",
+    "qualification": "Valid Singapore Class 3 Driving License (New & Expired Renewable Accepted)",
+    "experience": "New license (<1 year) or expired renewable license accepted",
+    "jobType": "Work Permit",
+    "vacancyCount": 2,
+    "description": "Sapphire Windows, a premier window manufacturer, is hiring 2 Class 3 Drivers cum General Workers. New license holders and renewable expired license holders are welcome. Company provides additional SGD 300 driving allowance upon passing internal test.",
+    "responsibilities": [
+      "Drive company 14-foot lorry for delivery of finished windows, doors, and glass panels",
+      "Carry heavy items up to 25kg safely during loading and on-site unloading",
+      "Assist factory teams with general warehouse handling when not on delivery runs",
+      "Inspect vehicle condition, secure cargo tightly, and maintain delivery logs"
+    ],
+    "requirements": [
+      "Valid Singapore Class 3 driving license (new license less than 1 year or renewable expired license accepted)",
+      "Required to lift and carry heavy materials e.g. 25kg window frames",
+      "Upon passing internal driving test of 14-foot lorry by company supervisor, receive extra SGD 300 / month driving allowance",
+      "Daily wage: SGD 28 - 32 / day + overtime pay"
+    ],
+    "benefits": [
+      "Additional SGD 300 / month driving allowance upon passing 14-foot lorry test",
+      "Accepts new and expired renewable license holders",
+      "Overtime pay and MOM medical insurance provided"
+    ],
+    "requiredDocuments": [
+      "Valid Passport Copy",
+      "Singapore Class 3 Driving License (Front & Back)",
+      "Past Singapore Work Records (if applicable)"
+    ],
+    "status": "published",
+    "featured": true,
+    "latest": true,
+    "postedDate": "2026-10-08",
+    "createdAt": "2026-10-08T12:51:47.321Z",
+    "updatedAt": "2026-10-08T12:51:47.321Z"
+  },
+  {
+    "id": "SG-JOB-342",
+    "title": "Class 4 Cold Chain Delivery Driver (Chicken Processing Plant)",
+    "employer": "Poultry Processing & Cold Chain Distribution Pte Ltd",
+    "category": "Logistics & Warehouse",
+    "location": "Jurong / Senoko Industrial Estate, Singapore",
+    "salary": "SGD 3,000+++ / month (Offered Upon Interview)",
+    "qualification": "Valid Singapore Class 4 Driving License",
+    "experience": "1+ Years heavy vehicle driving (FMCG / cold chain supply experience preferred)",
+    "jobType": "NTS Work Permit",
+    "vacancyCount": 2,
+    "description": "Leading poultry manufacturer and meat processing company requires Class 4 Drivers for early morning chilled poultry delivery runs across Singapore. Must have valid Class 4 license and cold chain handling readiness.",
+    "responsibilities": [
+      "Drive refrigerated Class 4 lorry to deliver slaughtered chicken to wholesale wet markets, supermarkets, and catering hubs",
+      "Act as standby driver when required to perform urgent delivery duties",
+      "Perform loading, unloading, and accurate stock counting before and after delivery",
+      "Handle chilled cargo in cold environments (12 - 15°C) with strong raw chicken scent"
+    ],
+    "requirements": [
+      "Must possess a valid Singapore Class 4 driving license",
+      "6 days per week, starting work around 5:00 AM until deliveries completed (~3:00 / 4:00 PM)",
+      "Requires staying near company as no public transport is available during midnight, unless worker owns a vehicle",
+      "Able to carry weight up to 25kg regularly",
+      "Able to work in cold room environment (12 - 15°C) with strong smells of raw poultry",
+      "Comfortable handling raw chicken and working weekends / Public Holidays if required",
+      "Candidate with FMCG / cold chain delivery experience preferred; team player able to work independently",
+      "Salary: SGD 3,000+++ offered upon interview based on experience"
+    ],
+    "benefits": [
+      "High monthly salary of SGD 3,000+++",
+      "Essential food industry stability with year-round work",
+      "Standard MOM medical insurance and safety equipment"
+    ],
+    "requiredDocuments": [
+      "Valid Passport Copy",
+      "Singapore Class 4 Driving License",
+      "Past Singapore Delivery & Employment Records"
+    ],
+    "status": "published",
+    "featured": true,
+    "latest": true,
+    "postedDate": "2026-10-08",
+    "createdAt": "2026-10-08T12:51:47.321Z",
+    "updatedAt": "2026-10-08T12:51:47.321Z"
+  },
+  {
+    "id": "SG-JOB-343",
+    "title": "Safety Coordinator cum Scaffolding Supervisor",
+    "employer": "Scaffolding & Structural Access Pte Ltd",
+    "category": "Construction & Civil",
+    "location": "Singapore (Active Construction Sites)",
+    "salary": "Basic SGD 1,350 / month + 2 Hours Daily OT + Housing",
+    "qualification": "Scaffolding Supervisor Certificate + Safety Coordinator Pass",
+    "experience": "2+ Years scaffolding erection, inspection, and site safety coordination",
+    "jobType": "Work Permit",
+    "vacancyCount": 2,
+    "description": "Structural access and scaffolding contractor requires certified Safety Coordinator cum Scaffolding Supervisors. Must possess official scaffolding supervisor and site safety credentials.",
+    "responsibilities": [
+      "Inspect tube and coupler, modular, and frame scaffoldings for structural integrity and safe access",
+      "Issue scaffolding inspection tags (Green / Red tags) in accordance with MOM regulations",
+      "Conduct daily site safety walk-throughs, identify hazards, and conduct toolbox briefings",
+      "Ensure all scaffolding erectors wear full fall-arrest harnesses and follow working-at-height procedures"
+    ],
+    "requirements": [
+      "Must have certified Scaffolding Supervisor qualification and safety coordinator work credentials",
+      "Basic salary: SGD 1,350 / month",
+      "Working hours: Monday to Saturday, 8:00 AM to 5:00 PM",
+      "Rest day: Sunday",
+      "Company housing provided",
+      "Daily 2 hours overtime available"
+    ],
+    "benefits": [
+      "Company accommodation (housing) provided",
+      "Daily 2 hours overtime pay",
+      "Sunday regular rest day",
+      "Standard MOM insurance and protective equipment"
+    ],
+    "requiredDocuments": [
+      "Valid Passport Copy",
+      "MOM / BCA Scaffolding Supervisor Certificate",
+      "Safety Coordinator / BCSS Pass",
+      "Past Singapore Work Records"
+    ],
+    "status": "published",
+    "featured": false,
+    "latest": true,
+    "postedDate": "2026-10-08",
+    "createdAt": "2026-10-08T12:51:47.321Z",
+    "updatedAt": "2026-10-08T12:51:47.321Z"
+  },
+  {
+    "id": "SG-JOB-344",
+    "title": "Field Service Engineer / Machinery Technician (S Pass)",
+    "employer": "Industrial Automation & Machinery Solutions Pte Ltd",
+    "category": "Electrical & Maintenance",
+    "location": "Boon Lay, Singapore",
+    "salary": "SGD 3,000 - 4,000 / month",
+    "qualification": "Diploma / ITC / NTC in Mechanical, Mechatronics, Electrical, or Automation",
+    "experience": "2 - 5 Years in industrial machinery installation, maintenance, or field service",
+    "jobType": "S Pass",
+    "vacancyCount": 2,
+    "description": "Premier distributor of industrial machinery and automation equipment in Boon Lay is hiring Field Service Engineers / Service Technicians. Involves machine installation, commissioning, maintenance, servicing, and on-site technical support.",
+    "responsibilities": [
+      "Install, commission, test, and troubleshoot industrial machinery at customer plant sites",
+      "Perform preventive maintenance, component overhauls, and replacement of faulty parts",
+      "Troubleshoot mechanical, electrical, pneumatic, hydraulic, and control system issues",
+      "Provide on-site technical support, attend to emergency machine breakdowns, and train customer operators",
+      "Support machine upgrades, prepare service reports, and ensure high customer satisfaction"
+    ],
+    "requirements": [
+      "Diploma / ITC / NTC in Mechanical, Mechatronics, Electrical, Automation, or related field",
+      "Minimum 2 to 5 years experience in machinery installation, maintenance, or field service",
+      "Experience with CNC, automation, semiconductor, or packaging machinery is an advantage",
+      "Able to read electrical schematics and mechanical engineering drawings",
+      "Knowledge of PLCs, sensors, servo systems, and diagnostic troubleshooting",
+      "Age below 33 years; Location: Boon Lay",
+      "Working hours: Monday to Friday, 8:15 AM to 5:30 PM (Saturday, Sunday, and Public Holidays OFF)",
+      "Basic Salary: SGD 3,000 - 4,000 / month (Housing: NIL)"
+    ],
+    "benefits": [
+      "Attractive monthly remuneration: SGD 3,000 - 4,000",
+      "5-Day work week (Saturday, Sunday, and Public Holidays completely OFF)",
+      "High-tech industrial automation environment with career growth",
+      "Standard MOM S Pass medical insurance and paid leave"
+    ],
+    "requiredDocuments": [
+      "Valid Passport Copy",
+      "Engineering Diploma / Degree Transcripts & Certificate",
+      "Detailed Resume specifying automation / CNC machinery types handled",
+      "Past Employment Recommendation Letters"
+    ],
+    "status": "published",
+    "featured": true,
+    "latest": true,
+    "postedDate": "2026-10-08",
+    "createdAt": "2026-10-08T12:51:47.321Z",
+    "updatedAt": "2026-10-08T12:51:47.321Z"
+  },
+  {
+    "id": "SG-JOB-345",
+    "title": "Class 3 Food Distribution Driver (NTS Work Permit)",
+    "employer": "Food Catering & Distribution Pte Ltd",
+    "category": "Logistics & Warehouse",
+    "location": "Singapore (Islandwide Distribution Routes)",
+    "salary": "SGD 1,800 / month + Dormitory Provided",
+    "qualification": "Valid Singapore Class 3 Driving License (No educational qualifications needed)",
+    "experience": "Class 3 driving experience in Singapore; open to all candidates",
+    "jobType": "NTS Work Permit",
+    "vacancyCount": 2,
+    "description": "Food catering and central kitchen distribution company requires Class 3 Drivers for food delivery runs. Any permit accepted, no educational qualifications required, apply immediately.",
+    "responsibilities": [
+      "Drive company Class 3 van or box lorry to transport packed meals, groceries, and catering supplies",
+      "Assist in loading and unloading thermal food containers and food crates",
+      "Follow assigned delivery routes punctually and communicate with kitchen dispatch",
+      "Maintain vehicle cleanliness and adhere to Singapore traffic rules"
+    ],
+    "requirements": [
+      "Valid Singapore Class 3 Driving License",
+      "Salary: SGD 1,800 / month",
+      "Working hours: 4:00 AM to 4:00 PM",
+      "3 off days per month",
+      "Dormitory provided by company",
+      "Any permit accepted; without formal qualifications also welcome; apply now"
+    ],
+    "benefits": [
+      "Company dormitory accommodation provided",
+      "Open to candidates without formal qualifications",
+      "Immediate vacancy with fast MOM work permit processing",
+      "Standard MOM medical and accident insurance"
+    ],
+    "requiredDocuments": [
+      "Valid Passport Copy",
+      "Singapore Class 3 Driving License (Front & Back)",
+      "Past Singapore FIN (if applicable)"
+    ],
+    "status": "published",
+    "featured": false,
+    "latest": true,
+    "postedDate": "2026-10-08",
+    "createdAt": "2026-10-08T12:51:47.321Z",
+    "updatedAt": "2026-10-08T12:51:47.321Z"
   }
 ];

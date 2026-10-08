@@ -9,7 +9,6 @@ import {
   RefreshCw,
   Sparkles,
   Clock,
-  Calendar,
   X,
   SlidersHorizontal,
   Users,
@@ -212,13 +211,6 @@ export const JobsView: React.FC<JobsViewProps> = ({
               SGD, verified employer locations, and immediate application
               tracking.
             </p>
-            <div
-              id="jobs-last-updated-subtext"
-              className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-slate-800/70 border border-slate-700/50 text-xs text-slate-200 font-medium"
-            >
-              <Calendar className="w-3.5 h-3.5 text-rose-400 shrink-0" />
-              <span>Last Updated: <strong className="text-white font-semibold">{formattedLastUpdated}</strong></span>
-            </div>
           </div>
 
           <div className="relative z-10 shrink-0 flex flex-col sm:flex-row md:flex-col lg:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
@@ -235,17 +227,6 @@ export const JobsView: React.FC<JobsViewProps> = ({
                 <span>Join WhatsApp Job Group</span>
               </a>
             )}
-            <button
-              id="jobs-manual-refresh-btn"
-              type="button"
-              onClick={handleManualRefresh}
-              disabled={isRefreshing}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 text-xs sm:text-sm font-semibold border border-slate-700/60 transition-all cursor-pointer"
-              title="Refresh job listings and timestamp"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 text-amber-400 ${isRefreshing ? "animate-spin" : ""}`} />
-              <span>{isRefreshing ? "Syncing..." : "Refresh"}</span>
-            </button>
           </div>
         </div>
 
