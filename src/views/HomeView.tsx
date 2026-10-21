@@ -5,6 +5,7 @@ import { AllLiveJobsSection } from '../components/FeaturedJobsSection';
 import { WhyChooseSection } from '../components/WhyChooseSection';
 import { ProcessSection } from '../components/ProcessSection';
 import { CVServiceSection } from '../components/CVServiceSection';
+import { CertificateVerificationSection } from '../components/CertificateVerificationSection';
 import { VideosSection } from '../components/VideosSection';
 import { GoogleReviewsSection } from '../components/GoogleReviewsSection';
 import { TravelESimSection } from '../components/TravelESimSection';
@@ -41,7 +42,10 @@ export const HomeView: React.FC<HomeViewProps> = ({ onSearch }) => {
       {/* 5. Create Your Professional CV Service */}
       <CVServiceSection />
 
-      {/* 6. How the Recruitment Process Works */}
+      {/* 6. Certificate Verification Assistance */}
+      <CertificateVerificationSection />
+
+      {/* 7. How the Recruitment Process Works */}
       <ProcessSection />
 
       {/* 7. YouTube Videos */}

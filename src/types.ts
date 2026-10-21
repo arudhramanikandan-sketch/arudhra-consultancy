@@ -262,7 +262,8 @@ export type AppTab =
   | 'admin-login'
   | 'admin'
   | 'esim'
-  | 'cv';
+  | 'cv'
+  | 'verification';
 
 export type CVPackageType =
   | 'basic'

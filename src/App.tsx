@@ -19,6 +19,7 @@ import { AdminLoginView } from './views/AdminLoginView';
 import { AdminDashboardView } from './views/AdminDashboardView';
 import { TravelESimView } from './views/TravelESimView';
 import { CreateCVView } from './views/CreateCVView';
+import { CertificateVerificationView } from './views/CertificateVerificationView';
 import { GoogleReviewsSection } from './components/GoogleReviewsSection';
 import { SubpageBackButton } from './components/SubpageBackButton';
 
@@ -152,6 +153,7 @@ const MainAppContent: React.FC = () => {
         )}
         {currentTab === 'about' && <AboutUsView />}
         {currentTab === 'cv' && <CreateCVView />}
+        {currentTab === 'verification' && <CertificateVerificationView />}
         {currentTab === 'videos' && <VideosView />}
         {currentTab === 'esim' && <TravelESimView />}
         {currentTab === 'reviews' && (
