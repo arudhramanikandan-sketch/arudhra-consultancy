@@ -2715,14 +2715,26 @@ export const AdminDashboardView: React.FC = () => {
                 </div>
               </div>
 
+              {/* Registered Address */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Registered Address (Official Legal Address)</label>
+                <textarea
+                  rows={2}
+                  value={settingsForm.registeredAddress || ''}
+                  onChange={e => setSettingsForm({ ...settingsForm, registeredAddress: e.target.value })}
+                  placeholder="1/6-2, Varuna Bhagavan Kovil Street, Neelambur, Coimbatore - 641 062, Tamilnadu, India."
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium"
+                />
+              </div>
+
               {/* Office Address */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Full Office Address</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Full Office Address (Operational / Consultation Hub)</label>
                 <textarea
                   rows={2}
                   value={settingsForm.officeAddress}
                   onChange={e => setSettingsForm({ ...settingsForm, officeAddress: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium"
                 />
               </div>
 

@@ -127,9 +127,15 @@ export const JobDetailsModal: React.FC<JobDetailsModalProps> = ({ job, onClose }
                   </p>
                 </div>
               </div>
-              <p className="text-[10px] text-slate-600 mt-1.5 max-w-md leading-tight">
-                {settings.officeAddress || '1/149, Ganesh Complex, Avinashi Road, Neelambur, Coimbatore – 641062, India'}
-              </p>
+              <div className="text-[10px] text-slate-600 mt-1.5 max-w-lg leading-tight space-y-0.5">
+                <p>
+                  <strong className="text-slate-800">Regd. Office:</strong>{' '}
+                  {settings.registeredAddress || '1/6-2, Varuna Bhagavan Kovil Street, Neelambur, Coimbatore - 641 062, Tamilnadu, India.'}
+                </p>
+                <p>
+                  <strong className="text-slate-800">Office Hub:</strong> {settings.officeAddress}
+                </p>
+              </div>
             </div>
             <div className="text-right text-[10px] text-slate-700 shrink-0 space-y-0.5">
               <p className="font-mono font-bold text-slate-950 text-xs">Job Ref: {job.id}</p>

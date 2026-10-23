@@ -98,11 +98,23 @@ export const ContactView: React.FC = () => {
 
               <div className="space-y-4 text-xs text-slate-700">
                 <div className="flex items-start gap-3">
-                  <div className="p-2.5 bg-red-50 text-red-900 rounded-xl shrink-0 border border-red-100">
-                    <MapPin className="w-5 h-5" />
+                  <div className="p-2.5 bg-amber-50 text-amber-900 rounded-xl shrink-0 border border-amber-200/70">
+                    <MapPin className="w-5 h-5 text-amber-700" />
                   </div>
                   <div>
-                    <strong className="text-slate-900 block text-sm">Office Address</strong>
+                    <strong className="text-slate-900 block text-sm">Registered Address</strong>
+                    <p className="leading-relaxed mt-0.5 text-slate-700 font-medium">
+                      {settings.registeredAddress || '1/6-2, Varuna Bhagavan Kovil Street, Neelambur, Coimbatore - 641 062, Tamilnadu, India.'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="p-2.5 bg-red-50 text-red-900 rounded-xl shrink-0 border border-red-100">
+                    <MapPin className="w-5 h-5 text-red-800" />
+                  </div>
+                  <div>
+                    <strong className="text-slate-900 block text-sm">Office & Recruitment Hub</strong>
                     <p className="leading-relaxed mt-0.5 text-slate-600">{settings.officeAddress}</p>
                   </div>
                 </div>

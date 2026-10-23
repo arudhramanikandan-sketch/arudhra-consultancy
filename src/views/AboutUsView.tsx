@@ -88,11 +88,23 @@ export const AboutUsView: React.FC = () => {
           </div>
 
           {/* Compliance & Verification Statement */}
-          <div className="p-6 bg-slate-50 rounded-2xl border border-slate-200 space-y-2 text-xs text-slate-600">
-            <h4 className="font-bold text-slate-900">Regulatory Advisory & Compliance</h4>
-            <p>
+          <div className="p-6 bg-slate-50 rounded-2xl border border-slate-200 space-y-3 text-xs text-slate-600">
+            <h4 className="font-bold text-slate-900 text-sm">Regulatory Advisory & Registered Presence</h4>
+            <p className="leading-relaxed">
               Arudhra Consultancy operates as an overseas recruitment facilitator and candidate support consultancy. Work Pass approvals (Work Permit / S Pass / E Pass) and in-principle approval (IPA) issuances are governed by the Ministry of Manpower (MOM), Singapore. We do not provide unauthorized or fake guarantees.
             </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-200 text-[11px]">
+              <div>
+                <strong className="text-slate-800 block mb-0.5">Registered Address:</strong>
+                <span className="text-slate-600">
+                  {settings.registeredAddress || '1/6-2, Varuna Bhagavan Kovil Street, Neelambur, Coimbatore - 641 062, Tamilnadu, India.'}
+                </span>
+              </div>
+              <div>
+                <strong className="text-slate-800 block mb-0.5">Office & Recruitment Hub:</strong>
+                <span className="text-slate-600">{settings.officeAddress}</span>
+              </div>
+            </div>
           </div>
 
           {/* CTAs */}

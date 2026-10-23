@@ -569,6 +569,7 @@ export interface SiteSettings {
   whatsappGroupUrl?: string;
   email: string;
   officeAddress: string;
+  registeredAddress?: string;
   city: string;
   country: string;
   postalCode: string;

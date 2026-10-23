@@ -39,11 +39,23 @@ export const LocationSection: React.FC = () => {
 
               <div className="space-y-4 text-xs text-stone-300">
                 <div className="flex items-start gap-3">
+                  <div className="p-2 bg-stone-800 rounded-lg shrink-0 text-amber-400">
+                    <MapPin className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="font-semibold text-amber-400 block mb-0.5 text-[11px] uppercase tracking-wider">Registered Address</span>
+                    <p className="leading-relaxed text-stone-200 font-medium">
+                      {settings.registeredAddress || '1/6-2, Varuna Bhagavan Kovil Street, Neelambur, Coimbatore - 641 062, Tamilnadu, India.'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
                   <div className="p-2 bg-stone-800 rounded-lg shrink-0 text-red-400">
                     <MapPin className="w-4 h-4" />
                   </div>
                   <div>
-                    <span className="font-semibold text-white block mb-0.5">Address</span>
+                    <span className="font-semibold text-white block mb-0.5 text-[11px] uppercase tracking-wider">Office & Recruitment Hub</span>
                     <p className="leading-relaxed text-stone-300">{settings.officeAddress}</p>
                   </div>
                 </div>

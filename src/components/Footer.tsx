@@ -303,8 +303,19 @@ export const Footer: React.FC = () => {
             <div className="space-y-2.5 text-xs text-stone-400">
               <div className="flex items-start gap-2.5">
                 <MapPin className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
-                <div>
-                  <span className="leading-snug block">{settings.officeAddress}</span>
+                <div className="space-y-2">
+                  <div>
+                    <span className="text-[10px] uppercase font-bold tracking-wider text-amber-400 block">Registered Address</span>
+                    <span className="leading-snug block text-stone-300">
+                      {settings.registeredAddress || '1/6-2, Varuna Bhagavan Kovil Street, Neelambur, Coimbatore - 641 062, Tamilnadu, India.'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-bold tracking-wider text-stone-400 block">Office / Consultation</span>
+                    <span className="leading-snug block text-stone-400">
+                      {settings.officeAddress}
+                    </span>
+                  </div>
                   {(settings.googleMapsDirectionUrl || settings.googleProfileUrl) && (
                     <a
                       id="footer-google-maps-link"
