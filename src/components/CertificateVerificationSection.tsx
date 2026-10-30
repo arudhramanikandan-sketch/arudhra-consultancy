@@ -17,7 +17,7 @@ interface CertificateVerificationSectionProps {
 
 type QualificationType = 'Diploma' | 'UG' | 'PG';
 type ServiceOptionType = 'Option A' | 'Option B';
-type CertificateCountType = 1 | 2;
+type CertificateSelectionType = 'single' | 'both';
 
 export const CertificateVerificationSection: React.FC<CertificateVerificationSectionProps> = ({
   isFullPageView = false
@@ -31,22 +31,33 @@ export const CertificateVerificationSection: React.FC<CertificateVerificationSec
   const [courseName, setCourseName] = useState('');
   const [universityName, setUniversityName] = useState('');
   const [yearOfCompletion, setYearOfCompletion] = useState('');
-  const [certCount, setCertCount] = useState<CertificateCountType>(1);
+  const [certSelection, setCertSelection] = useState<CertificateSelectionType>('single');
   const [purpose, setPurpose] = useState('Singapore Employment & Work Pass Background Check');
   const [selectedOption, setSelectedOption] = useState<ServiceOptionType>('Option A');
   const [hasConsented, setHasConsented] = useState(false);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
-  // Dynamic price calculation
-  const getPrice = (option: ServiceOptionType, count: CertificateCountType): number => {
+  // Helper title for exact certificate selection labels
+  const getCertificateSelectionTitle = (type: CertificateSelectionType) => {
+    return type === 'single' ? 'Single Certificate (UG or PG)' : 'Both Certificates (UG + PG)';
+  };
+
+  // Dynamic price calculation - Total and final amounts payable
+  const getPriceDetails = (option: ServiceOptionType, type: CertificateSelectionType) => {
     if (option === 'Option A') {
-      return count === 1 ? 10000 : 20000;
+      return {
+        amount: type === 'single' ? 10000 : 20000,
+        amountFormatted: type === 'single' ? '₹10,000' : '₹20,000'
+      };
     } else {
-      return count === 1 ? 7500 : 12000;
+      return {
+        amount: type === 'single' ? 7500 : 9500,
+        amountFormatted: type === 'single' ? '₹7,500' : '₹9,500'
+      };
     }
   };
 
-  const currentPrice = getPrice(selectedOption, certCount);
+  const currentPriceInfo = getPriceDetails(selectedOption, certSelection);
 
   // Validate form
   const validateForm = () => {
@@ -87,8 +98,8 @@ export const CertificateVerificationSection: React.FC<CertificateVerificationSec
       `*2. Service Option & Selected Certificates:*`,
       `• Service Name: Certificate Verification Assistance`,
       `• Selected Option: ${selectedOption}`,
-      `• Number of Certificates: ${certCount} Certificate(s)`,
-      `• Indicated Coordination Fee: ₹${currentPrice.toLocaleString('en-IN')}`,
+      `• Certificate Selection: ${getCertificateSelectionTitle(certSelection)}`,
+      `• Total Final Amount: ${currentPriceInfo.amountFormatted} (Inclusive of applicable service charges and GST)`,
       `• Purpose of Verification: ${purpose}`,
       ``,
       `*3. Candidate Consent:*`,
@@ -152,16 +163,18 @@ export const CertificateVerificationSection: React.FC<CertificateVerificationSec
             <div>
               <h3 className="text-lg font-bold text-slate-900">Certificate Verification Assistance Options</h3>
               <p className="text-xs text-slate-500">
-                Both options provide Certificate Verification Assistance, distinguished by Option A and Option B and their respective fees.
+                Both options provide Certificate Verification Assistance, distinguished by Option A and Option B and their respective final prices.
               </p>
             </div>
             <div className="flex items-center gap-2 text-xs font-semibold text-slate-600 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-xs">
               <span>Selected:</span>
               <strong className="text-red-900 font-bold">{selectedOption}</strong>
               <span className="text-slate-400">|</span>
-              <span className="text-slate-800 font-bold">{certCount} Certificate(s)</span>
+              <span className="text-slate-800 font-bold">{getCertificateSelectionTitle(certSelection)}</span>
               <span className="text-slate-400">|</span>
-              <strong className="text-emerald-700 font-extrabold text-sm">₹{currentPrice.toLocaleString('en-IN')}</strong>
+              <strong className="text-emerald-700 font-extrabold text-sm">
+                {currentPriceInfo.amountFormatted}
+              </strong>
             </div>
           </div>
 
@@ -197,37 +210,39 @@ export const CertificateVerificationSection: React.FC<CertificateVerificationSec
               </div>
 
               {/* Pricing Rows */}
-              <div className="mt-5 pt-4 border-t border-slate-100 grid grid-cols-2 gap-3">
+              <div className="mt-5 pt-4 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div
                   onClick={(e) => {
                     e.stopPropagation();
                     setSelectedOption('Option A');
-                    setCertCount(1);
+                    setCertSelection('single');
                   }}
-                  className={`p-3 rounded-2xl border text-center transition-all ${
-                    selectedOption === 'Option A' && certCount === 1
-                      ? 'bg-red-50/80 border-red-800/40 text-red-950 font-semibold'
-                      : 'bg-slate-50 border-slate-200/80 text-slate-700'
+                  className={`p-3.5 rounded-2xl border text-center transition-all ${
+                    selectedOption === 'Option A' && certSelection === 'single'
+                      ? 'bg-red-50/80 border-red-800/40 text-red-950 font-semibold ring-1 ring-red-800/30'
+                      : 'bg-slate-50 border-slate-200/80 text-slate-700 hover:bg-slate-100'
                   }`}
                 >
-                  <span className="block text-[11px] text-slate-500 font-medium">1 Certificate</span>
-                  <strong className="block text-xl font-extrabold text-slate-900 mt-0.5">₹10,000</strong>
+                  <span className="block text-xs text-slate-600 font-bold">Single Certificate (UG or PG)</span>
+                  <strong className="block text-xl font-extrabold text-slate-900 mt-1">₹10,000</strong>
+                  <span className="block text-[10px] text-slate-500 mt-0.5">Either UG or PG certificate</span>
                 </div>
 
                 <div
                   onClick={(e) => {
                     e.stopPropagation();
                     setSelectedOption('Option A');
-                    setCertCount(2);
+                    setCertSelection('both');
                   }}
-                  className={`p-3 rounded-2xl border text-center transition-all ${
-                    selectedOption === 'Option A' && certCount === 2
-                      ? 'bg-red-50/80 border-red-800/40 text-red-950 font-semibold'
-                      : 'bg-slate-50 border-slate-200/80 text-slate-700'
+                  className={`p-3.5 rounded-2xl border text-center transition-all ${
+                    selectedOption === 'Option A' && certSelection === 'both'
+                      ? 'bg-red-50/80 border-red-800/40 text-red-950 font-semibold ring-1 ring-red-800/30'
+                      : 'bg-slate-50 border-slate-200/80 text-slate-700 hover:bg-slate-100'
                   }`}
                 >
-                  <span className="block text-[11px] text-slate-500 font-medium">2 Certificates</span>
-                  <strong className="block text-xl font-extrabold text-slate-900 mt-0.5">₹20,000</strong>
+                  <span className="block text-xs text-slate-600 font-bold">Both Certificates (UG + PG)</span>
+                  <strong className="block text-xl font-extrabold text-slate-900 mt-1">₹20,000</strong>
+                  <span className="block text-[10px] text-slate-500 mt-0.5">UG + PG certificates together</span>
                 </div>
               </div>
 
@@ -278,37 +293,39 @@ export const CertificateVerificationSection: React.FC<CertificateVerificationSec
               </div>
 
               {/* Pricing Rows */}
-              <div className="mt-5 pt-4 border-t border-slate-100 grid grid-cols-2 gap-3">
+              <div className="mt-5 pt-4 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div
                   onClick={(e) => {
                     e.stopPropagation();
                     setSelectedOption('Option B');
-                    setCertCount(1);
+                    setCertSelection('single');
                   }}
-                  className={`p-3 rounded-2xl border text-center transition-all ${
-                    selectedOption === 'Option B' && certCount === 1
-                      ? 'bg-red-50/80 border-red-800/40 text-red-950 font-semibold'
-                      : 'bg-slate-50 border-slate-200/80 text-slate-700'
+                  className={`p-3.5 rounded-2xl border text-center transition-all ${
+                    selectedOption === 'Option B' && certSelection === 'single'
+                      ? 'bg-red-50/80 border-red-800/40 text-red-950 font-semibold ring-1 ring-red-800/30'
+                      : 'bg-slate-50 border-slate-200/80 text-slate-700 hover:bg-slate-100'
                   }`}
                 >
-                  <span className="block text-[11px] text-slate-500 font-medium">1 Certificate</span>
-                  <strong className="block text-xl font-extrabold text-slate-900 mt-0.5">₹7,500</strong>
+                  <span className="block text-xs text-slate-600 font-bold">Single Certificate (UG or PG)</span>
+                  <strong className="block text-xl font-extrabold text-slate-900 mt-1">₹7,500</strong>
+                  <span className="block text-[10px] text-slate-500 mt-0.5">Either UG or PG certificate</span>
                 </div>
 
                 <div
                   onClick={(e) => {
                     e.stopPropagation();
                     setSelectedOption('Option B');
-                    setCertCount(2);
+                    setCertSelection('both');
                   }}
-                  className={`p-3 rounded-2xl border text-center transition-all ${
-                    selectedOption === 'Option B' && certCount === 2
-                      ? 'bg-red-50/80 border-red-800/40 text-red-950 font-semibold'
-                      : 'bg-slate-50 border-slate-200/80 text-slate-700'
+                  className={`p-3.5 rounded-2xl border text-center transition-all ${
+                    selectedOption === 'Option B' && certSelection === 'both'
+                      ? 'bg-red-50/80 border-red-800/40 text-red-950 font-semibold ring-1 ring-red-800/30'
+                      : 'bg-slate-50 border-slate-200/80 text-slate-700 hover:bg-slate-100'
                   }`}
                 >
-                  <span className="block text-[11px] text-slate-500 font-medium">2 Certificates</span>
-                  <strong className="block text-xl font-extrabold text-slate-900 mt-0.5">₹12,000</strong>
+                  <span className="block text-xs text-slate-600 font-bold">Both Certificates (UG + PG)</span>
+                  <strong className="block text-xl font-extrabold text-slate-900 mt-1">₹9,500</strong>
+                  <span className="block text-[10px] text-slate-500 mt-0.5">UG + PG certificates together</span>
                 </div>
               </div>
 
@@ -329,10 +346,37 @@ export const CertificateVerificationSection: React.FC<CertificateVerificationSec
             </div>
           </div>
 
-          <div className="text-[11px] text-slate-500 bg-slate-100 p-3 rounded-xl border border-slate-200">
-            <strong>Fee Disclosure:</strong> Prices shown represent candidate-facing assistance and coordination charges.
-            Any applicable statutory taxes (such as GST if confirmed) or university/institutional surcharges will be confirmed
-            prior to collecting final payment.
+          {/* Certificate Selection Meaning Clarification Box */}
+          <div className="bg-slate-100/90 border border-slate-200 rounded-2xl p-4 text-xs text-slate-700 space-y-2.5">
+            <h4 className="font-bold text-slate-900 flex items-center gap-1.5 text-xs sm:text-sm">
+              <Info className="w-4 h-4 text-red-900 shrink-0" />
+              <span>Certificate Selection Details:</span>
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[11px] sm:text-xs">
+              <div className="p-3 bg-white rounded-xl border border-slate-200/80 space-y-1">
+                <strong className="text-slate-900 block font-bold text-xs text-red-950">
+                  Single Certificate (UG or PG)
+                </strong>
+                <p className="text-slate-600 leading-relaxed">
+                  A single certificate means the candidate selects either their UG (Bachelor) certificate OR their PG (Master) certificate for verification assistance.
+                </p>
+              </div>
+
+              <div className="p-3 bg-white rounded-xl border border-slate-200/80 space-y-1">
+                <strong className="text-slate-900 block font-bold text-xs text-red-950">
+                  Both Certificates (UG + PG)
+                </strong>
+                <p className="text-slate-600 leading-relaxed">
+                  Both certificates means the candidate requests verification assistance for both their UG (Bachelor) and PG (Master) educational certificates together.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Important Pricing Clarification Notice */}
+          <div className="text-xs text-slate-700 bg-emerald-50/70 p-4 rounded-2xl border border-emerald-200/80 leading-relaxed">
+            <strong className="text-emerald-950 font-bold block mb-1">Pricing Clarification:</strong>
+            All prices displayed above are the total and final amounts payable by the customer, inclusive of applicable service charges and GST, wherever applicable. For Option B – Both Certificates (UG + PG), ₹9,500 is the complete final amount. No additional charges or extra fees apply on top of the displayed final prices.
           </div>
         </div>
 
@@ -388,7 +432,7 @@ export const CertificateVerificationSection: React.FC<CertificateVerificationSec
                 </div>
               </div>
 
-              {/* Qualification Level & Number of Certificates */}
+              {/* Qualification Level & Certificate Selection */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1.5">
@@ -414,23 +458,40 @@ export const CertificateVerificationSection: React.FC<CertificateVerificationSec
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                    Number of Certificates <span className="text-red-600">*</span>
+                    Certificate Selection <span className="text-red-600">*</span>
                   </label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {([1, 2] as CertificateCountType[]).map((count) => (
-                      <button
-                        type="button"
-                        key={count}
-                        onClick={() => setCertCount(count)}
-                        className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all text-center cursor-pointer ${
-                          certCount === count
-                            ? 'bg-red-900 text-white border-red-900 shadow-xs'
-                            : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
-                        }`}
-                      >
-                        {count} Certificate{count > 1 ? 's' : ''}
-                      </button>
-                    ))}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      key="single"
+                      onClick={() => setCertSelection('single')}
+                      className={`p-2.5 rounded-xl text-xs font-bold border transition-all text-left cursor-pointer ${
+                        certSelection === 'single'
+                          ? 'bg-red-900 text-white border-red-900 shadow-xs'
+                          : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
+                      }`}
+                    >
+                      <span className="block leading-tight">Single Certificate (UG or PG)</span>
+                      <span className={`block text-[10px] font-normal mt-0.5 ${certSelection === 'single' ? 'text-red-100' : 'text-slate-500'}`}>
+                        Either UG or PG
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      key="both"
+                      onClick={() => setCertSelection('both')}
+                      className={`p-2.5 rounded-xl text-xs font-bold border transition-all text-left cursor-pointer ${
+                        certSelection === 'both'
+                          ? 'bg-red-900 text-white border-red-900 shadow-xs'
+                          : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
+                      }`}
+                    >
+                      <span className="block leading-tight">Both Certificates (UG + PG)</span>
+                      <span className={`block text-[10px] font-normal mt-0.5 ${certSelection === 'both' ? 'text-red-100' : 'text-slate-500'}`}>
+                        Both UG and PG
+                      </span>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -529,14 +590,16 @@ export const CertificateVerificationSection: React.FC<CertificateVerificationSec
                     onClick={() => setSelectedOption('Option A')}
                     className={`p-3 rounded-xl border text-left flex items-center justify-between transition-all cursor-pointer ${
                       selectedOption === 'Option A'
-                        ? 'border-red-900 bg-red-50/70 text-red-950 font-bold'
-                        : 'border-slate-300 bg-slate-50 text-slate-700'
+                        ? 'border-red-900 bg-red-50/70 text-red-950 font-bold ring-1 ring-red-900/20'
+                        : 'border-slate-300 bg-slate-50 text-slate-700 hover:bg-slate-100'
                     }`}
                   >
                     <div>
-                      <span className="block text-xs">Option A</span>
+                      <span className="block text-xs font-bold">Option A</span>
                       <span className="block text-[11px] text-slate-500 font-normal">
-                        ₹{getPrice('Option A', certCount).toLocaleString('en-IN')} ({certCount} cert{certCount > 1 ? 's' : ''})
+                        {certSelection === 'single'
+                          ? 'Single (UG or PG): ₹10,000'
+                          : 'Both (UG + PG): ₹20,000'}
                       </span>
                     </div>
                     {selectedOption === 'Option A' && <CheckCircle2 className="w-4 h-4 text-red-900 shrink-0" />}
@@ -547,14 +610,16 @@ export const CertificateVerificationSection: React.FC<CertificateVerificationSec
                     onClick={() => setSelectedOption('Option B')}
                     className={`p-3 rounded-xl border text-left flex items-center justify-between transition-all cursor-pointer ${
                       selectedOption === 'Option B'
-                        ? 'border-red-900 bg-red-50/70 text-red-950 font-bold'
-                        : 'border-slate-300 bg-slate-50 text-slate-700'
+                        ? 'border-red-900 bg-red-50/70 text-red-950 font-bold ring-1 ring-red-900/20'
+                        : 'border-slate-300 bg-slate-50 text-slate-700 hover:bg-slate-100'
                     }`}
                   >
                     <div>
-                      <span className="block text-xs">Option B</span>
+                      <span className="block text-xs font-bold">Option B</span>
                       <span className="block text-[11px] text-slate-500 font-normal">
-                        ₹{getPrice('Option B', certCount).toLocaleString('en-IN')} ({certCount} cert{certCount > 1 ? 's' : ''})
+                        {certSelection === 'single'
+                          ? 'Single (UG or PG): ₹7,500'
+                          : 'Both (UG + PG): ₹9,500'}
                       </span>
                     </div>
                     {selectedOption === 'Option B' && <CheckCircle2 className="w-4 h-4 text-red-900 shrink-0" />}
@@ -588,7 +653,7 @@ export const CertificateVerificationSection: React.FC<CertificateVerificationSec
                   className="w-full flex items-center justify-center gap-2.5 px-6 py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm sm:text-base shadow-lg shadow-emerald-950/20 transition-all hover:scale-[1.01] cursor-pointer"
                 >
                   <MessageSquare className="w-5 h-5" />
-                  <span>Send Verification Enquiry via WhatsApp (₹{currentPrice.toLocaleString('en-IN')})</span>
+                  <span>Send Verification Enquiry via WhatsApp ({currentPriceInfo.amountFormatted})</span>
                 </button>
 
                 {/* Clear Process Notice */}
@@ -689,12 +754,13 @@ export const CertificateVerificationSection: React.FC<CertificateVerificationSec
                   <span>Document Sets by Qualification:</span>
                 </span>
                 <p className="text-[11px] leading-relaxed text-slate-600">
-                  {qualification === 'PG' &&
-                    'For PG applications, please prepare the applicable document sets for both your Bachelor qualification and your Master qualification.'}
-                  {qualification === 'UG' &&
-                    'For UG applications, please prepare the applicable document set for your Bachelor qualification.'}
-                  {qualification === 'Diploma' &&
-                    'For Diploma applications, please prepare the applicable document set for your Diploma qualification.'}
+                  {certSelection === 'both'
+                    ? 'For Both Certificates (UG + PG), please prepare the applicable document sets for both your Bachelor qualification and your Master qualification.'
+                    : qualification === 'PG'
+                    ? 'For PG verification, please prepare the applicable document set for your Master qualification.'
+                    : qualification === 'UG'
+                    ? 'For UG verification, please prepare the applicable document set for your Bachelor qualification.'
+                    : 'For Diploma verification, please prepare the applicable document set for your Diploma qualification.'}
                 </p>
               </div>
 

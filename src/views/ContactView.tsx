@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { Phone, MessageSquare, Mail, MapPin, Navigation, Send, CheckCircle2, Clock, ShieldCheck, Facebook, Instagram, Youtube, Users } from 'lucide-react';
+import { Phone, MessageSquare, Mail, MapPin, Navigation, Send, CheckCircle2, Clock, ShieldCheck, Facebook, Instagram, Youtube, Users, Building2 } from 'lucide-react';
 import { SubpageBackButton } from '../components/SubpageBackButton';
 
 export const ContactView: React.FC = () => {
@@ -97,6 +97,30 @@ export const ContactView: React.FC = () => {
               </h3>
 
               <div className="space-y-4 text-xs text-slate-700">
+                <div className="flex items-start gap-3">
+                  <div className="p-2.5 bg-red-50 text-red-900 rounded-xl shrink-0 border border-red-100">
+                    <Building2 className="w-5 h-5 text-red-800" />
+                  </div>
+                  <div>
+                    <strong className="text-slate-900 block text-sm">Business Name</strong>
+                    <p className="leading-relaxed mt-0.5 text-slate-900 font-bold text-sm">
+                      Arudhra Consultancy
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="p-2.5 bg-blue-50 text-blue-900 rounded-xl shrink-0 border border-blue-200/70">
+                    <ShieldCheck className="w-5 h-5 text-blue-700" />
+                  </div>
+                  <div>
+                    <strong className="text-slate-900 block text-sm">Udyam Registration Number</strong>
+                    <p className="leading-relaxed mt-0.5 text-slate-900 font-bold font-mono tracking-wide">
+                      UDYAM-TN-03-0134152
+                    </p>
+                  </div>
+                </div>
+
                 <div className="flex items-start gap-3">
                   <div className="p-2.5 bg-amber-50 text-amber-900 rounded-xl shrink-0 border border-amber-200/70">
                     <MapPin className="w-5 h-5 text-amber-700" />
